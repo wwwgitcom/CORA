@@ -23,6 +23,8 @@ DEFINE_BLOCK(b_dot11_demap_bpsk_i_1v1, 1, 1)
 
   BLOCK_WORK
   {
+    trace();
+
     if (ninput(0) < 16) return false;
 
     auto ip = _$<v_cs>(0);
@@ -50,6 +52,8 @@ DEFINE_BLOCK(b_dot11_demap_bpsk_i_1v1, 1, 1)
     }
     consume(0, 16);
     produce(0, *high - *low - 4);
+
+    return true;
   }
 };
 
@@ -77,6 +81,8 @@ DEFINE_BLOCK(b_dot11_demap_bpsk_q_1v1, 1, 1)
 
   BLOCK_WORK
   {
+    trace();
+
     if (ninput(0) < 16) return false;
 
     auto ip = _$<v_cs>(0);
@@ -104,6 +110,8 @@ DEFINE_BLOCK(b_dot11_demap_bpsk_q_1v1, 1, 1)
     }
     consume(0, 16);
     produce(0, *high - *low - 4);
+
+    return true;
   }
 };
 
@@ -130,6 +138,8 @@ DEFINE_BLOCK(b_dot11_demap_qpsk_1v1, 1, 1)
 
   BLOCK_WORK
   {
+    trace();
+
     if (ninput(0) < 16) return false;
 
     auto ip = _$<v_cs>(0);
@@ -159,6 +169,8 @@ DEFINE_BLOCK(b_dot11_demap_qpsk_1v1, 1, 1)
     }
     consume(0, 16);
     produce(0, (*high - *low - 4) * 2);
+
+    return true;
   }
 };
 
@@ -185,6 +197,8 @@ DEFINE_BLOCK(b_dot11_demap_16qam_1v1, 1, 1)
 
   BLOCK_WORK
   {
+    trace();
+
     if (ninput(0) < 16) return false;
 
     auto ip = _$<v_cs>(0);
@@ -214,6 +228,8 @@ DEFINE_BLOCK(b_dot11_demap_16qam_1v1, 1, 1)
     }
     consume(0, 16);
     produce(0, (*high - *low - 4) * 4);
+
+    return true;
   }
 };
 
@@ -241,6 +257,8 @@ DEFINE_BLOCK(b_dot11_demap_64qam_1v1, 1, 1)
 
   BLOCK_WORK
   {
+    trace();
+
     if (ninput(0) < 16) return false;
 
     auto ip = _$<v_cs>(0);
@@ -270,5 +288,7 @@ DEFINE_BLOCK(b_dot11_demap_64qam_1v1, 1, 1)
     }
     consume(0, 16);
     produce(0, (*high - *low - 4) * 6);
+
+    return true;
   }
 };

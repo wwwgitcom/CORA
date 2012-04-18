@@ -81,6 +81,15 @@ public:
   // default op
   op_while_function;
 
+  void trace()
+  {
+    log("%p: %s\n", this, name());
+    for (int i = 0; i < NINPUT; i++)
+    {
+      log("  port %d: %d\n", i, ninput(i));
+    }
+  }
+
   void set_output(dsp_buffer_ptr buffer, int which)
   {
     m_outputs[which] = buffer;

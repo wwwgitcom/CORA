@@ -61,8 +61,6 @@ DEFINE_BLOCK(b_auto_corr_1v2, 1, 2)
 
     if (nin < 1) return false;
 
-    log("%s\n", name());
-
     v_cs &vInput = *_$<v_cs>(0);
     auto vop0 = $_<v_q>(0);// output auto correlation sqr energy
     auto vop1 = $_<v_q>(1);// output average sqr energy
@@ -186,8 +184,6 @@ DEFINE_BLOCK(b_auto_corr_2v2, 2, 2)
     auto nin = ninput(0);
 
     if (nin < 1) return false;
-
-    log("%s\n", name());
 
     v_cs &vInput = *_$<v_cs>(0);
     v_cs &vInput2 = *_$<v_cs>(1);// don't use data from port 2 in this impl.

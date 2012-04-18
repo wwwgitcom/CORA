@@ -230,9 +230,7 @@ public:
   BLOCK_WORK
   {
     if (noutput(0) < 28) return true;
-
-    log("%s\n", name());
-
+    
     if ((char*)(*pSignalBlock1) >= (*pBufferEnd1))
     {
       (*pSignalBlock1) = (psignal_block)(*pBufferStart1);

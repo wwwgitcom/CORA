@@ -266,6 +266,8 @@ DEFINE_BLOCK(b_frequest_offset_compensator_2v2, 2, 2)
 
   BLOCK_WORK
   {
+    trace();
+
     auto n = ninput(0);
     if (n < *vCompensateLength) return false;
 

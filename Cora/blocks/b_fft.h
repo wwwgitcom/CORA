@@ -7,14 +7,14 @@ DEFINE_BLOCK(b_fft_64_1v1, 1, 1)
 {
   BLOCK_WORK
   {
+    trace();
+
     auto n = ninput(0);
     if (n < 16) return false;
 
     auto ip = _$<v_cs>(0);
     auto op = $_<v_cs>(0);
-
-    log("%s: n=%d\n", name(), n);
-
+    
     FFT<64>(reinterpret_cast<vcs *>(ip), reinterpret_cast<vcs *>(op));
 
     consume(0, 16);

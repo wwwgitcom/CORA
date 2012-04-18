@@ -21,6 +21,8 @@ DEFINE_BLOCK(b_remove_gi_1v, 1, 0)
 
   BLOCK_WORK
   {
+    trace();
+
     int n = ninput(0);
     if (n < *gi_length + *symbol_length)
     {

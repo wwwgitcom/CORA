@@ -34,7 +34,6 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     
     bool ret = false;
 
-    log("%s\n", name());
 #if 0
     for (int i = 0; i < _nin; i++)
     {

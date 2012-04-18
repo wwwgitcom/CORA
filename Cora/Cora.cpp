@@ -32,6 +32,7 @@
 #include "b_channel_compensator.h"
 #include "b_remove_gi.h"
 #include "b_demap.h"
+#include "b_mrc_combine.h"
 
 
 
@@ -50,9 +51,16 @@ DEFINE_BLOCK(dummy_block, 1, 1)
 
   BLOCK_WORK
   {
-    int nin0 = ninput(0);
+    trace();
 
-    consume(0, nin0);    
+    int nin0 = ninput(0);
+    auto ip = _$<unsigned __int8>(0);
+    for (int i = 0; i < nin0; i++)
+    {
+      log("%d, ", ip[i]);
+    }
+    log("\n");
+    consume(0, nin0);
     return false;
   }
 };
@@ -90,23 +98,34 @@ int _tmain(int argc, _TCHAR* argv[])
   autoref fft_lltf1 = create_block<b_fft_64_1v1>();
   autoref fft_lltf2 = create_block<b_fft_64_1v1>();
 
-#if 0
+
   autoref remove_gi1 = create_block<b_remove_gi_1v>(
     2,
-    "GILength=4",
-    "SymbolLength=16"
+    string("GILength=4"),
+    string("SymbolLength=16")
     );
+
   autoref remove_gi2 = create_block<b_remove_gi_1v>(
     2,
-    "GILength=4",
-    "SymbolLength=16"
+    string("GILength=4"),
+    string("SymbolLength=16")
     );
-#endif
 
   autoref fft_data1 = create_block<b_fft_64_1v1>();
   autoref fft_data2 = create_block<b_fft_64_1v1>();
 
   autoref siso_channel_est = create_block<b_dot11_siso_channel_estimator_2v>();
+  autoref siso_channel_comp = create_block<b_dot11_siso_channel_compensator_2v2>();
+  
+  autoref siso_mrc_combine = create_block<b_mrc_combine_2v1>(
+    1,
+    string("Combinelength=1"));
+
+  autoref siso_lsig_demap_bpsk_i = create_block<b_dot11_demap_bpsk_i_1v1>(
+    2,
+    string("low=-26"),
+    string("high=26")
+    );
 
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
@@ -128,11 +147,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
   Channel::Create(sizeof(v_cs))
     .from(cfo_comp, 0)
-    .to(fft_lltf1, 0);
+    .to(fft_lltf1, 0).to(remove_gi1, 0).to(fft_data1, 0);
 
   Channel::Create(sizeof(v_cs))
     .from(cfo_comp, 1)
-    .to(fft_lltf2, 0);
+    .to(fft_lltf2, 0).to(remove_gi2, 0).to(fft_data2, 0);
 
   Channel::Create(sizeof(v_cs))
     .from(fft_lltf1, 0)
@@ -141,6 +160,22 @@ int _tmain(int argc, _TCHAR* argv[])
   Channel::Create(sizeof(v_cs))
     .from(fft_lltf2, 0)
     .to(siso_channel_est, 1);
+  
+  Channel::Create(sizeof(v_cs))
+    .from(fft_data1, 0).to(siso_channel_comp, 0);
+  Channel::Create(sizeof(v_cs))
+    .from(fft_data2, 0).to(siso_channel_comp, 1);
+
+  Channel::Create(sizeof(v_cs))
+    .from(siso_channel_comp, 0).to(siso_mrc_combine, 0);
+  Channel::Create(sizeof(v_cs))
+    .from(siso_channel_comp, 1).to(siso_mrc_combine, 1);
+  
+  Channel::Create(sizeof(v_cs))
+    .from(siso_mrc_combine, 0).to(siso_lsig_demap_bpsk_i, 0);
+
+  Channel::Create(sizeof(unsigned __int8))
+    .from(siso_lsig_demap_bpsk_i, 0).to(dummy, 0);
   //---------------------------------------------------------
   
   //auto fk = make_thread([&]{    
@@ -148,6 +183,7 @@ int _tmain(int argc, _TCHAR* argv[])
   //fk.wait();
 
   int status = 0;
+  int status2 = 0;
 
   tick_count t1, t2;
 
@@ -155,18 +191,24 @@ int _tmain(int argc, _TCHAR* argv[])
   
   START(src,
     IF([&]{return status == 0;}),
- [&]{
-      START(axorr, IF(lstf), STOP([&]{status = 1;}));
-    },
+    [&]{
+         START(axorr, IF(lstf), STOP([&]{status = 1;}));
+       },
     ELSE_IF([&]{return status == 1;}),
       IF(cfo_est), [&]{status = 2;}, ELSE, NOP,
     ELSE_IF([&]{return status == 2;}),
       cfo_comp,
- [&]{
-      START(fft_lltf1);
-      START(fft_lltf2);
-      START(siso_channel_est, STOP([&]{status = 3;}));
-    },
+      IF([&]{return status2 == 0;}),
+      [&]{
+           START(fft_lltf1);
+           START(fft_lltf2, siso_channel_est, STOP([&]{status2 = 1;}));
+         },
+      ELSE_IF([&]{return status2 == 1;}),
+      [&]{
+            START(IF(remove_gi1), fft_data1);
+            START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, dummy);
+         },
+      ELSE, NOP,
     ELSE, STOP(NOP)
   );
 
