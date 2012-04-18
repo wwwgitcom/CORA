@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup Label="Globals">
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Cora</RootNamespace>
+    <ProjectGuid>{1CA78CC0-7F45-E08C-88D5-8AC67A858AB6}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\sys;.\blocks;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\sys;.\blocks;</AdditionalIncludeDirectories>
+      <BrowseInformation>true</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="blocks\b_auto_corr.h" />
+    <ClInclude Include="blocks\b_channel_compensator.h" />
+    <ClInclude Include="blocks\b_channel_estimator.h" />
+    <ClInclude Include="blocks\b_demap.h" />
+    <ClInclude Include="blocks\b_fft.h" />
+    <ClInclude Include="blocks\b_file_source.h" />
+    <ClInclude Include="blocks\b_frequest_offset.h" />
+    <ClInclude Include="blocks\b_lstf_searcher.h" />
+    <ClInclude Include="blocks\b_map.h" />
+    <ClInclude Include="blocks\b_moving_energy.h" />
+    <ClInclude Include="blocks\b_mrc_combine.h" />
+    <ClInclude Include="blocks\b_remove_gi.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="sys\dsp_buffer.h" />
+    <ClInclude Include="sys\dsp_complex.h" />
+    <ClInclude Include="sys\dsp_demap.h" />
+    <ClInclude Include="sys\dsp_log.h" />
+    <ClInclude Include="sys\dsp_map.h" />
+    <ClInclude Include="sys\dsp_math.h" />
+    <ClInclude Include="sys\dsp_source.h" />
+    <ClInclude Include="sys\dsp_sysconfig.h" />
+    <ClInclude Include="sys\dsp_tickcount.h" />
+    <ClInclude Include="sys\dsp_vector1.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="TArray.h" />
+    <ClInclude Include="TBlock.h" />
+    <ClInclude Include="TChannel.h" />
+    <ClInclude Include="TObject.h" />
+    <ClInclude Include="TOnce.h" />
+    <ClInclude Include="TOP.h" />
+    <ClInclude Include="TPipeline.h" />
+    <ClInclude Include="TSchedule.h" />
+    <ClInclude Include="TTask.h" />
+    <ClInclude Include="TThread.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Cora.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="sys\dsp_buffer.cpp" />
+    <ClCompile Include="sys\dsp_global.cpp" />
+    <ClCompile Include="sys\dsp_log.cpp" />
+    <ClCompile Include="sys\dsp_demap.cpp" />
+    <ClCompile Include="sys\dsp_math.cpp" />
+    <ClCompile Include="sys\dsp_sysconfig.cpp" />
+    <ClCompile Include="sys\dsp_vector1.cpp" />
+    <ClCompile Include="TThread.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
