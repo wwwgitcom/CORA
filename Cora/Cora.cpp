@@ -210,11 +210,11 @@ int _tmain(int argc, _TCHAR* argv[])
     {
       START(axorr, IF(lstf), STOP([&]{branch1 = CFO;}));
     },
-    // carrier frequency offset estimation using L-LTF
     ELSE_IF(IsTrue(branch1 == CFO)),
+      // carrier frequency offset estimation using L-LTF
       IF(cfo_est), [&]{branch1 = OTHER;}, ELSE, NOP,
-    // carrier frequency offset compensation
     ELSE_IF(IsTrue(branch1 == OTHER)),
+      // carrier frequency offset compensation
       cfo_comp,
       // L-LTF branch: SISO channel estimation
       IF(IsTrue(branch2 == SISO_CHANNEL_ESTIMATION)),[&]

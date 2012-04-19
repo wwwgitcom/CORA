@@ -193,19 +193,8 @@ stop_op<_Function> STOP(const _Function &_Func)
   return stop_op<_Function>( const_cast<_Function&>(_Func) );
 }
 
-class IsTrue
-{
-  bool m_true;
-public:
-  IsTrue(bool t) : m_true(t){}
-
-  op_if_function;
-
-  __forceinline bool operator()()
-  {
-    return m_true;
-  };
-};
+#define IsTrue(expression) \
+  [&]{return (expression);}
 
 
 #define SEMI       semi_op()
