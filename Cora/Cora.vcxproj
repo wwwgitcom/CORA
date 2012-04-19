@@ -89,6 +89,7 @@
     <ClInclude Include="blocks\b_auto_corr.h" />
     <ClInclude Include="blocks\b_channel_compensator.h" />
     <ClInclude Include="blocks\b_channel_estimator.h" />
+    <ClInclude Include="blocks\b_deinterleave.h" />
     <ClInclude Include="blocks\b_demap.h" />
     <ClInclude Include="blocks\b_fft.h" />
     <ClInclude Include="blocks\b_file_source.h" />

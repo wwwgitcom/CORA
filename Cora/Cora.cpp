@@ -33,8 +33,7 @@
 #include "b_remove_gi.h"
 #include "b_demap.h"
 #include "b_mrc_combine.h"
-
-
+#include "b_deinterleave.h"
 
 
 
@@ -126,6 +125,7 @@ int _tmain(int argc, _TCHAR* argv[])
     string("low=-26"),
     string("high=26")
     );
+  autoref siso_lsig_deinterleave = create_block<b_dot11a_deinterleave_1bpsc_1v1>();
 
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
@@ -175,39 +175,59 @@ int _tmain(int argc, _TCHAR* argv[])
     .from(siso_mrc_combine, 0).to(siso_lsig_demap_bpsk_i, 0);
 
   Channel::Create(sizeof(unsigned __int8))
-    .from(siso_lsig_demap_bpsk_i, 0).to(dummy, 0);
+    .from(siso_lsig_demap_bpsk_i, 0).to(siso_lsig_deinterleave, 0);
+
+  Channel::Create(sizeof(unsigned __int8))
+    .from(siso_lsig_deinterleave, 0).to(dummy, 0);
   //---------------------------------------------------------
   
   //auto fk = make_thread([&]{    
   //});
   //fk.wait();
 
-  int status = 0;
-  int status2 = 0;
+  enum : unsigned int
+  {
+    CS = 0,
+    CFO,
+    OTHER
+  }branch1 = CS;
+
+
+  enum : unsigned int
+  {
+    SISO_CHANNEL_ESTIMATION = 0,
+    LSIG_DECODE,
+    lltf
+  }branch2 = SISO_CHANNEL_ESTIMATION;
 
   tick_count t1, t2;
 
   t1 = tick_count::now();
   
   START(src,
-    IF([&]{return status == 0;}),
-    [&]{
-         START(axorr, IF(lstf), STOP([&]{status = 1;}));
-       },
-    ELSE_IF([&]{return status == 1;}),
-      IF(cfo_est), [&]{status = 2;}, ELSE, NOP,
-    ELSE_IF([&]{return status == 2;}),
+    // frame detection
+    IF(IsTrue(branch1 == CS)),[&]
+    {
+      START(axorr, IF(lstf), STOP([&]{branch1 = CFO;}));
+    },
+    // carrier frequency offset estimation using L-LTF
+    ELSE_IF(IsTrue(branch1 == CFO)),
+      IF(cfo_est), [&]{branch1 = OTHER;}, ELSE, NOP,
+    // carrier frequency offset compensation
+    ELSE_IF(IsTrue(branch1 == OTHER)),
       cfo_comp,
-      IF([&]{return status2 == 0;}),
-      [&]{
-           START(fft_lltf1);
-           START(fft_lltf2, siso_channel_est, STOP([&]{status2 = 1;}));
-         },
-      ELSE_IF([&]{return status2 == 1;}),
-      [&]{
-            START(IF(remove_gi1), fft_data1);
-            START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, dummy);
-         },
+      // L-LTF branch: SISO channel estimation
+      IF(IsTrue(branch2 == SISO_CHANNEL_ESTIMATION)),[&]
+      {
+        START(fft_lltf1);
+        START(fft_lltf2, siso_channel_est, STOP([&]{branch2 = LSIG_DECODE;}));
+      },
+      // L-SIG branch: legacy signal field decoding using MRC
+      ELSE_IF(IsTrue(branch2 == LSIG_DECODE)), [&]
+      {
+        START(IF(remove_gi1), fft_data1);
+        START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, dummy);
+      },
       ELSE, NOP,
     ELSE, STOP(NOP)
   );

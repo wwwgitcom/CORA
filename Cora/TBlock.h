@@ -277,4 +277,3 @@ struct _local_##_name{\
   void operator=(_type &rhs){m_var = rhs;}\
 }_name;
 
-

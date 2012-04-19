@@ -193,6 +193,21 @@ stop_op<_Function> STOP(const _Function &_Func)
   return stop_op<_Function>( const_cast<_Function&>(_Func) );
 }
 
+class IsTrue
+{
+  bool m_true;
+public:
+  IsTrue(bool t) : m_true(t){}
+
+  op_if_function;
+
+  __forceinline bool operator()()
+  {
+    return m_true;
+  };
+};
+
+
 #define SEMI       semi_op()
 //#define IF(x)      make_if_op(x)
 //#define ELSE_IF(x) SEMI, else_if_op<decltype(x)>(x)

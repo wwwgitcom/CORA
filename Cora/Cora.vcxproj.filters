@@ -129,6 +129,9 @@
     <ClInclude Include="blocks\b_remove_gi.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_deinterleave.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
