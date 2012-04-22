@@ -34,7 +34,7 @@
 #include "b_demap.h"
 #include "b_mrc_combine.h"
 #include "b_deinterleave.h"
-
+#include "b_viterbi.h"
 
 
 //#define split(T, ...) new (aligned_malloc<T>()) T(__VA_ARGS__)
@@ -127,6 +127,12 @@ int _tmain(int argc, _TCHAR* argv[])
     );
   autoref siso_lsig_deinterleave = create_block<b_dot11a_deinterleave_1bpsc_1v1>();
 
+
+  autoref l_sig_vit = create_block<b_viterbi64_1o2_1v1>(
+    2,
+    string("TraceBackLength=36"),
+    string("TraceBackOutput=48")
+    );
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
   .from(src, 0)
@@ -178,9 +184,16 @@ int _tmain(int argc, _TCHAR* argv[])
     .from(siso_lsig_demap_bpsk_i, 0).to(siso_lsig_deinterleave, 0);
 
   Channel::Create(sizeof(unsigned __int8))
-    .from(siso_lsig_deinterleave, 0).to(dummy, 0);
+    .from(siso_lsig_deinterleave, 0).to(l_sig_vit, 0);
+
+  Channel::Create(sizeof(unsigned __int8))
+    .from(l_sig_vit, 0).to(dummy, 0);
   //---------------------------------------------------------
   
+  _global_(int, VitTotalSoftBits);
+
+
+  //////////////////////////////////////////////////////////////////////////
   //auto fk = make_thread([&]{    
   //});
   //fk.wait();
@@ -220,13 +233,13 @@ int _tmain(int argc, _TCHAR* argv[])
       IF(IsTrue(branch2 == SISO_CHANNEL_ESTIMATION)),[&]
       {
         START(fft_lltf1);
-        START(fft_lltf2, siso_channel_est, STOP([&]{branch2 = LSIG_DECODE;}));
+        START(fft_lltf2, siso_channel_est, STOP([&]{branch2 = LSIG_DECODE; *VitTotalSoftBits = 48;}));
       },
       // L-SIG branch: legacy signal field decoding using MRC
       ELSE_IF(IsTrue(branch2 == LSIG_DECODE)), [&]
       {
         START(IF(remove_gi1), fft_data1);
-        START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, dummy);
+        START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, dummy);
       },
       ELSE, NOP,
     ELSE, STOP(NOP)

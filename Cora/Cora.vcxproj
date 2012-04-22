@@ -99,6 +99,7 @@
     <ClInclude Include="blocks\b_moving_energy.h" />
     <ClInclude Include="blocks\b_mrc_combine.h" />
     <ClInclude Include="blocks\b_remove_gi.h" />
+    <ClInclude Include="blocks\b_viterbi.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />
     <ClInclude Include="sys\dsp_complex.h" />
