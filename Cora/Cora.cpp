@@ -130,8 +130,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
   autoref l_sig_vit = create_block<b_viterbi64_1o2_1v1>(
     2,
-    string("TraceBackLength=36"),
-    string("TraceBackOutput=48")
+    string("TraceBackLength=24"),
+    string("TraceBackOutput=24")
     );
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))

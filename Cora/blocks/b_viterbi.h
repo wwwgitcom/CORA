@@ -348,6 +348,9 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
     m_vStates[0].v_set_at<0>(0);
 
     m_IncomeSoftBits = 0;
+
+    m_buffer->reset();
+    m_buffer_reader->reset();
   }
   //////////////////////////////////////////////////////////////////////////
 
@@ -366,6 +369,8 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
     vShuffleMask = m_vShuffleMask;
     vNormMask    = m_vNormMask;
+
+    bool bRet = false;
 
     auto nInputSoftBits = ninput(0);
 
@@ -448,6 +453,8 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
         m_buffer_reader->update_read_pointer(nTraceBackOutput);
 
         produce(0, nTraceBackOutputByte);
+
+        bRet = true;
       }
     }
 
@@ -457,16 +464,30 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
     consume(0, nInputSoftBits);
 
-    log("vit: income: %d, total=%d\n", m_IncomeSoftBits, nTotalSoftBits);
-
-    if (m_IncomeSoftBits < nTotalSoftBits)
-    {
-      return false;
-    }
-    else
+    if (m_IncomeSoftBits >= nTotalSoftBits)
     {
       log("vitok\n");
-      return true;
+      log("vit: income: %d, total=%d\n", m_IncomeSoftBits, nTotalSoftBits);
+
+      for (unsigned int i = 0; i < nTraceBackOutput; i++)
+      {
+        TBQ[TBQwit][0] = TBQ[TBQwit][1] = TBQ[TBQwit][2] = TBQ[TBQwit][3] = 0;
+        TBQwit++;
+      }
+
+      unsigned __int8 MinAddress = FindMinValueAddress(m_vStates);
+
+      TraceBack(nTracebackOffset, MinAddress, nTraceBackLength, nTraceBackOutput, pDecodedBytes + nTraceBackOutputByte - 1);
+      
+      m_buffer_reader->update_read_pointer(nTraceBackOutput);
+
+      produce(0, nTraceBackOutputByte);
+
+      bRet = true;
+
+      reset();
     }
+
+    return bRet;
   }
 };

@@ -74,6 +74,11 @@ public:
 
   bool allocate_buffer (int nitems, size_t sizeof_item);
 
+  void reset()
+  {
+    m_write_index = 0;
+  }
+
   /*!
   * \brief return number of items worth of space available for writing
   */
@@ -129,6 +134,11 @@ public:
 
   const void *read_pointer ();
   void update_read_pointer (int nitems);
+
+  void reset()
+  {
+    m_read_index = 0;
+  }
 
   int items_available () const;
   unsigned __int64 nitems_read() { return m_abs_read_offset; }
