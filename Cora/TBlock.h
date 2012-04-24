@@ -132,7 +132,7 @@ public:
   void consume_each (int how_many_items)
   {
     if (how_many_items > 0) {
-      for (int i = 0; i < ninputs (); i++) {
+      for (int i = 0; i < NINPUT - 1; i++) {
         m_inputs[i]->update_read_pointer (how_many_items);
       }
     }
@@ -148,7 +148,7 @@ public:
   void produce_each (int how_many_items)
   {
     if (how_many_items > 0) {
-      for (int i = 0; i < noutputs (); i++) {
+      for (int i = 0; i < NOUTPUT - 1; i++) {
         m_outputs[i]->update_write_pointer (how_many_items);
       }
     }
@@ -250,8 +250,7 @@ auto create_block(int nArg = 0, ...) -> block_name &
 }
 
 
-int g_test = 0;
-
+//void operator=(_type &rhs){*p_var = rhs;}\
 // think about how to generate local and global vars
 #define _global_(_type, _name)\
 struct _global_##_name{\
@@ -262,7 +261,6 @@ struct _global_##_name{\
   _global_##_name() : p_var(nullptr), size(sizeof(_type)), m_name(#_name){_GlobalObjMan.insert(this);}\
   inline _type& operator *() {return *p_var;}\
   inline _type* operator &() {return  p_var;}\
-  void operator=(_type &rhs){*p_var = rhs;}\
 }_name;
 
 #define _local_(_type, _name, _default)\

@@ -10,6 +10,7 @@ DEFINE_BLOCK(b_file_source_v1, 1, 1)
   _local_(char*, pBufferRead, nullptr);
   _local_(psignal_block, pSignalBlock, nullptr);
   _local_(int, nDecimate, 1);
+  _local_(int, nOffset, 0);
 
 public:
   int report()
@@ -91,13 +92,16 @@ public:
 
     auto op = $_<v_cs>(0);
     
-    for (int i = 0; i < signal_block::v_datacount; i++)
-    {
-      op[i] = (*pSignalBlock)->operator[](i);
-    }
-    (*pSignalBlock)++;
+    *op = (*pSignalBlock)->operator[](*nOffset);
 
-    produce(0, signal_block::v_datacount);
+    (*nOffset)++;
+    if (*nOffset == 7)
+    {
+      (*pSignalBlock)++;
+      *nOffset = 0;
+    }
+
+    produce(0, 1);
     return true;
   }
 };
@@ -117,6 +121,7 @@ DEFINE_BLOCK(b_file_source_v2, 2, 2)
   _local_(psignal_block, pSignalBlock1, nullptr);
   _local_(psignal_block, pSignalBlock2, nullptr);
   _local_(int, nDecimate, 1);
+  _local_(int, nOffset, 0);
 
 public:
   int report()
@@ -229,7 +234,7 @@ public:
 
   BLOCK_WORK
   {
-    if (noutput(0) < 28) return true;
+    if (noutput(0) < 1) return true;
     
     if ((char*)(*pSignalBlock1) >= (*pBufferEnd1))
     {
@@ -241,16 +246,19 @@ public:
     auto op1 = $_<v_cs>(0);
     auto op2 = $_<v_cs>(1);
     
-    for (int i = 0; i < signal_block::v_datacount; i++)
-    {
-      op1[i] = (*pSignalBlock1)->operator[](i);
-      op2[i] = (*pSignalBlock2)->operator[](i);
-    }
-    (*pSignalBlock1)++;
-    (*pSignalBlock2)++;
+    *op1 = (*pSignalBlock1)->operator[](*nOffset);
+    *op2 = (*pSignalBlock2)->operator[](*nOffset);
 
-    produce(0, signal_block::v_datacount);
-    produce(1, signal_block::v_datacount);
+    (*nOffset)++;
+    if (*nOffset == 7)
+    {
+      (*pSignalBlock1)++;
+      (*pSignalBlock2)++;
+      *nOffset = 0;
+    }
+
+    produce(0, 1);
+    produce(1, 1);
     return true;
   }
 };

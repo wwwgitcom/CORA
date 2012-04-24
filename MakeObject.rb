@@ -61,7 +61,7 @@ def MakeSchedule()
 
           print "  __if_exists(T#{j}::op_stop)\n"
           print "  {\n"
-          print "    goto __stop__#{j}__;\n"
+          print "    goto __stop__#{j}__\n"
           print "  }\n"
           
           #-----------------------------
@@ -196,8 +196,8 @@ def MakeObject()
 end
 
 
-#MakeSchedule()
-MakeObject()
+MakeSchedule()
+#MakeObject()
 #
 #MakePipelineExecutionFunction()
 #

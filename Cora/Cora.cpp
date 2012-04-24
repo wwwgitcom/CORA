@@ -3,11 +3,13 @@
 
 #include "stdafx.h"
 //--------------------------------------------------
+#include "dsp_types.h"
 #include "dsp_tickcount.h"
 #include "dsp_log.h"
 #include "dsp_math.h"
 #include "dsp_map.h"
 #include "dsp_demap.h"
+#include "dsp_crc.h"
 //--------------------------------------------------
 #include "TBlock.h"
 #include "TObject.h"
@@ -21,6 +23,7 @@
 #include "TThread.h"
 
 //--------------------------------------------------
+#include "b_drop.h"
 #include "b_file_source.h"
 #include "b_moving_energy.h"
 #include "b_auto_corr.h"
@@ -35,6 +38,9 @@
 #include "b_mrc_combine.h"
 #include "b_deinterleave.h"
 #include "b_viterbi.h"
+#include "b_lsig_parser.h"
+#include "b_htsig_parser.h"
+#include "b_mimo_channel_estimator.h"
 
 
 //#define split(T, ...) new (aligned_malloc<T>()) T(__VA_ARGS__)
@@ -133,6 +139,21 @@ int _tmain(int argc, _TCHAR* argv[])
     string("TraceBackLength=24"),
     string("TraceBackOutput=24")
     );
+
+  autoref ht_sig_vit = create_block<b_viterbi64_1o2_1v1>(
+    2,
+    string("TraceBackLength=48"),
+    string("TraceBackOutput=48")
+    );
+
+  autoref l_sig_parser = create_block<b_lsig_parser_1v>();
+  autoref ht_sig_parser = create_block<b_htsig_parser_1v>();
+  autoref ht_stf = create_block<b_drop_1v>(
+    1,
+    string("nDrop=20")
+    );
+  
+  autoref mimo_channel_estimator = create_block<b_mimo_channel_estimator_2v>();
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
   .from(src, 0)
@@ -168,9 +189,9 @@ int _tmain(int argc, _TCHAR* argv[])
     .to(siso_channel_est, 1);
   
   Channel::Create(sizeof(v_cs))
-    .from(fft_data1, 0).to(siso_channel_comp, 0);
+    .from(fft_data1, 0).to(siso_channel_comp, 0).to(mimo_channel_estimator, 0);
   Channel::Create(sizeof(v_cs))
-    .from(fft_data2, 0).to(siso_channel_comp, 1);
+    .from(fft_data2, 0).to(siso_channel_comp, 1).to(mimo_channel_estimator, 1);
 
   Channel::Create(sizeof(v_cs))
     .from(siso_channel_comp, 0).to(siso_mrc_combine, 0);
@@ -184,10 +205,15 @@ int _tmain(int argc, _TCHAR* argv[])
     .from(siso_lsig_demap_bpsk_i, 0).to(siso_lsig_deinterleave, 0);
 
   Channel::Create(sizeof(unsigned __int8))
-    .from(siso_lsig_deinterleave, 0).to(l_sig_vit, 0);
+    .from(siso_lsig_deinterleave, 0).to(l_sig_vit, 0).to(ht_sig_vit, 0);
 
   Channel::Create(sizeof(unsigned __int8))
-    .from(l_sig_vit, 0).to(dummy, 0);
+    .from(l_sig_vit, 0)
+    .to(l_sig_parser, 0);
+
+  Channel::Create(sizeof(unsigned __int8))
+    .from(ht_sig_vit, 0)
+    .to(ht_sig_parser, 0);
   //---------------------------------------------------------
   
   _global_(int, VitTotalSoftBits);
@@ -209,8 +235,13 @@ int _tmain(int argc, _TCHAR* argv[])
   enum : unsigned int
   {
     SISO_CHANNEL_ESTIMATION = 0,
-    LSIG_DECODE,
-    lltf
+    L_SIG,    
+    HT_SIG1,
+    HT_SIG2,
+    HT_STF,
+    HT_LTF,
+    HT_DATA,
+    HT_OTHER
   }branch2 = SISO_CHANNEL_ESTIMATION;
 
   tick_count t1, t2;
@@ -225,23 +256,49 @@ int _tmain(int argc, _TCHAR* argv[])
     },
     ELSE_IF(IsTrue(branch1 == CFO)),
       // carrier frequency offset estimation using L-LTF
-      IF(cfo_est), [&]{branch1 = OTHER;}, ELSE, NOP,
-    ELSE_IF(IsTrue(branch1 == OTHER)),
-      // carrier frequency offset compensation
-      cfo_comp,
-      // L-LTF branch: SISO channel estimation
-      IF(IsTrue(branch2 == SISO_CHANNEL_ESTIMATION)),[&]
-      {
-        START(fft_lltf1);
-        START(fft_lltf2, siso_channel_est, STOP([&]{branch2 = LSIG_DECODE; *VitTotalSoftBits = 48;}));
-      },
-      // L-SIG branch: legacy signal field decoding using MRC
-      ELSE_IF(IsTrue(branch2 == LSIG_DECODE)), [&]
-      {
-        START(IF(remove_gi1), fft_data1);
-        START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, dummy);
-      },
-      ELSE, NOP,
+      IF(cfo_est), [&]{branch1 = OTHER; branch2 = SISO_CHANNEL_ESTIMATION;}, ELSE, NOP,
+    ELSE_IF(IsTrue(branch1 == OTHER)), [&]
+    {
+      START(
+        // carrier frequency offset compensation
+        cfo_comp,
+        // L-LTF branch: SISO channel estimation
+        IF(IsTrue(branch2 == SISO_CHANNEL_ESTIMATION)),[&]
+        {
+          START(fft_lltf1);
+          START(fft_lltf2, siso_channel_est, STOP([&]{branch2 = L_SIG; *VitTotalSoftBits = 48;}));
+        },
+        // L-SIG branch: legacy signal field decoding using MRC
+        ELSE_IF(IsTrue(branch2 == L_SIG)), [&]
+        {
+          START(IF(remove_gi1), fft_data1);
+          START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, IF(l_sig_parser), STOP([&]{branch2 = HT_SIG1;}), ELSE, STOP([&]{branch1 = CS; branch2 = HT_OTHER;}) );
+        },
+        ELSE_IF(IsTrue(branch2 == HT_SIG1)), [&]
+        {
+          START(IF(remove_gi1), fft_data1);
+          START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, STOP([&]{branch2 = HT_SIG2; *VitTotalSoftBits = 96;}));
+        },
+        ELSE_IF(IsTrue(branch2 == HT_SIG2)), [&]
+        {
+          START(IF(remove_gi1), fft_data1);
+          START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, ht_sig_vit, IF(ht_sig_parser), STOP([&]{branch2 = HT_STF;}), ELSE, STOP([&]{branch1 = CS; branch2 = HT_OTHER;}) );
+        },
+        ELSE_IF(IsTrue(branch2 == HT_STF)), [&]
+        {
+          START(ht_stf, [&]{branch2 = HT_LTF;});
+        },
+        ELSE_IF(IsTrue(branch2 == HT_LTF)), [&]
+        {
+          START(remove_gi1, fft_data1);
+          START(remove_gi2, fft_data2, mimo_channel_estimator, STOP([&]{branch2 = HT_DATA;}));
+        },
+        ELSE_IF(IsTrue(branch2 == HT_DATA)), [&]
+        {
+        },
+        ELSE, NOP
+      );
+    },
     ELSE, STOP(NOP)
   );
 

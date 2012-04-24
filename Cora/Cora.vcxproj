@@ -91,11 +91,15 @@
     <ClInclude Include="blocks\b_channel_estimator.h" />
     <ClInclude Include="blocks\b_deinterleave.h" />
     <ClInclude Include="blocks\b_demap.h" />
+    <ClInclude Include="blocks\b_drop.h" />
     <ClInclude Include="blocks\b_fft.h" />
     <ClInclude Include="blocks\b_file_source.h" />
     <ClInclude Include="blocks\b_frequest_offset.h" />
+    <ClInclude Include="blocks\b_htsig_parser.h" />
+    <ClInclude Include="blocks\b_lsig_parser.h" />
     <ClInclude Include="blocks\b_lstf_searcher.h" />
     <ClInclude Include="blocks\b_map.h" />
+    <ClInclude Include="blocks\b_mimo_channel_estimator.h" />
     <ClInclude Include="blocks\b_moving_energy.h" />
     <ClInclude Include="blocks\b_mrc_combine.h" />
     <ClInclude Include="blocks\b_remove_gi.h" />
@@ -103,6 +107,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />
     <ClInclude Include="sys\dsp_complex.h" />
+    <ClInclude Include="sys\dsp_crc.h" />
     <ClInclude Include="sys\dsp_demap.h" />
     <ClInclude Include="sys\dsp_log.h" />
     <ClInclude Include="sys\dsp_map.h" />
@@ -110,6 +115,7 @@
     <ClInclude Include="sys\dsp_source.h" />
     <ClInclude Include="sys\dsp_sysconfig.h" />
     <ClInclude Include="sys\dsp_tickcount.h" />
+    <ClInclude Include="sys\dsp_types.h" />
     <ClInclude Include="sys\dsp_vector1.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TArray.h" />
@@ -130,6 +136,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="sys\dsp_buffer.cpp" />
+    <ClCompile Include="sys\dsp_crc.cpp" />
     <ClCompile Include="sys\dsp_global.cpp" />
     <ClCompile Include="sys\dsp_log.cpp" />
     <ClCompile Include="sys\dsp_demap.cpp" />
