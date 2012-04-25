@@ -99,10 +99,12 @@
     <ClInclude Include="blocks\b_lsig_parser.h" />
     <ClInclude Include="blocks\b_lstf_searcher.h" />
     <ClInclude Include="blocks\b_map.h" />
+    <ClInclude Include="blocks\b_mimo_channel_compensator.h" />
     <ClInclude Include="blocks\b_mimo_channel_estimator.h" />
     <ClInclude Include="blocks\b_moving_energy.h" />
     <ClInclude Include="blocks\b_mrc_combine.h" />
     <ClInclude Include="blocks\b_remove_gi.h" />
+    <ClInclude Include="blocks\b_stream_joiner.h" />
     <ClInclude Include="blocks\b_viterbi.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />

@@ -34,7 +34,7 @@ __declspec(selectany) v_align(16) v_cs::type _80211n_HTLTFMask[16] =
 typedef complex16 MIMO_2x2_H[2][128];
 
 
-DEFINE_BLOCK(b_mimo_channel_estimator_2v, 2, 0)
+DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
 {
   _global_(MIMO_2x2_H, dot11n_2x2_channel);
 

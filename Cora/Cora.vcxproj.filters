@@ -153,6 +153,12 @@
     <ClInclude Include="blocks\b_mimo_channel_estimator.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_mimo_channel_compensator.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_stream_joiner.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

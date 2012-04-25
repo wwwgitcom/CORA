@@ -41,7 +41,8 @@
 #include "b_lsig_parser.h"
 #include "b_htsig_parser.h"
 #include "b_mimo_channel_estimator.h"
-
+#include "b_mimo_channel_compensator.h"
+#include "b_stream_joiner.h"
 
 //#define split(T, ...) new (aligned_malloc<T>()) T(__VA_ARGS__)
 
@@ -131,6 +132,7 @@ int _tmain(int argc, _TCHAR* argv[])
     string("low=-26"),
     string("high=26")
     );
+
   autoref siso_lsig_deinterleave = create_block<b_dot11a_deinterleave_1bpsc_1v1>();
 
 
@@ -140,10 +142,34 @@ int _tmain(int argc, _TCHAR* argv[])
     string("TraceBackOutput=24")
     );
 
+  autoref htsig_demap_bpsk_q = create_block<b_dot11_demap_bpsk_q_1v1>(
+    2,
+    string("low=-26"),
+    string("high=26")
+    );
+
   autoref ht_sig_vit = create_block<b_viterbi64_1o2_1v1>(
     2,
     string("TraceBackLength=48"),
     string("TraceBackOutput=48")
+    );
+
+  autoref ht_data_vit_12 = create_block<b_viterbi64_1o2_1v1>(
+    2,
+    string("TraceBackLength=36"),
+    string("TraceBackOutput=48")
+    );
+
+  autoref ht_data_vit_23 = create_block<b_viterbi64_1o2_1v1>(
+    2,
+    string("TraceBackLength=48"),
+    string("TraceBackOutput=96")
+    );
+
+  autoref ht_data_vit_34 = create_block<b_viterbi64_1o2_1v1>(
+    2,
+    string("TraceBackLength=72"),
+    string("TraceBackOutput=192")
     );
 
   autoref l_sig_parser = create_block<b_lsig_parser_1v>();
@@ -153,7 +179,75 @@ int _tmain(int argc, _TCHAR* argv[])
     string("nDrop=20")
     );
   
-  autoref mimo_channel_estimator = create_block<b_mimo_channel_estimator_2v>();
+  autoref mimo_channel_estimator = create_block<b_dot11_mimo_channel_estimator_2v>();
+
+  autoref mimo_channel_compensator = create_block<b_dot11_mimo_channel_compensator_2v2>();
+
+  autoref ht_demap_bpsk1 = create_block<b_dot11_demap_bpsk_i_1v1>(
+    2,
+    string("low=-28"),
+    string("high=28"));
+  autoref ht_demap_bpsk2 = create_block<b_dot11_demap_bpsk_i_1v1>(
+    2,
+    string("low=-28"),
+    string("high=28"));
+
+  autoref ht_demap_qpsk1 = create_block<b_dot11_demap_qpsk_1v1>(
+    2,
+    string("low=-28"),
+    string("high=28"));
+  autoref ht_demap_qpsk2 = create_block<b_dot11_demap_qpsk_1v1>(
+    2,
+    string("low=-28"),
+    string("high=28"));
+
+  autoref ht_demap_16qam1 = create_block<b_dot11_demap_16qam_1v1>(
+    2,
+    string("low=-28"),
+    string("high=28"));
+  autoref ht_demap_16qam2 = create_block<b_dot11_demap_16qam_1v1>(
+    2,
+    string("low=-28"),
+    string("high=28"));
+
+  autoref ht_demap_64qam1 = create_block<b_dot11_demap_64qam_1v1>(
+    2,
+    string("low=-28"),
+    string("high=28"));
+  autoref ht_demap_64qam2 = create_block<b_dot11_demap_64qam_1v1>(
+    2,
+    string("low=-28"),
+    string("high=28"));
+
+  autoref ht_deinterleave_1bpsc_iss1 = create_block<b_dot11n_deinterleave_1bpsc_1v1>(
+    1, string("iss=1"));
+  autoref ht_deinterleave_1bpsc_iss2 = create_block<b_dot11n_deinterleave_1bpsc_1v1>(
+    1, string("iss=2"));
+  autoref ht_deinterleave_2bpsc_iss1 = create_block<b_dot11n_deinterleave_2bpsc_1v1>(
+    1, string("iss=1"));
+  autoref ht_deinterleave_2bpsc_iss2 = create_block<b_dot11n_deinterleave_2bpsc_1v1>(
+    1, string("iss=2"));
+  autoref ht_deinterleave_4bpsc_iss1 = create_block<b_dot11n_deinterleave_4bpsc_1v1>(
+    1, string("iss=1"));
+  autoref ht_deinterleave_4bpsc_iss2 = create_block<b_dot11n_deinterleave_4bpsc_1v1>(
+    1, string("iss=2"));
+  autoref ht_deinterleave_6bpsc_iss1 = create_block<b_dot11n_deinterleave_6bpsc_1v1>(
+    1, string("iss=1"));
+  autoref ht_deinterleave_6bpsc_iss2 = create_block<b_dot11n_deinterleave_6bpsc_1v1>(
+    1, string("iss=2"));
+
+  autoref ht_stream_joiner_1 = create_block<b_stream_joiner_1_2v1>(
+    1,
+    string("count_per_stream=52"));
+  autoref ht_stream_joiner_2 = create_block<b_stream_joiner_1_2v1>(
+    1,
+    string("count_per_stream=104"));
+  autoref ht_stream_joiner_3 = create_block<b_stream_joiner_2_2v1>(
+    1,
+    string("count_per_stream=208"));
+  autoref ht_stream_joiner_4 = create_block<b_stream_joiner_3_2v1>(
+    1,
+    string("count_per_stream=312"));
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
   .from(src, 0)
@@ -189,20 +283,23 @@ int _tmain(int argc, _TCHAR* argv[])
     .to(siso_channel_est, 1);
   
   Channel::Create(sizeof(v_cs))
-    .from(fft_data1, 0).to(siso_channel_comp, 0).to(mimo_channel_estimator, 0);
+    .from(fft_data1, 0).to(siso_channel_comp, 0).to(mimo_channel_estimator, 0).to(mimo_channel_compensator, 0);
   Channel::Create(sizeof(v_cs))
-    .from(fft_data2, 0).to(siso_channel_comp, 1).to(mimo_channel_estimator, 1);
+    .from(fft_data2, 0).to(siso_channel_comp, 1).to(mimo_channel_estimator, 1).to(mimo_channel_compensator, 1);
 
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 0).to(siso_mrc_combine, 0);
+    .from(siso_channel_comp, 0).to(siso_mrc_combine, 0)
+    .from(mimo_channel_compensator, 0).to(ht_demap_bpsk1, 0).to(ht_demap_qpsk1, 0).to(ht_demap_16qam1, 0).to(ht_demap_64qam1, 0);
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 1).to(siso_mrc_combine, 1);
+    .from(siso_channel_comp, 1).to(siso_mrc_combine, 1)
+    .from(mimo_channel_compensator, 1).to(ht_demap_bpsk2, 0).to(ht_demap_qpsk2, 0).to(ht_demap_16qam2, 0).to(ht_demap_64qam2, 0);
   
   Channel::Create(sizeof(v_cs))
-    .from(siso_mrc_combine, 0).to(siso_lsig_demap_bpsk_i, 0);
+    .from(siso_mrc_combine, 0).to(siso_lsig_demap_bpsk_i, 0).to(htsig_demap_bpsk_q, 0);
 
   Channel::Create(sizeof(unsigned __int8))
-    .from(siso_lsig_demap_bpsk_i, 0).to(siso_lsig_deinterleave, 0);
+    .from(siso_lsig_demap_bpsk_i, 0).from(htsig_demap_bpsk_q, 0)
+    .to(siso_lsig_deinterleave, 0);
 
   Channel::Create(sizeof(unsigned __int8))
     .from(siso_lsig_deinterleave, 0).to(l_sig_vit, 0).to(ht_sig_vit, 0);
@@ -214,10 +311,33 @@ int _tmain(int argc, _TCHAR* argv[])
   Channel::Create(sizeof(unsigned __int8))
     .from(ht_sig_vit, 0)
     .to(ht_sig_parser, 0);
+
+  Channel::Create(sizeof(unsigned __int8))
+    .from(ht_demap_bpsk1, 0).from(ht_demap_qpsk1, 0).from(ht_demap_16qam1, 0).from(ht_demap_64qam1, 0)
+    .to(ht_deinterleave_1bpsc_iss1, 0).to(ht_deinterleave_2bpsc_iss1, 0).to(ht_deinterleave_4bpsc_iss1, 0).to(ht_deinterleave_6bpsc_iss1, 0);
+
+  Channel::Create(sizeof(unsigned __int8))
+    .from(ht_demap_bpsk2, 0).from(ht_demap_qpsk2, 0).from(ht_demap_16qam2, 0).from(ht_demap_64qam2, 0)
+    .to(ht_deinterleave_1bpsc_iss2, 0).to(ht_deinterleave_2bpsc_iss2, 0).to(ht_deinterleave_4bpsc_iss2, 0).to(ht_deinterleave_6bpsc_iss2, 0);
+  
+  Channel::Create(sizeof(unsigned __int8))
+    .from(ht_deinterleave_1bpsc_iss1, 0).from(ht_deinterleave_2bpsc_iss1, 0).from(ht_deinterleave_4bpsc_iss1, 0).from(ht_deinterleave_6bpsc_iss1, 0)
+    .to(ht_stream_joiner_1, 0).to(ht_stream_joiner_2, 0).to(ht_stream_joiner_3, 0).to(ht_stream_joiner_4, 0);
+  Channel::Create(sizeof(unsigned __int8))
+    .from(ht_deinterleave_1bpsc_iss2, 0).from(ht_deinterleave_2bpsc_iss2, 0).from(ht_deinterleave_4bpsc_iss2, 0).from(ht_deinterleave_6bpsc_iss2, 0)
+    .to(ht_stream_joiner_1, 1).to(ht_stream_joiner_2, 1).to(ht_stream_joiner_3, 1).to(ht_stream_joiner_4, 1);
+
+  Channel::Create(sizeof(unsigned __int8))
+    .from(ht_stream_joiner_1, 0).from(ht_stream_joiner_2, 0).from(ht_stream_joiner_3, 0).from(ht_stream_joiner_4, 0)
+    .to(ht_data_vit_12, 0).to(ht_data_vit_23, 0).to(ht_data_vit_34, 0);
+
+  Channel::Create(sizeof(unsigned __int8))
+    .from(ht_data_vit_12, 0).from(ht_data_vit_23, 0).from(ht_data_vit_34, 0);
   //---------------------------------------------------------
   
   _global_(int, VitTotalSoftBits);
-
+  _global_(uint16, ht_frame_length);
+  _global_(uint32, ht_frame_mcs);
 
   //////////////////////////////////////////////////////////////////////////
   //auto fk = make_thread([&]{    
@@ -277,12 +397,12 @@ int _tmain(int argc, _TCHAR* argv[])
         ELSE_IF(IsTrue(branch2 == HT_SIG1)), [&]
         {
           START(IF(remove_gi1), fft_data1);
-          START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, STOP([&]{branch2 = HT_SIG2; *VitTotalSoftBits = 96;}));
+          START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, STOP([&]{branch2 = HT_SIG2; *VitTotalSoftBits = 96;}));
         },
         ELSE_IF(IsTrue(branch2 == HT_SIG2)), [&]
         {
           START(IF(remove_gi1), fft_data1);
-          START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, ht_sig_vit, IF(ht_sig_parser), STOP([&]{branch2 = HT_STF;}), ELSE, STOP([&]{branch1 = CS; branch2 = HT_OTHER;}) );
+          START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit, IF(ht_sig_parser), STOP([&]{branch2 = HT_STF;}), ELSE, STOP([&]{branch1 = CS; branch2 = HT_OTHER;}) );
         },
         ELSE_IF(IsTrue(branch2 == HT_STF)), [&]
         {
@@ -295,6 +415,42 @@ int _tmain(int argc, _TCHAR* argv[])
         },
         ELSE_IF(IsTrue(branch2 == HT_DATA)), [&]
         {
+          START(remove_gi1, fft_data1);
+          START(remove_gi2, fft_data2, mimo_channel_compensator,
+            IF(IsTrue(*ht_frame_mcs == 8)), [&]
+            {
+              START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
+              START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
+            },
+            ELSE_IF(IsTrue( (*ht_frame_mcs == 9 || *ht_frame_mcs == 10) )), [&]
+            {
+              START(ht_demap_qpsk1, ht_deinterleave_2bpsc_iss1);
+              START(ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2, ht_stream_joiner_2);
+            },
+            ELSE_IF(IsTrue( (*ht_frame_mcs == 11 || *ht_frame_mcs == 12) )), [&]
+            {
+              START(ht_demap_16qam1, ht_deinterleave_4bpsc_iss1);
+              START(ht_demap_16qam2, ht_deinterleave_4bpsc_iss2, ht_stream_joiner_3);
+            },
+            ELSE_IF(IsTrue( (*ht_frame_mcs == 13 || *ht_frame_mcs == 14) )), [&]
+            {
+              START(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1);
+              START(ht_demap_64qam2, ht_deinterleave_6bpsc_iss2, ht_stream_joiner_4);
+            },
+            ELSE, NOP
+          );
+          //----------------
+          // start viterbi
+          //----------------
+          START(
+            IF( IsTrue( (*ht_frame_mcs == 8 || *ht_frame_mcs == 9 || *ht_frame_mcs == 11) ) ),
+              ht_data_vit_12,
+            ELSE_IF( IsTrue( (*ht_frame_mcs == 13) ) ),
+              ht_data_vit_23,
+            ELSE_IF( IsTrue( (*ht_frame_mcs == 10 || *ht_frame_mcs == 12 || *ht_frame_mcs == 14) ) ),
+              ht_data_vit_34,
+            ELSE, NOP
+          );
         },
         ELSE, NOP
       );
