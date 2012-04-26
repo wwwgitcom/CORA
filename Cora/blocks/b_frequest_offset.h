@@ -139,9 +139,13 @@ DEFINE_BLOCK(b_frequest_offset_estimator_2v, 2, 0)
     vcfodelta         = v_add(vcfodelta, (v_s&)vcfodelta.v_shift_bytes_left<4>());
     vcfodelta         = v_add(vcfodelta, (v_s&)vcfodelta.v_shift_bytes_left<8>());
     vcfodelta         = vcfodelta.v_shift_bytes_left<2>();
+    
+    log("%s: cfo=%d\n", name(), (*vfo_delta_i)[1]);
+
     (*vfo_delta_i)    = vcfodelta;
 
     // I don't consume any input items
+    log("%s: cfo=%d\n", name(), (*vfo_delta_i)[1]);
     return true;
   }
 };
@@ -281,7 +285,7 @@ DEFINE_BLOCK(b_frequest_offset_compensator_2v2, 2, 2)
     v_compensate_i(ip1, vfo_coeff, op1, *vCompensateLength);
     v_compensate_i(ip2, vfo_coeff, op2, *vCompensateLength);
 
-    log("%s: n=%d\n", name(), n);
+    log("%s: n=%d,cfo=%d", name(), n, (*vfo_delta_i)[1]);
 
     consume(0, *vCompensateLength);
     consume(1, *vCompensateLength);

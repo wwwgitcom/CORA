@@ -2,7 +2,7 @@
 DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 {
   _local_(int, peak_up_shift, 1);
-  _local_(int, peak_down_shift, 2);
+  _local_(int, peak_down_shift, 3);
   _local_(bool, peak_found, false);
   _local_(int, peak_count, 0);
 
@@ -36,18 +36,21 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     
     bool ret = false;
 
+    if (_nin < 1) return false;
+
 #if 0
     for (int i = 0; i < _nin; i++)
     {
       printf("%I64d\n", _ip1[i]);
     }
 #endif
-
+    //if (*peak_found)
+    //log("-----------\n");
     for (int i = 0; i < _nin; i++)
     {
       if (!*peak_found)
       {
-        if ( _ip0[i] > (_ip1[i] >> *peak_up_shift) )
+        if ( _ip0[i] > (_ip1[i] >> *peak_up_shift) && (_ip1[i] > 20000000000))
         {
           (*peak_count)++;
           if ( *peak_count > 3)
@@ -59,6 +62,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
       }
       else
       {
+        log("%I64d\t%I64d\n", _ip0[i], _ip1[i]);
         if ( _ip0[i] < (_ip1[i] >> *peak_down_shift) )
         {
           if (*peak_count > 96 && *peak_count < 160)
@@ -67,7 +71,8 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
             *peak_count = 0;
             ret = true;
 
-            //cout << "peak <-" << endl;
+            cout << "peak <-" << endl;
+            getchar();
             break;
           }
           else
@@ -81,8 +86,10 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
         else
         {
           (*peak_count)++;
-          if ( *peak_count > 160 )
+          if ( *peak_count > 1600 )
           {
+            //log("Too many peaks..................\n");
+            getchar();
             *peak_found = false;
             *peak_count = 0;
           }

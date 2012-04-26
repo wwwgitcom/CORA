@@ -51,10 +51,12 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_2v2, 2, 2)
   _global_(Dot11aChannelCoefficient, dot11a_siso_channel_2);
 
   v_cs vmask;
-
+  dsp_draw_window* m_draw;
+  
   BLOCK_INIT
   {
     vmask = VMASK::__0x80000001800000018000000180000001<v_cs>();
+    m_draw = new dsp_draw_window("dot11 siso channel compensator", 400, 400, 400, 400);
   }
 
   BLOCK_WORK
@@ -86,6 +88,8 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_2v2, 2, 2)
 
       vout        = v_convert2cs(vciout1, vciout2);
     }
+
+    m_draw->DrawSqrt((complex16*)op1, 64);
 
     channel_factor = *dot11a_siso_channel_2;
 

@@ -100,7 +100,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
   autoref cfo_comp = create_block<b_frequest_offset_compensator_2v2>(
     1,
-    string("vCompensateLength=1")
+    string("vCompensateLength=2")
     );
 
   autoref fft_lltf1 = create_block<b_fft_64_1v1>();
@@ -374,11 +374,21 @@ int _tmain(int argc, _TCHAR* argv[])
   START(src, axorr, lstf, STOP(NOP));
   START(src, cfo_est, STOP(NOP));
 #if 1
+  START(src, cfo_comp, IF([&]
+    {
+      bool bRet = false;
+      START(fft_lltf1);
+      START(fft_lltf2, siso_channel_est, STOP([&]{bRet = true;}));
+      return bRet;
+    }), STOP(NOP)
+  );
+
   START(src, cfo_comp, [&]
-  {
-    START(fft_lltf1);
-    START(fft_lltf2, siso_channel_est, [&]{Sleep(100);});
-  });
+    {
+      START(IF(remove_gi1), fft_data1);
+      START(IF(remove_gi2), fft_data2, siso_channel_comp);
+    }
+  );
 #endif
   
 #if 0
