@@ -23,6 +23,8 @@
 #include "TThread.h"
 
 //--------------------------------------------------
+#include "b_plot.h"
+
 #include "b_drop.h"
 #include "b_file_source.h"
 #include "b_moving_energy.h"
@@ -248,6 +250,7 @@ int _tmain(int argc, _TCHAR* argv[])
   autoref ht_stream_joiner_4 = create_block<b_stream_joiner_3_2v1>(
     1,
     string("count_per_stream=312"));
+  
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
   .from(src, 0)
@@ -368,6 +371,17 @@ int _tmain(int argc, _TCHAR* argv[])
 
   t1 = tick_count::now();
   
+  START(src, axorr, lstf, STOP(NOP));
+  START(src, cfo_est, STOP(NOP));
+#if 1
+  START(src, cfo_comp, [&]
+  {
+    START(fft_lltf1);
+    START(fft_lltf2, siso_channel_est, [&]{Sleep(100);});
+  });
+#endif
+  
+#if 0
   START(src,
     // frame detection
     IF(IsTrue(branch1 == CS)),[&]
@@ -457,7 +471,7 @@ int _tmain(int argc, _TCHAR* argv[])
     },
     ELSE, STOP(NOP)
   );
-
+#endif
   t2 = tick_count::now();
 
   tick_count t = t2 - t1;

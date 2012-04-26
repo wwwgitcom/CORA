@@ -116,11 +116,11 @@ DEFINE_BLOCK(b_frequest_offset_estimator_2v, 2, 0)
 
   BLOCK_WORK
   {
+    trace();
+
     auto n = ninput(0);
     if (n < *vEstimateLength + *vEstimateDistance) return false;
-
-    log("%s: n=%d\n", name(), n);
-
+    
     auto ip1 = _$<v_cs>(0);
     auto ip2 = _$<v_cs>(0);
 

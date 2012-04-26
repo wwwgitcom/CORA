@@ -38,7 +38,7 @@ struct dot11n_deinterleaver
 protected:
     void zero_lookuptable()
     {
-        memset(lookuptable, 0, total_bits * sizeof(int));
+        memset(lookuptable, 0, total_bits * sizeof(__int16));
     }
 
     void create_lookuptable(int iss)

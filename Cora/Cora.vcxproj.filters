@@ -159,6 +159,15 @@
     <ClInclude Include="blocks\b_stream_joiner.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="sys\dsp_draw.h">
+      <Filter>Header Files\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="sys\dsp_helper.h">
+      <Filter>Header Files\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_plot.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -192,6 +201,9 @@
       <Filter>Source Files\sys</Filter>
     </ClCompile>
     <ClCompile Include="sys\dsp_crc.cpp">
+      <Filter>Source Files\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="sys\dsp_draw.cpp">
       <Filter>Source Files\sys</Filter>
     </ClCompile>
   </ItemGroup>

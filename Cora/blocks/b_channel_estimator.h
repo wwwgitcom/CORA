@@ -187,6 +187,13 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_2v, 2, 0)
   Dot11aChannelCoefficient siso_channel_1;
   Dot11aChannelCoefficient siso_channel_2;
 
+  dsp_draw_window* m_draw;
+
+  BLOCK_INIT
+  {
+    m_draw = new dsp_draw_window("dot11 siso channel estimator", 0, 0, 400, 400);
+  }
+
   BLOCK_WORK
   {
     trace();
@@ -195,6 +202,8 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_2v, 2, 0)
 
     auto ip1 = _$<v_cs>(0);
     auto ip2 = _$<v_cs>(1);
+
+    m_draw->DrawSqrt((complex16*)ip1, 32 * 4);
     
     auto ch  = *dot11a_siso_channel_1;
     

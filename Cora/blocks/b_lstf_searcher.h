@@ -2,7 +2,7 @@
 DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 {
   _local_(int, peak_up_shift, 1);
-  _local_(int, peak_down_shift, 3);
+  _local_(int, peak_down_shift, 2);
   _local_(bool, peak_found, false);
   _local_(int, peak_count, 0);
 
@@ -22,6 +22,8 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 
   BLOCK_WORK
   {
+    //trace();
+
     auto nin0 = ninput(0);
     auto nin1 = ninput(1);
 

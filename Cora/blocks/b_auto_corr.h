@@ -181,6 +181,8 @@ DEFINE_BLOCK(b_auto_corr_2v2, 2, 2)
 
   BLOCK_WORK
   {
+    //trace();
+
     auto nin = ninput(0);
 
     if (nin < 1) return false;

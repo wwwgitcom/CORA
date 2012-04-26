@@ -234,6 +234,7 @@ public:
 
   BLOCK_WORK
   {
+    //log("%s\n", name());
     if (noutput(0) < 1) return true;
     
     if ((char*)(*pSignalBlock1) >= (*pBufferEnd1))
