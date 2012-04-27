@@ -18,6 +18,8 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
 
     uiSignal = *((unsigned int*)ip);
 
+    bool bRet = true;
+
     // signal rate look up table
     static const unsigned int g11a_rguiDBPSLookUp[16] = {
       /* R1-4 */
@@ -40,35 +42,43 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
       /* 1111 */ 36
     };
 
-    uiSignal &= 0xFFFFFF;
-    if (uiSignal & 0xFC0010) // all these bits should be always zero
+
+
+    do 
     {
-      log(" l-sig error: unexpected value %p\n", uiSignal);
-      return false;
-    }
+      uiSignal &= 0xFFFFFF;
+      if (uiSignal & 0xFC0010) // all these bits should be always zero
+      {
+        log(" l-sig error: unexpected value %p\n", uiSignal);
+        bRet = false;
+        break;
+      }
 
-    uiParity = (uiSignal >> 16) ^ (uiSignal);
-    uiParity = (uiParity >> 8) ^ (uiParity);
-    uiParity = (uiParity >> 4) ^ (uiParity);
-    uiParity = (uiParity >> 2) ^ (uiParity);
-    uiParity = (uiParity >> 1) ^ (uiParity);
-    if (uiParity & 0x1)
-    {
-      log(" l-sig error: parity check failes.\n");
-      return false;
-    }
+      uiParity = (uiSignal >> 16) ^ (uiSignal);
+      uiParity = (uiParity >> 8) ^ (uiParity);
+      uiParity = (uiParity >> 4) ^ (uiParity);
+      uiParity = (uiParity >> 2) ^ (uiParity);
+      uiParity = (uiParity >> 1) ^ (uiParity);
+      if (uiParity & 0x1)
+      {
+        log(" l-sig error: parity check failes.\n");
+        bRet = false;
+        break;
+      }
 
-    (*l_frame_rate) = uiSignal & 0xF;
-    if (!((*l_frame_rate) & 0x8))
-    {
-      log(" l-sig error: unexpected data rate %X.\n", *l_frame_rate);
-      return false;
-    }
+      (*l_frame_rate) = uiSignal & 0xF;
+      if (!((*l_frame_rate) & 0x8))
+      {
+        log(" l-sig error: unexpected data rate %X.\n", *l_frame_rate);
+        bRet = false;
+        break;
+      }
 
-    (*l_frame_length) = (uiSignal >> 5) & 0xFFF;
-    (*l_frame_dbps) = g11a_rguiDBPSLookUp[*l_frame_rate];
-
-    log(" l-sig : rate %X, length %d B, dbps = %d.\n", *l_frame_rate, *l_frame_length, *l_frame_dbps);
+      (*l_frame_length) = (uiSignal >> 5) & 0xFFF;
+      (*l_frame_dbps) = g11a_rguiDBPSLookUp[*l_frame_rate];
+      
+      log(" l-sig : rate %X, length %d B, dbps = %d.\n", *l_frame_rate, *l_frame_length, *l_frame_dbps);
+    } while (false);
 
     consume(0, 3);
     return true;

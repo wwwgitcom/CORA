@@ -53,7 +53,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
     {
       nTraceBackOutput = 48;
     }
-    m_IncomeSoftBits   = 0;
+    m_IncomeSoftBits     = 0;
     nTracebackDataCount  = nTraceBackLength + nTraceBackOutput;
     nTracebackOffset     = nTraceBackLength + nTraceBackOutput - 1;
     nTraceBackOutputByte = nTraceBackOutput / 8;
@@ -479,8 +479,6 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
       TraceBack(nTracebackOffset, MinAddress, nTraceBackLength, nTraceBackOutput, pDecodedBytes + nTraceBackOutputByte - 1);
       
-      m_buffer_reader->update_read_pointer(nTraceBackOutput);
-
       produce(0, nTraceBackOutputByte);
 
       bRet = true;

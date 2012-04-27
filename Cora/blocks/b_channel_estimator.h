@@ -154,7 +154,7 @@ void v_siso_channel_estimation_64(__in v_cs* pcsin, __out v_cs* pcschannel)
 
 
 
-typedef Array<v_cs, 64> Dot11aChannelCoefficient;
+typedef Array<v_cs, 16> Dot11aChannelCoefficient;
 
 DEFINE_BLOCK(b_dot11_siso_channel_estimator_1v, 1, 0)
 {
@@ -203,29 +203,42 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_2v, 2, 0)
     auto ip1 = _$<v_cs>(0);
     auto ip2 = _$<v_cs>(1);
 
-    m_draw->DrawSqrt((complex16*)ip1, 32 * 4);
+    m_draw->DrawSqrtShift((complex16*)ip1, 32 * 4);
     
-    auto ch  = *dot11a_siso_channel_1;
+    autoref ch1  = *dot11a_siso_channel_1;
     
     v_siso_channel_estimation_64(ip1, (v_cs*)&siso_channel_1[0]);
     v_siso_channel_estimation_64(ip1 + 16, (v_cs*)&siso_channel_2[0]);
     
+#if 1
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
-      ch[i]  = r.v_shift_right_arithmetic(1);
+      ch1[i]  = r.v_shift_right_arithmetic(1);
     }
+#else
+    for (int i = 0; i < 16; i++)
+    {
+      ch1[i]  = siso_channel_1[i];
+    }
+#endif
 
-    ch  = *dot11a_siso_channel_2;
+    autoref ch2  = *dot11a_siso_channel_2;
 
     v_siso_channel_estimation_64(ip2, (v_cs*)&siso_channel_1[0]);
     v_siso_channel_estimation_64(ip2 + 16, (v_cs*)&siso_channel_2[0]);
-
+#if 1
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
-      ch[i]  = r.v_shift_right_arithmetic(1);
+      ch2[i]  = r.v_shift_right_arithmetic(1);
     }
+#else
+    for (int i = 0; i < 16; i++)
+    {
+      ch2[i]  = siso_channel_1[i];
+    }
+#endif
 
     consume(0, 32);
     consume(1, 32);

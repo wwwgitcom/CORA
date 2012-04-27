@@ -78,12 +78,21 @@ int _tmain(int argc, _TCHAR* argv[])
 {
   autoref dummy = create_block<dummy_block>();
 
+#if 0
   autoref src = create_block<b_file_source_v2>(
     3, 
     string("FileName1=c:\\MiMoRx_0.dmp"), 
     string("FileName2=c:\\MiMoRx_1.dmp"), 
     string("Decimate=1")
     );
+#else
+  autoref src = create_block<b_file_source_v2>(
+    3, 
+    string("FileName1=c:\\MiMo_0.dmp"), 
+    string("FileName2=c:\\MiMo_1.dmp"), 
+    string("Decimate=1")
+    );
+#endif
 
   autoref axorr = create_block<b_auto_corr_2v2>(
     1, 
@@ -378,7 +387,7 @@ int _tmain(int argc, _TCHAR* argv[])
     {
       bool bRet = false;
       START(fft_lltf1);
-      START(fft_lltf2, siso_channel_est, STOP([&]{bRet = true;}));
+      START(fft_lltf2, siso_channel_est, STOP([&]{bRet = true; *VitTotalSoftBits = 48;}));
       return bRet;
     }), STOP(NOP)
   );
@@ -386,7 +395,7 @@ int _tmain(int argc, _TCHAR* argv[])
   START(src, cfo_comp, [&]
     {
       START(IF(remove_gi1), fft_data1);
-      START(IF(remove_gi2), fft_data2, siso_channel_comp);
+      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, IF(l_sig_parser), STOP(NOP));
     }
   );
 #endif

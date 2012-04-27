@@ -1,6 +1,6 @@
 #pragma once
 
-typedef Array<v_cs, 64> Dot11aChannelCoefficient;
+typedef Array<v_cs, 16> Dot11aChannelCoefficient;
 
 DEFINE_BLOCK(b_dot11_siso_channel_compensator_1v1, 1, 1)
 {
@@ -23,7 +23,7 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_1v1, 1, 1)
 
     v_ci vciout1, vciout2;
     
-    auto channel_factor = *dot11a_siso_channel;
+    autoref channel_factor = *dot11a_siso_channel;
 
     for (int i = 0; i < 16; i++)
     {
@@ -67,18 +67,18 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_2v2, 2, 2)
     if (n < 16) return false;
 
     auto ip1 = _$<v_cs>(0);
-    auto ip2 = _$<v_cs>(0);
+    auto ip2 = _$<v_cs>(1);
     auto op1 = $_<v_cs>(0);
-    auto op2 = $_<v_cs>(0);
+    auto op2 = $_<v_cs>(1);
 
     v_ci vciout1, vciout2;
 
-    auto channel_factor = *dot11a_siso_channel_1;
+    autoref channel_factor1 = *dot11a_siso_channel_1;
 
     for (int i = 0; i < 16; i++)
     {
       v_cs &vin   = (v_cs &)ip1[i];
-      v_cs &vcof  = (v_cs &)channel_factor[i];
+      v_cs &vcof  = (v_cs &)channel_factor1[i];
       v_cs &vout  = (v_cs &)op1[i];
 
       v_mul2ci(vin, vcof, vmask, vciout1, vciout2);
@@ -89,14 +89,14 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_2v2, 2, 2)
       vout        = v_convert2cs(vciout1, vciout2);
     }
 
-    m_draw->DrawSqrt((complex16*)op1, 64);
+    m_draw->DrawSqrtShift((complex16*)op1, 64);
 
-    channel_factor = *dot11a_siso_channel_2;
+    autoref channel_factor2 = *dot11a_siso_channel_2;
 
     for (int i = 0; i < 16; i++)
     {
       v_cs &vin   = (v_cs &)ip2[i];
-      v_cs &vcof  = (v_cs &)channel_factor[i];
+      v_cs &vcof  = (v_cs &)channel_factor2[i];
       v_cs &vout  = (v_cs &)op2[i];
 
       v_mul2ci(vin, vcof, vmask, vciout1, vciout2);

@@ -252,6 +252,35 @@ public:
     return bRet;
   }
 
+  template<typename T>
+  BOOL DrawSqrtShift(T* pData, int N)
+  {
+    BOOL bRet = FALSE;
+    do 
+    {
+      Create();
+
+      PDSP_DRAW_DESC pDrawDesc = PopFreeDrawDesc();
+      if (NULL == pDrawDesc)
+      {
+        break;
+      }
+
+      DrawBackGround(pDrawDesc->pGraphics);
+
+      _CSqrtShiftDraw(pDrawDesc->pGraphics, pData, N);
+
+      PushToDraw(pDrawDesc);
+
+      InvalidateRect(m_hWnd, NULL, FALSE);
+      UpdateWindow(m_hWnd);
+
+      bRet = TRUE;
+    } while (FALSE);
+
+    return bRet;
+  }
+
   // User Defined Draw Function
   virtual void OnDraw(Graphics* pGraphics, void* pData, int N){}
 
@@ -638,6 +667,86 @@ protected:
     }
   }
 
+  template<typename T>
+  void _CSqrtShiftDraw(Graphics* pGraphics, T *pData, int N)
+  {
+    REAL fStep = (REAL)m_CanvasWidth / (REAL)N;
+    REAL XTick = (REAL)m_CanvasWidth / (REAL)8.0f;
+    REAL YTick = (REAL)m_CanvasHeight / (REAL)8.0f;
+
+    REAL NormFactor = CSqrtMax(pData, N);
+    REAL AxisStep = NormFactor / 8.0f;
+    int  nXStep = N / 8;
+
+    //输出文字
+    WCHAR wszBuf[128];
+    size_t cbDest = 128 * sizeof(WCHAR);
+
+    REAL e1, e2;
+    REAL x1, y1, x2, y2;
+
+    x1 = 0.0f;
+    e1 = (REAL)pData[N / 2].re * (REAL)pData[N / 2].re + (REAL)pData[N / 2].im * (REAL)pData[N / 2].im;
+    e1 = sqrt(e1);
+    y1 = MakeYPositive(e1, NormFactor);
+
+    for (int i = N / 2 + 1; i < N; i++)
+    {
+      x2 = x1 + fStep;
+      e2 = (REAL)pData[i].re * (REAL)pData[i].re + (REAL)pData[i].im * (REAL)pData[i].im;
+      e2 = sqrt(e2);
+      y2 = MakeYPositive(e2, NormFactor);
+
+      pGraphics->DrawLine(&m_Pen, PointF(x1, y1), PointF(x2, y2));
+
+      x1 = x2;
+      y1 = y2;
+      e1 = e2;
+    }
+
+    for (int i = 0; i < N / 2; i++)
+    {
+      x2 = x1 + fStep;
+      e2 = (REAL)pData[i].re * (REAL)pData[i].re + (REAL)pData[i].im * (REAL)pData[i].im;
+      e2 = sqrt(e2);
+      y2 = MakeYPositive(e2, NormFactor);
+
+      pGraphics->DrawLine(&m_Pen, PointF(x1, y1), PointF(x2, y2));
+
+      x1 = x2;
+      y1 = y2;
+      e1 = e2;
+    }
+
+    pGraphics->DrawLine(&m_AxisPen, Point(0, m_CanvasHeight), Point(0, 0));
+    pGraphics->DrawLine(&m_AxisPen, Point(0, 0), Point(m_CanvasWidth, 0));
+
+    // X-Tick
+    for (int i = 1; i < 8; i++)
+    {
+      int  v = i * nXStep;
+      REAL x = i * XTick;
+
+      //输出文字
+      memset(wszBuf, 0, cbDest);
+      StringCbPrintfW(wszBuf, cbDest, L"%-d", v);
+
+      pGraphics->DrawString(wszBuf, 128, &m_Font, PointF(x, 0.0f), &m_FontBrush);
+      pGraphics->DrawLine(&m_AxisPen, PointF(x, 0.0f), PointF(x, 8.0f));
+    }
+
+    // Y-Tick
+    for (int i = 0; i < 8; i++)
+    {
+      REAL v = i * AxisStep;
+      REAL y = m_CanvasHeight - i * YTick;
+
+      memset(wszBuf, 0, cbDest);
+      StringCbPrintfW(wszBuf, cbDest, L"%-.0f", v);
+      pGraphics->DrawString(wszBuf, 128, &m_Font, PointF(0.0f, y), &m_FontBrush);
+      pGraphics->DrawLine(&m_AxisPen, PointF(0.0f, y), PointF(8.0f, y));
+    }
+  }
   //////////////////////////////////////////////////////////////////////////
 public:
   GdiPlusWrapper m_GdiplusWrapper;
