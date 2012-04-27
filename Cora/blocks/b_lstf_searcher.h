@@ -34,11 +34,24 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     __int64 *_ip1 = (__int64*)ip1;
     auto    _nin  = nin0 << 1;
     
+
+#if 0
+    if (nin0 < 96)
+    {
+      return false;
+    }
+    else
+    {
+      consume(0, 96);
+      return true;
+    }
+#endif
+
+
+
     bool ret = false;
 
     if (_nin < 1) return false;
-
-    static int icount = 0;
 
 #if 0
     for (int i = 0; i < _nin; i++)
@@ -48,7 +61,6 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 #endif
     //if (*peak_found)
     //log("-----------\n");
-    icount++;
     for (int i = 0; i < _nin; i++)
     {
       if (!*peak_found)
@@ -74,7 +86,8 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
             *peak_count = 0;
             ret = true;
 
-            cout << "peak <- @ " << icount << " - " << i << endl;
+            cout << "peak <-" << endl;
+            getchar();
             break;
           }
           else

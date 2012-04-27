@@ -343,7 +343,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
   {
     for (int i = 0; i < 4; i++)
     {
-      m_vStates[i].v_setall(128);
+      m_vStates[i].v_setall(48);
     }
     m_vStates[0].v_set_at<0>(0);
 
@@ -382,6 +382,8 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
     unsigned __int32 TBQwit = 0;
 
     SurviorPath* TBQ = (SurviorPath*)m_buffer->write_pointer();
+
+    log("TBQ=%p\n", TBQ);
 
     int iTrellis = m_buffer_reader->items_available();
     int nTotalSoftBits = *VitTotalSoftBits;
@@ -429,7 +431,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
       TBQwit++;
 
-      if (m_vStates[0].v_get_at<0>() > 208)
+      if (m_vStates[0].v_get_at<0>() > 200)
       {
         Normalize(m_vStates, vNormMask);
       }

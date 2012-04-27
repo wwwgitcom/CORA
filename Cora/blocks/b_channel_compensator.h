@@ -71,6 +71,13 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_2v2, 2, 2)
     auto op1 = $_<v_cs>(0);
     auto op2 = $_<v_cs>(1);
 
+#if 0
+    for (int i = 0; i < 16; i++)
+    {
+      op1[i] = ip1[i];
+      op2[i] = ip2[i];
+    }
+#else
     v_ci vciout1, vciout2;
 
     autoref channel_factor1 = *dot11a_siso_channel_1;
@@ -106,7 +113,7 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_2v2, 2, 2)
 
       vout        = v_convert2cs(vciout1, vciout2);
     }
-
+#endif
     consume(0, 16);
     consume(1, 16);
     produce(0, 16);

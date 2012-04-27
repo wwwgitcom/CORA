@@ -391,12 +391,32 @@ int _tmain(int argc, _TCHAR* argv[])
       return bRet;
     }), STOP(NOP)
   );
-
-  START(src, cfo_comp, [&]
+  //l-sig
+  START(src, cfo_comp, IF([&]
     {
+      bool bRet = false;
       START(IF(remove_gi1), fft_data1);
-      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, IF(l_sig_parser), STOP(NOP));
-    }
+      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, IF(l_sig_parser), STOP([&]{bRet = true;}));
+      return bRet;
+    }), STOP(NOP)
+  );
+  // ht-sig1
+  START(src, cfo_comp, IF([&]
+    {
+      bool bRet = false;
+      START(IF(remove_gi1), fft_data1);
+      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, STOP([&]{bRet = true; *VitTotalSoftBits = 96;}));
+      return bRet;
+    }), STOP(NOP)
+  );
+  // ht-sig2
+  START(src, cfo_comp, IF([&]
+    {
+      bool bRet = false;
+      START(IF(remove_gi1), fft_data1);
+      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit, IF(ht_sig_parser), STOP([&]{bRet = true;}));
+      return bRet;
+    }), STOP(NOP)
   );
 #endif
   

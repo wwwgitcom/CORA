@@ -281,11 +281,19 @@ DEFINE_BLOCK(b_frequest_offset_compensator_2v2, 2, 2)
     auto ip2 = _$<v_cs>(1);
     auto op2 = $_<v_cs>(1);
 
+#if 0
+    for (int i = 0; i < *vCompensateLength; i++)
+    {
+      op1[i] = ip1[i];
+      op2[i] = ip2[i];
+    }
+#else
     v_make_coeff_i(vfo_coeff, *vCompensateLength, *vfo_delta_i, *vfo_step_i, *vfo_theta_i);
     v_compensate_i(ip1, vfo_coeff, op1, *vCompensateLength);
     v_compensate_i(ip2, vfo_coeff, op2, *vCompensateLength);
 
     log("%s: n=%d,cfo=%d", name(), n, (*vfo_delta_i)[1]);
+#endif
 
     consume(0, *vCompensateLength);
     consume(1, *vCompensateLength);
