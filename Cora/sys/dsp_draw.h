@@ -62,7 +62,7 @@ public:
     Color BkColor      = Color::Black,
     Color BkPenColor   = Color::LightGray, float BkPenWidth   = 1.0f, 
     Color AxisPenColor = Color(255, 0, 0), float AxisPenWidth = 3.0f, 
-    Color PenColor     = Color(0, 255, 0), float PenWidth     = 2.0f,
+    Color PenColor     = Color(0, 255, 128), float PenWidth     = 8.0f,
     Color FontColor    = Color::Yellow
     );
 

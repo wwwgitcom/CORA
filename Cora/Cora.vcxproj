@@ -89,8 +89,10 @@
     <ClInclude Include="blocks\b_auto_corr.h" />
     <ClInclude Include="blocks\b_channel_compensator.h" />
     <ClInclude Include="blocks\b_channel_estimator.h" />
+    <ClInclude Include="blocks\b_crc.h" />
     <ClInclude Include="blocks\b_deinterleave.h" />
     <ClInclude Include="blocks\b_demap.h" />
+    <ClInclude Include="blocks\b_descramble.h" />
     <ClInclude Include="blocks\b_drop.h" />
     <ClInclude Include="blocks\b_fft.h" />
     <ClInclude Include="blocks\b_file_source.h" />
@@ -117,6 +119,7 @@
     <ClInclude Include="sys\dsp_log.h" />
     <ClInclude Include="sys\dsp_map.h" />
     <ClInclude Include="sys\dsp_math.h" />
+    <ClInclude Include="sys\dsp_scramble.h" />
     <ClInclude Include="sys\dsp_source.h" />
     <ClInclude Include="sys\dsp_sysconfig.h" />
     <ClInclude Include="sys\dsp_tickcount.h" />
@@ -147,6 +150,7 @@
     <ClCompile Include="sys\dsp_log.cpp" />
     <ClCompile Include="sys\dsp_demap.cpp" />
     <ClCompile Include="sys\dsp_math.cpp" />
+    <ClCompile Include="sys\dsp_scramble.cpp" />
     <ClCompile Include="sys\dsp_sysconfig.cpp" />
     <ClCompile Include="sys\dsp_vector1.cpp" />
     <ClCompile Include="TThread.cpp" />

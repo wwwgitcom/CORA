@@ -132,7 +132,7 @@ public:
   void consume_each (int how_many_items)
   {
     if (how_many_items > 0) {
-      for (int i = 0; i < NINPUT - 1; i++) {
+      for (int i = 0; i < NINPUT; i++) {
         m_inputs[i]->update_read_pointer (how_many_items);
       }
     }
@@ -148,7 +148,7 @@ public:
   void produce_each (int how_many_items)
   {
     if (how_many_items > 0) {
-      for (int i = 0; i < NOUTPUT - 1; i++) {
+      for (int i = 0; i < NOUTPUT; i++) {
         m_outputs[i]->update_write_pointer (how_many_items);
       }
     }

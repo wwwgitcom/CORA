@@ -36,7 +36,18 @@ typedef complex16 MIMO_2x2_H[2][128];
 
 DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
 {
-  _global_(MIMO_2x2_H, dot11n_2x2_channel);
+  _global_(MIMO_2x2_H, dot11n_2x2_channel_inv);
+  v_align(16) MIMO_2x2_H dot11n_2x2_channel;
+#if enable_draw
+  dsp_draw_window* m_draw;
+#endif
+
+  BLOCK_INIT
+  {
+#if enable_draw
+    m_draw = new dsp_draw_window("dot11 2x2 mimo channel estimator", 800, 0, 400, 400);
+#endif
+  }
 
   BLOCK_WORK
   {
@@ -61,7 +72,7 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
     auto ipc1 = (complex16*)ip1;
     auto ipc2 = (complex16*)ip2;
 
-    MIMO_2x2_H& mimo_channel_2x2 = *dot11n_2x2_channel;
+    MIMO_2x2_H& mimo_channel_2x2_inv = *dot11n_2x2_channel_inv;
 
     int i;
 
@@ -74,10 +85,10 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
       v_cs& v21    = (v_cs&)ipc2[i];
       v_cs& v22    = (v_cs&)ipc2[i + 64];
 
-      v_cs& vh11   = (v_cs&)ipc1[i];
-      v_cs& vh12   = (v_cs&)ipc1[i + 64];
-      v_cs& vh21   = (v_cs&)ipc2[i];
-      v_cs& vh22   = (v_cs&)ipc2[i + 64];
+      v_cs& vh11   = (v_cs&)dot11n_2x2_channel[0][i];
+      v_cs& vh12   = (v_cs&)dot11n_2x2_channel[0][i + 64];
+      v_cs& vh21   = (v_cs&)dot11n_2x2_channel[1][i];
+      v_cs& vh22   = (v_cs&)dot11n_2x2_channel[1][i + 64];
 
       v_cs& vtemph = (v_cs&)vtemp[0];
 
@@ -104,10 +115,10 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
 
     for (i = 0; i < 64; i += 4)
     {
-      v_cs& vh11   = (v_cs&)ipc1[i];
-      v_cs& vh12   = (v_cs&)ipc1[i + 64];
-      v_cs& vh21   = (v_cs&)ipc2[i];
-      v_cs& vh22   = (v_cs&)ipc2[i + 64];
+      v_cs& vh11   = (v_cs&)dot11n_2x2_channel[0][i];
+      v_cs& vh12   = (v_cs&)dot11n_2x2_channel[0][i + 64];
+      v_cs& vh21   = (v_cs&)dot11n_2x2_channel[1][i];
+      v_cs& vh22   = (v_cs&)dot11n_2x2_channel[1][i + 64];
 
       v_mul2ci(vh11, vh22, vMulMask, vtemp[0], vtemp[1]);
       v_mul2ci(vh12, vh21, vMulMask, vtemp[2], vtemp[3]);
@@ -122,10 +133,10 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
       vstarsqr[0] = v_sub(vstarsqr[0], (v_q&)vNegMask);
       vstarsqr[1] = v_sub(vstarsqr[1], (v_q&)vNegMask);
       //
-      v_cs &vinvh11 = (v_cs&)mimo_channel_2x2[0][i];
-      v_cs &vinvh12 = (v_cs&)mimo_channel_2x2[0][i + 64];
-      v_cs &vinvh21 = (v_cs&)mimo_channel_2x2[1][i];
-      v_cs &vinvh22 = (v_cs&)mimo_channel_2x2[1][i + 64];
+      v_cs &vinvh11 = (v_cs&)mimo_channel_2x2_inv[0][i];
+      v_cs &vinvh12 = (v_cs&)mimo_channel_2x2_inv[0][i + 64];
+      v_cs &vinvh21 = (v_cs&)mimo_channel_2x2_inv[1][i];
+      v_cs &vinvh22 = (v_cs&)mimo_channel_2x2_inv[1][i + 64];
 
       v_cq &vres1 = (v_cq&)vtemp[0];
       v_cq &vres2 = (v_cq&)vtemp[1];
@@ -229,6 +240,24 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
       vinvh22      = vout22;
     }
 
+    //m_draw->DrawSqrt(ipc1, 128);
+    //getchar();
+    //m_draw->DrawSqrt(ipc2, 128);
+#if enable_draw
+    mimo_channel_2x2_inv[0][0] = 0;
+    mimo_channel_2x2_inv[0][64] = 0;
+    mimo_channel_2x2_inv[1][0] = 0;
+    mimo_channel_2x2_inv[1][64] = 0;
+    for (int i = 29; i < 64 - 28; i++)
+    {
+      mimo_channel_2x2_inv[0][i] = 0;
+      mimo_channel_2x2_inv[0][i + 64] = 0;
+      mimo_channel_2x2_inv[1][i] = 0;
+      mimo_channel_2x2_inv[1][i + 64] = 0;
+    }
+
+    m_draw->DrawSqrt(&mimo_channel_2x2_inv[0][0], 256);
+#endif
     consume_each(32);
 
     return true;

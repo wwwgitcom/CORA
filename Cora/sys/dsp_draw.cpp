@@ -397,12 +397,12 @@ void dsp_draw_window::_OnDraw(Graphics *pGraphics)
 void dsp_draw_window::_DrawPoint(Graphics* pGraphics, PointF &point)
 {
   pGraphics->DrawLine(&m_Pen,
-    PointF(point.X - 2, point.Y), 
-    PointF(point.X + 2, point.Y));
+    PointF(point.X - 8, point.Y), 
+    PointF(point.X + 8, point.Y));
 
   pGraphics->DrawLine(&m_Pen,
-    PointF(point.X, point.Y - 2), 
-    PointF(point.X, point.Y + 2));
+    PointF(point.X, point.Y - 8), 
+    PointF(point.X, point.Y + 8));
 }
 
 void dsp_draw_window::_DrawLine(Graphics* pGraphics, PointF &point1, PointF &point2)

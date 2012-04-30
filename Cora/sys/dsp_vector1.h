@@ -2219,7 +2219,7 @@ typedef struct __declspec(align(16)) _sig_blk
 
 
 
-#ifdef USER_MODE
+#if 1
 
 //////////////////////////////////////////////////////////////////////////
 // v_test
@@ -2288,7 +2288,7 @@ inline void v_print(FILE *File, v_ub &v)
 {
   for (int i = 0; i < v_ub::elem_cnt; i++)
   {
-    fprintf(File, "%ud ", v[i]);
+    fprintf(File, "%u ", v[i]);
   }
   fprintf(File, "\n");
 }

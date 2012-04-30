@@ -4,7 +4,18 @@ typedef complex16 MIMO_2x2_H[2][128];
 
 DEFINE_BLOCK(b_dot11_mimo_channel_compensator_2v2, 2, 2)
 {
-  _global_(MIMO_2x2_H, dot11n_2x2_channel);
+  _global_(MIMO_2x2_H, dot11n_2x2_channel_inv);
+#if enable_draw
+  dsp_draw_window* m_draw1;
+  dsp_draw_window* m_draw2;
+#endif
+  BLOCK_INIT
+  {
+#if enable_draw
+    m_draw1 = new dsp_draw_window("dot11 2x2 mimo channel compensator: 1", 0, 400, 400, 400);
+    m_draw2 = new dsp_draw_window("dot11 2x2 mimo channel compensator: 2", 400, 400, 400, 400);
+#endif
+  }
 
   BLOCK_WORK
   {
@@ -25,7 +36,7 @@ DEFINE_BLOCK(b_dot11_mimo_channel_compensator_2v2, 2, 2)
     auto opc1 = reinterpret_cast<complex16*>(op1);
     auto opc2 = reinterpret_cast<complex16*>(op2);
 
-    MIMO_2x2_H& mimo_channel_2x2 = *dot11n_2x2_channel;
+    MIMO_2x2_H& mimo_channel_2x2 = *dot11n_2x2_channel_inv;
 
     const v_cs vMulMask = VMASK::__0x80000001800000018000000180000001<v_cs>();
     v_ci vcomp1[2], vcomp2[2];
@@ -63,6 +74,18 @@ DEFINE_BLOCK(b_dot11_mimo_channel_compensator_2v2, 2, 2)
 
       x2 = v_convert2cs(vcomp1[0], vcomp1[1]);
     }
+
+#if enable_draw
+    opc1[0] = 0;
+    for (int i = 29; i < 64 - 28; i++)
+    {
+      opc1[i] = 0;
+    }
+    
+    //m_draw1->DrawSqrtShift(opc1, 64);
+    m_draw1->DrawScatter(opc1, 64);
+    m_draw2->DrawScatter(opc2, 64);
+#endif
 
     consume_each(16);
     produce_each(16);

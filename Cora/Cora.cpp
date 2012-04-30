@@ -45,7 +45,8 @@
 #include "b_mimo_channel_estimator.h"
 #include "b_mimo_channel_compensator.h"
 #include "b_stream_joiner.h"
-
+#include "b_descramble.h"
+#include "b_crc.h"
 //#define split(T, ...) new (aligned_malloc<T>()) T(__VA_ARGS__)
 
 
@@ -167,7 +168,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
   autoref ht_data_vit_12 = create_block<b_viterbi64_1o2_1v1>(
     2,
-    string("TraceBackLength=36"),
+    string("TraceBackLength=48"),
     string("TraceBackOutput=48")
     );
 
@@ -185,7 +186,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
   autoref l_sig_parser = create_block<b_lsig_parser_1v>();
   autoref ht_sig_parser = create_block<b_htsig_parser_1v>();
-  autoref ht_stf = create_block<b_drop_1v>(
+  autoref ht_stf = create_block<b_drop_2v>(
     1,
     string("nDrop=20")
     );
@@ -259,7 +260,10 @@ int _tmain(int argc, _TCHAR* argv[])
   autoref ht_stream_joiner_4 = create_block<b_stream_joiner_3_2v1>(
     1,
     string("count_per_stream=312"));
-  
+
+  autoref descramble_seed = create_block<b_dot11_descramble_seed_1v>();
+  autoref descramble = create_block<b_dot11_descramble_1v1>();
+  autoref crc32_checker = create_block<b_crc32_1v>();
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
   .from(src, 0)
@@ -280,11 +284,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
   Channel::Create(sizeof(v_cs))
     .from(cfo_comp, 0)
-    .to(fft_lltf1, 0).to(remove_gi1, 0).to(fft_data1, 0);
+    .to(fft_lltf1, 0).to(remove_gi1, 0).to(fft_data1, 0).to(ht_stf, 0);
 
   Channel::Create(sizeof(v_cs))
     .from(cfo_comp, 1)
-    .to(fft_lltf2, 0).to(remove_gi2, 0).to(fft_data2, 0);
+    .to(fft_lltf2, 0).to(remove_gi2, 0).to(fft_data2, 0).to(ht_stf, 1);
 
   Channel::Create(sizeof(v_cs))
     .from(fft_lltf1, 0)
@@ -343,14 +347,19 @@ int _tmain(int argc, _TCHAR* argv[])
     .from(ht_stream_joiner_1, 0).from(ht_stream_joiner_2, 0).from(ht_stream_joiner_3, 0).from(ht_stream_joiner_4, 0)
     .to(ht_data_vit_12, 0).to(ht_data_vit_23, 0).to(ht_data_vit_34, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
-    .from(ht_data_vit_12, 0).from(ht_data_vit_23, 0).from(ht_data_vit_34, 0);
+  Channel::Create(sizeof(uint8))
+    .from(ht_data_vit_12, 0).from(ht_data_vit_23, 0).from(ht_data_vit_34, 0)
+    .to(descramble_seed, 0).to(descramble, 0);
+
+  Channel::Create(sizeof(uint8))
+    .from(descramble, 0).to(crc32_checker, 0);
   //---------------------------------------------------------
   
   _global_(int, VitTotalSoftBits);
   _global_(uint16, ht_frame_length);
   _global_(uint32, ht_frame_mcs);
-
+  _global_(int, crc32_check_length);
+  _global_(bool, crc32_check_result);
   //////////////////////////////////////////////////////////////////////////
   //auto fk = make_thread([&]{    
   //});
@@ -375,6 +384,8 @@ int _tmain(int argc, _TCHAR* argv[])
     HT_DATA,
     HT_OTHER
   }branch2 = SISO_CHANNEL_ESTIMATION;
+
+  bool frame_decode_done = false;
 
   tick_count t1, t2;
 
@@ -418,8 +429,38 @@ int _tmain(int argc, _TCHAR* argv[])
       return bRet;
     }), STOP(NOP)
   );
-#endif
+
+  START(src, cfo_comp, ht_stf, STOP(NOP));
+
+  START(src, cfo_comp, IF([&]
+    {
+      bool bRet = false;
+      START(remove_gi1, fft_data1);
+      START(remove_gi2, fft_data2, mimo_channel_estimator, STOP([&]{bRet = true;}));
+      return bRet;
+    }), STOP(NOP)
+  );
+  int descramble_state = 0;
+
+  *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 2; // 1/2 coding
+  *crc32_check_length = *ht_frame_length;
+  frame_decode_done = false;
   
+  START(src, IF(IsTrue(frame_decode_done == false)), cfo_comp, [&]
+    {
+      START(remove_gi1, fft_data1);
+      START(remove_gi2, fft_data2, mimo_channel_compensator);
+      START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
+      START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1, ht_data_vit_12, 
+        IF(IsTrue(descramble_state == 0)), 
+          IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
+        ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
+      );
+    },
+    ELSE, STOP([&]{/*printf("frame decode done %d\n", *crc32_check_result);*/})
+  );
+#endif
+  //getchar();
 #if 0
   START(src,
     // frame detection

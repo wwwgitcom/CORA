@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "dsp_log.h"
 #include "dsp_buffer.h"
 #include "dsp_sysconfig.h"
 
@@ -75,11 +76,11 @@ dsp_vmcircbuf* dsp_vmcircbuf::create(int size)
 
   lpMemReserved = VirtualAlloc( NULL, actualsize, MEM_RESERVE, PAGE_READWRITE );
 
-  printf("Alloc virtual memory %p.\n", lpMemReserved);
+  log("Alloc virtual memory %p.\n", lpMemReserved);
 
   if( lpMemReserved == NULL ) 
   {
-    printf("Cannot reserve memory.\n");
+    log("Cannot reserve memory.\n");
     return NULL;
   }
   VirtualFree( lpMemReserved, 0, MEM_RELEASE );
@@ -106,7 +107,7 @@ dsp_vmcircbuf* dsp_vmcircbuf::create(int size)
 
   if (pvmBuf->m_hMapFile == NULL)
   {
-    printf("Could not create file mapping object (%d).\n", GetLastError());
+    log("Could not create file mapping object (%d).\n", GetLastError());
     delete pvmBuf;
     return NULL;
   }
@@ -120,7 +121,7 @@ dsp_vmcircbuf* dsp_vmcircbuf::create(int size)
 
   if (pvmBuf->m_pFirstCopy == NULL)
   {
-    printf("Could not map view of file (%d).\n", GetLastError());
+    log("Could not map view of file (%d).\n", GetLastError());
     delete pvmBuf;
     return NULL;
   }
@@ -128,7 +129,7 @@ dsp_vmcircbuf* dsp_vmcircbuf::create(int size)
   pvmBuf->m_bLocked = VirtualLock((LPVOID)pvmBuf->m_pFirstCopy, size);
   if ( !pvmBuf->m_bLocked )
   {
-    printf("Cannot lock spaces into physical memory!\n");
+    log("Cannot lock spaces into physical memory!\n");
   }
 
   pvmBuf->m_pSecondCopy = (LPTSTR) MapViewOfFileEx(pvmBuf->m_hMapFile,   // handle to map object
@@ -140,7 +141,7 @@ dsp_vmcircbuf* dsp_vmcircbuf::create(int size)
 
   if (pvmBuf->m_pSecondCopy == NULL)
   {
-    printf("Could not map view of file (%d).\n", GetLastError());
+    log("Could not map view of file (%d).\n", GetLastError());
     delete pvmBuf;
     return NULL;
   }
@@ -275,7 +276,8 @@ bool dsp_buffer::allocate_buffer (int nitems, size_t sizeof_item)
   // If we rounded-up a whole bunch, give the user a heads up.
   // This only happens if sizeof_item is not a power of two.
 
-  //if (nitems > 2 * orig_nitems && nitems * (int) sizeof_item > granularity)
+#if 0
+  if (nitems > 2 * orig_nitems && nitems * (int) sizeof_item > granularity)
   {
     cout << "dsp_buffer::allocate_buffer: warning: tried to allocate\n"
       << "   " << orig_nitems << " items of size "
@@ -284,7 +286,7 @@ bool dsp_buffer::allocate_buffer (int nitems, size_t sizeof_item)
       << "   your structure to a power-of-two bytes.\n"
       << "   On this platform, our allocation granularity is " << granularity << " bytes.\n";
   }
-
+#endif
   m_bufsize = nitems;
   m_vmcircbuf = dsp_vmcircbuf::create(m_bufsize * m_sizeof_item);
   if (m_vmcircbuf == 0){

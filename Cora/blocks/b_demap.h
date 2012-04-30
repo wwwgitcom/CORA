@@ -25,7 +25,8 @@ DEFINE_BLOCK(b_dot11_demap_bpsk_i_1v1, 1, 1)
   {
     trace();
 
-    if (ninput(0) < 16) return false;
+    auto n = ninput(0);
+    if (n < 16) return false;
 
     auto ip = _$<v_cs>(0);
     complex16* cip = (complex16*)ip;
@@ -50,6 +51,15 @@ DEFINE_BLOCK(b_dot11_demap_bpsk_i_1v1, 1, 1)
 
       demapper.demap_bpsk_i(cip[i], &op[j++]);
     }
+
+#if 0
+    for (int i = 0; i < *high - *low - 4; i++)
+    {
+      printf("%u ", op[i]);
+    }
+    printf("\n\n");
+    getchar();
+#endif
 
     consume(0, 16);
     produce(0, *high - *low - 4);

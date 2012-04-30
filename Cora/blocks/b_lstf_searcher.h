@@ -35,7 +35,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     auto    _nin  = nin0 << 1;
     
 
-#if 0
+#if 1
     if (nin0 < 96)
     {
       return false;
@@ -87,7 +87,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
             ret = true;
 
             cout << "peak <-" << endl;
-            getchar();
+            //getchar();
             break;
           }
           else
@@ -104,7 +104,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
           if ( *peak_count > 1600 )
           {
             //log("Too many peaks..................\n");
-            getchar();
+            //getchar();
             *peak_found = false;
             *peak_count = 0;
           }

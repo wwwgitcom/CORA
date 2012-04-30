@@ -168,6 +168,15 @@
     <ClInclude Include="blocks\b_plot.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_descramble.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="sys\dsp_scramble.h">
+      <Filter>Header Files\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_crc.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -204,6 +213,9 @@
       <Filter>Source Files\sys</Filter>
     </ClCompile>
     <ClCompile Include="sys\dsp_draw.cpp">
+      <Filter>Source Files\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="sys\dsp_scramble.cpp">
       <Filter>Source Files\sys</Filter>
     </ClCompile>
   </ItemGroup>

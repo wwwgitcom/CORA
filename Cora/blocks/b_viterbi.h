@@ -83,8 +83,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
       m_vStateIndex[0][i] = k++;
     }
 
-    m_vNormMask.v_setall(255 - 100);
-
+    m_vNormMask.v_setall(128);
 
     unsigned __int8 bAddress;
     unsigned __int8 m00, m01, m10, m11;
@@ -153,7 +152,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
     }
     for (int i = 0; i < 4; i++)
     {
-      m_vStates[i].v_setall(128);
+      m_vStates[i].v_setall(48);
     }
     m_vStates[0].v_set_at<0>(0);
   }
@@ -353,7 +352,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
     m_buffer_reader->reset();
   }
   //////////////////////////////////////////////////////////////////////////
-
+#define VITTRACE 0
   BLOCK_WORK
   {
     trace();
@@ -376,8 +375,17 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
     if (nInputSoftBits <= 0) return false;
 
-    auto pSoftBits     = _$<unsigned __int8>(0);
-    auto pDecodedBytes = $_<unsigned __int8>(0);
+    auto pSoftBits     = _$<uint8>(0);
+    auto pDecodedBytes = $_<uint8>(0);
+
+#if 0
+    for (int i = 0; i < nInputSoftBits; i++)
+    {
+      printf("%u ", pSoftBits[i]);
+    }
+    printf("\n\n");
+    getchar();
+#endif
 
     unsigned __int32 TBQwit = 0;
 
@@ -387,7 +395,12 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
     int iTrellis = m_buffer_reader->items_available();
     int nTotalSoftBits = *VitTotalSoftBits;
-
+#if VITTRACE
+    v_print(stdout, m_vStates[0]);
+    v_print(stdout, m_vStates[1]);
+    v_print(stdout, m_vStates[2]);
+    v_print(stdout, m_vStates[3]);
+#endif
     //printf("vit=> %d\n", iTrellis);
     for (__int32 nSoftBits = 0; nSoftBits < nInputSoftBits && m_IncomeSoftBits < nTotalSoftBits; nSoftBits += 4)
     {
@@ -408,9 +421,13 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
       ButterFly(m_vStates[2], m_vStates[3], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
       TBQ[TBQwit][1] = iPH0;
       TBQ[TBQwit][3] = iPH1;
-
-      //m_viterbi.v_print(vStates, 4);
-
+#if VITTRACE
+      printf("\n");
+      v_print(stdout, m_vStates[0]);
+      v_print(stdout, m_vStates[2]);
+      v_print(stdout, m_vStates[1]);
+      v_print(stdout, m_vStates[3]);
+#endif
       TBQwit++;
       // stage StageIndex + 1
       BMIndex = BMAddress(pSoftBits[nSoftBits + 2], pSoftBits[nSoftBits + 3]);
@@ -428,11 +445,18 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
       ButterFly(m_vStates[1], m_vStates[3], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
       TBQ[TBQwit][2] = iPH0;
       TBQ[TBQwit][3] = iPH1;
-
+#if VITTRACE
+      printf("\n");
+      v_print(stdout, m_vStates[0]);
+      v_print(stdout, m_vStates[1]);
+      v_print(stdout, m_vStates[2]);
+      v_print(stdout, m_vStates[3]);
+#endif
       TBQwit++;
 
-      if (m_vStates[0].v_get_at<0>() > 200)
+      if (m_vStates[0].v_get_at<0>() > 192)
       {
+        printf("normalize\n");
         Normalize(m_vStates, vNormMask);
       }
 
@@ -449,9 +473,9 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
         pDecodedBytes      += nTraceBackOutputByte;
         iTrellis           -= nTraceBackOutput;
-
-        //printf("vit: trace back done %d\n", iTrellis);
-
+#if VITTRACE
+        printf("vit: trace back done %d\n", iTrellis);
+#endif
         m_buffer_reader->update_read_pointer(nTraceBackOutput);
 
         produce(0, nTraceBackOutputByte);
@@ -464,29 +488,78 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
     m_buffer->update_write_pointer(TBQwit);
 
-    consume(0, nInputSoftBits);
-
     if (m_IncomeSoftBits >= nTotalSoftBits)
     {
+#if 1
       log("vitok\n");
-      log("vit: income: %d, total=%d\n", m_IncomeSoftBits, nTotalSoftBits);
+      log("vit over: income: %d, total=%d, tbq=%d\n", 
+        m_IncomeSoftBits, nTotalSoftBits,
+        m_buffer_reader->items_available()
+        );
+#endif
+      int tbitems = m_buffer_reader->items_available();
+      int nloop = tbitems / nTraceBackOutput;
+      nloop += (tbitems % nTraceBackLength) == 0 ? 0 : 1;
+      int npadding = nloop * nTraceBackLength;
+      npadding >>= 1;
 
-      for (unsigned int i = 0; i < nTraceBackOutput; i++)
+      for (unsigned int i = 0; i < npadding; i++)
       {
-        TBQ[TBQwit][0] = TBQ[TBQwit][1] = TBQ[TBQwit][2] = TBQ[TBQwit][3] = 0;
+        BMIndex = BMAddress(0, 0);
+
+        v_ub* pvBM = &m_vBM[BMIndex][0];
+
+        vBM0 = pvBM[0];
+        vBM1 = pvBM[1];
+        ButterFly(m_vStates[0], m_vStates[1], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
+
+        TBQ[TBQwit][0] = iPH0;
+        TBQ[TBQwit][2] = iPH1;
+
+        vBM0 = pvBM[2];
+        vBM1 = pvBM[3];
+        ButterFly(m_vStates[2], m_vStates[3], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
+        TBQ[TBQwit][1] = iPH0;
+        TBQ[TBQwit][3] = iPH1;
+        TBQwit++;
+
+        // stage StageIndex + 1
+        BMIndex = BMAddress(0, 0);
+
+        pvBM = &m_vBM[BMIndex][0];
+
+        vBM0 = pvBM[0];
+        vBM1 = pvBM[1];
+        ButterFly(m_vStates[0], m_vStates[2], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
+        TBQ[TBQwit][0] = iPH0;
+        TBQ[TBQwit][1] = iPH1;
+
+        vBM0 = pvBM[2];
+        vBM1 = pvBM[3];
+        ButterFly(m_vStates[1], m_vStates[3], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
+        TBQ[TBQwit][2] = iPH0;
+        TBQ[TBQwit][3] = iPH1;
         TBQwit++;
       }
 
-      unsigned __int8 MinAddress = FindMinValueAddress(m_vStates);
+      for (int loop = 0; loop < nloop; loop++)
+      {
+        unsigned __int8 MinAddress = FindMinValueAddress(m_vStates);
 
-      TraceBack(nTracebackOffset, MinAddress, nTraceBackLength, nTraceBackOutput, pDecodedBytes + nTraceBackOutputByte - 1);
-      
-      produce(0, nTraceBackOutputByte);
+        TraceBack(nTracebackOffset, MinAddress, nTraceBackLength, nTraceBackOutput, pDecodedBytes + nTraceBackOutputByte - 1);
+        
+        pDecodedBytes      += nTraceBackOutputByte;
+        m_buffer_reader->update_read_pointer(nTraceBackOutput);
+
+        produce(0, nTraceBackOutputByte);
+      }
 
       bRet = true;
 
       reset();
     }
+
+    consume(0, nInputSoftBits);
 
     return bRet;
   }
