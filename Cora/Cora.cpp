@@ -52,6 +52,7 @@
 
 //----------------------------------
 
+
 DEFINE_BLOCK(dummy_block, 1, 1)
 {
   BLOCK_INIT
@@ -263,7 +264,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
   autoref descramble_seed = create_block<b_dot11_descramble_seed_1v>();
   autoref descramble = create_block<b_dot11_descramble_1v1>();
-  autoref crc32_checker = create_block<b_crc32_1v>();
+  autoref crc32_checker = create_block<b_crc32_check_1v>();
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
   .from(src, 0)
@@ -386,6 +387,7 @@ int _tmain(int argc, _TCHAR* argv[])
   }branch2 = SISO_CHANNEL_ESTIMATION;
 
   bool frame_decode_done = false;
+  int descramble_state = 0;
 
   tick_count t1, t2;
 
@@ -406,8 +408,20 @@ int _tmain(int argc, _TCHAR* argv[])
   START(src, cfo_comp, IF([&]
     {
       bool bRet = false;
+#if 0
       START(IF(remove_gi1), fft_data1);
       START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, IF(l_sig_parser), STOP([&]{bRet = true;}));
+#else
+      parallel_invoke([&]
+      {
+        START(IF(remove_gi1), fft_data1);
+      },[&]
+      {
+        START(IF(remove_gi2), fft_data2);
+      });
+
+      START(siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, IF(l_sig_parser), STOP([&]{bRet = true;}));
+#endif
       return bRet;
     }), STOP(NOP)
   );
@@ -440,14 +454,17 @@ int _tmain(int argc, _TCHAR* argv[])
       return bRet;
     }), STOP(NOP)
   );
-  int descramble_state = 0;
-
+  
+  
   *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 2; // 1/2 coding
   *crc32_check_length = *ht_frame_length;
-  frame_decode_done = false;
   
+  frame_decode_done = false;
+  descramble_state = 0;
+
   START(src, IF(IsTrue(frame_decode_done == false)), cfo_comp, [&]
     {
+#if 1
       START(remove_gi1, fft_data1);
       START(remove_gi2, fft_data2, mimo_channel_compensator);
       START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
@@ -456,8 +473,30 @@ int _tmain(int argc, _TCHAR* argv[])
           IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
         ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
       );
+#else
+      parallel_invoke([&]
+      {
+        START(remove_gi1, fft_data1);
+      }, [&]
+      {
+        START(remove_gi2, fft_data2);
+      });
+      START(mimo_channel_compensator);
+      parallel_invoke([&]
+      {
+        START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
+      }, [&]
+      {
+        START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2);
+      });
+      START(ht_stream_joiner_1, ht_data_vit_12, 
+        IF(IsTrue(descramble_state == 0)), 
+          IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
+        ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
+      );
+#endif
     },
-    ELSE, STOP([&]{/*printf("frame decode done %d\n", *crc32_check_result);*/})
+    ELSE, STOP([&]{printf("frame decode done %d\n", *crc32_check_result);})
   );
 #endif
   //getchar();

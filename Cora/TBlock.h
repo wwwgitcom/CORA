@@ -90,46 +90,46 @@ public:
     }
   }
 
-  void set_output(dsp_buffer_ptr buffer, int which)
+  __forceinline void set_output(dsp_buffer_ptr buffer, int which)
   {
     m_outputs[which] = buffer;
   }
 
-  void set_input(dsp_buffer_reader_ptr reader, int which)
+  __forceinline void set_input(dsp_buffer_reader_ptr reader, int which)
   {
     m_inputs[which] = reader;
   }
 
-  int ninput(int which)
+  __forceinline int ninput(int which)
   {
     return m_inputs[which]->items_available();
   }
 
-  int noutput(int which)
+  __forceinline int noutput(int which)
   {
     return m_outputs[which]->space_available();
   }
 
   template<class T>
-  T* input(unsigned int which){return (T*)(m_inputs[which]->read_pointer());}
+  __forceinline T* input(unsigned int which){return (T*)(m_inputs[which]->read_pointer());}
 
   template<class T>
-  T* _$(unsigned int which){return (T*)(m_inputs[which]->read_pointer());}
+  __forceinline T* _$(unsigned int which){return (T*)(m_inputs[which]->read_pointer());}
 
   template<class T>
-  T* output(unsigned int which){return (T*)(m_outputs[which]->write_pointer());}
+  __forceinline T* output(unsigned int which){return (T*)(m_outputs[which]->write_pointer());}
 
   template<class T>
-  T* $_(unsigned int which){return (T*)(m_outputs[which]->write_pointer());}
+  __forceinline T* $_(unsigned int which){return (T*)(m_outputs[which]->write_pointer());}
 
-  void consume (int which_input, int how_many_items)
+  __forceinline void consume (int which_input, int how_many_items)
   {
     if (how_many_items > 0) {
       m_inputs[which_input]->update_read_pointer (how_many_items);
     }
   }
 
-  void consume_each (int how_many_items)
+  __forceinline void consume_each (int how_many_items)
   {
     if (how_many_items > 0) {
       for (int i = 0; i < NINPUT; i++) {
@@ -138,14 +138,14 @@ public:
     }
   }
 
-  void produce (int which_output, int how_many_items)
+  __forceinline void produce (int which_output, int how_many_items)
   {
     if (how_many_items > 0){
       m_outputs[which_output]->update_write_pointer (how_many_items);
     }
   }
 
-  void produce_each (int how_many_items)
+  __forceinline void produce_each (int how_many_items)
   {
     if (how_many_items > 0) {
       for (int i = 0; i < NOUTPUT; i++) {
@@ -259,8 +259,8 @@ struct _global_##_name{\
   _type * volatile p_var;\
   string m_name;\
   _global_##_name() : p_var(nullptr), size(sizeof(_type)), m_name(#_name){_GlobalObjMan.insert(this);}\
-  inline _type& operator *() {return *p_var;}\
-  inline _type* operator &() {return  p_var;}\
+  __forceinline  _type& operator *() {return *p_var;}\
+  __forceinline  _type* operator &() {return  p_var;}\
 }_name;
 
 #define _local_(_type, _name, _default)\
@@ -270,8 +270,8 @@ struct _local_##_name{\
   string m_name;\
   _type   m_var;\
   _local_##_name(decltype(_default) var = _default) : m_var(var), m_size(sizeof(_type)), m_name(#_name){}\
-  inline _type& operator *() {return m_var;}\
-  inline _type* operator &() {return  &m_var;}\
+  __forceinline  _type& operator *() {return m_var;}\
+  __forceinline  _type* operator &() {return  &m_var;}\
   void operator=(_type &rhs){m_var = rhs;}\
 }_name;
 

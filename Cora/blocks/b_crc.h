@@ -1,6 +1,6 @@
 #pragma once
 
-DEFINE_BLOCK(b_crc32_1v, 1, 0)
+DEFINE_BLOCK(b_crc32_check_1v, 1, 0)
 {
   _global_(int, crc32_check_length);
   _global_(bool, crc32_check_result);

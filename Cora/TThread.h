@@ -22,7 +22,8 @@ class TThread
 public:
   TThread(_Function func) : m_func(func)
   {
-    m_hThread = CreateThread(NULL, 0, TThread::_thread, this, 0, NULL);    
+    m_hThread = CreateThread(NULL, 0, TThread::_thread, this, 0, NULL);
+    printf("Thread handle = %p\n", m_hThread);
   }
 
   ~TThread()
@@ -45,6 +46,7 @@ public:
     TThread* func = (TThread*)lpVoid;
     //SetThreadAffinityMask(GetCurrentThread(), me->m_viterbi_affinity);
     //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+    printf("  ::Thread handle = %p\n", GetCurrentThread());
     func->m_status = _running;
     func->run();
     func->m_status = _done;

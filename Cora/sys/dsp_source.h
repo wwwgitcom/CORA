@@ -11,8 +11,8 @@ typedef struct _signal_block
 
   unsigned char header[v_headersize];
   v_cs          v_data[v_datacount];
-  v_cs&         operator[](int index) { return v_data[index]; }
-  const v_cs&   operator[](int index) const { return v_data[index]; }
+  __forceinline v_cs&         operator[](int index) { return v_data[index]; }
+  __forceinline const v_cs&   operator[](int index) const { return v_data[index]; }
 }signal_block, *psignal_block;
 
 template<int streamcnt, int sbcntperstream>
