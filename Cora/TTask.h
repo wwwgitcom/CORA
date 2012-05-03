@@ -1,13 +1,43 @@
 #pragma once
 
+
+//typedef void (__cdecl * DspTaskProc)(void *);
+
+
+class _UnrealizedChore
+{
+public:
+  // Invocation bridge between the _UnrealizedChore and PPL.
+  template <typename _ChoreType>
+  static void __cdecl _InvokeBridge(_ChoreType * _PChore)
+  {
+    (*_PChore)();
+  }
+};
+
+
 template<typename _Function>
 class dsp_task
 {
-  _Function m_function;
+  
+  _Function _M_function;
   dsp_task const & operator=(dsp_task const&);    // no assignment operator
 public:
-  dsp_task(_Function &function) : m_function(function){}
-  __forceinline void operator()(){m_function();}
+
+  TaskProc m_pFunction;
+
+  dsp_task(_Function &function) : _M_function(function)
+  {
+    m_pFunction = reinterpret_cast <TaskProc> (&::_UnrealizedChore::_InvokeBridge<dsp_task>);
+  }
+
+  // Method that executes the unrealized chore.
+  void _Invoke()
+  {
+    m_pFunction(this);
+  }
+
+  __forceinline void operator()(){_M_function();}
 };
 
 
