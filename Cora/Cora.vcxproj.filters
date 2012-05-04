@@ -177,6 +177,9 @@
     <ClInclude Include="blocks\b_crc.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="sys\dsp_processor.h">
+      <Filter>Header Files\sys</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -216,6 +219,9 @@
       <Filter>Source Files\sys</Filter>
     </ClCompile>
     <ClCompile Include="sys\dsp_scramble.cpp">
+      <Filter>Source Files\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="sys\dsp_processor.cpp">
       <Filter>Source Files\sys</Filter>
     </ClCompile>
   </ItemGroup>
