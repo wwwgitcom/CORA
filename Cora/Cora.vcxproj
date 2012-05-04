@@ -94,6 +94,7 @@
     <ClInclude Include="blocks\b_deinterleave.h" />
     <ClInclude Include="blocks\b_demap.h" />
     <ClInclude Include="blocks\b_descramble.h" />
+    <ClInclude Include="blocks\b_dot11n_param.h" />
     <ClInclude Include="blocks\b_drop.h" />
     <ClInclude Include="blocks\b_fft.h" />
     <ClInclude Include="blocks\b_file_source.h" />

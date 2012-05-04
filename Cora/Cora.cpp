@@ -10,6 +10,7 @@
 #include "dsp_map.h"
 #include "dsp_demap.h"
 #include "dsp_crc.h"
+#include "dsp_processor.h"
 //--------------------------------------------------
 #include "TBlock.h"
 #include "TObject.h"
@@ -47,6 +48,8 @@
 #include "b_stream_joiner.h"
 #include "b_descramble.h"
 #include "b_crc.h"
+
+#include "b_dot11n_param.h"
 //#define split(T, ...) new (aligned_malloc<T>()) T(__VA_ARGS__)
 
 
@@ -76,8 +79,29 @@ DEFINE_BLOCK(dummy_block, 1, 1)
 };
 
 
+
+
+
+
+
+
+//m_pFunction = reinterpret_cast <TaskProc> (&::Concurrency::details::_UnrealizedChore::_InvokeBridge<task_handle>);
+
+
+
+
+
 int _tmain(int argc, _TCHAR* argv[])
 {
+  
+  auto tsk = make_dsp_task([]{
+    printf("invoke---\n");
+  });
+
+  TaskProc pFunction = tsk.m_pFunction;
+
+  pFunction(&tsk);
+
   autoref dummy = create_block<dummy_block>();
 
 #if 0

@@ -1,4 +1,56 @@
 #pragma once
+#include "dsp_helper.h"
+
+const size_t CacheLineSize = 64;
+
+typedef void (*task_function)();
+
+//////////////////////////////////////////////////////////////////////////
+
+template<class T, int Size>
+struct padded_base : T {
+  char pad[CacheLineSize - sizeof(T) % CacheLineSize];
+};
+template<class T> struct padded_base<T, 0> : T {};
+
+//! Pads type T to fill out to a multiple of cache line size.
+template<class T>
+struct padded : padded_base<T, sizeof(T)> {};
+
+//////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+class __declspec(align(64)) _sync_obj
+{
+public:
+  volatile unsigned __int32 status;
+};
+
+class sync_obj : public _sync_obj
+{
+  padded<_sync_obj> pad;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class __declspec(align(64)) _task_obj
+{
+public:
+  volatile unsigned __int32 status;
+  LIST_ENTRY                entry;
+  void *                    obj;
+};
+
+class task_obj : public _task_obj
+{
+  padded<_task_obj> pad;
+};
+
+//////////////////////////////////////////////////////////////////////////
 
 class cpu_processor
 {
@@ -30,16 +82,16 @@ public:
     m_hThread = INVALID_HANDLE_VALUE;
   }
 
-  void Enqueue(task* t)
+  void Enqueue(task_obj* t)
   {
     m_spinlock.Acquire();
-    InsertTailList(&this->m_TaskList, t->GetListEntry());
+    InsertTailList(&this->m_TaskList, &t->entry);
     m_spinlock.Release();
   }
 
-  task* Dequeue()
+  task_obj* Dequeue()
   {
-    task* t                = NULL;
+    task_obj* t                = NULL;
     PLIST_ENTRY pListEntry = NULL;
 
     do 
@@ -53,7 +105,7 @@ public:
       pListEntry = RemoveHeadList(&this->m_TaskList);
       m_spinlock.Release();
 
-      t          = CONTAINING_RECORD(pListEntry, task, m_ListEntry);
+      t = CONTAINING_RECORD(pListEntry, task_obj, entry);
     } while (FALSE);
 
     return t;

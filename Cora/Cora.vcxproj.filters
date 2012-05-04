@@ -180,6 +180,9 @@
     <ClInclude Include="sys\dsp_processor.h">
       <Filter>Header Files\sys</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_param.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
