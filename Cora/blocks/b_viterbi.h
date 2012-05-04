@@ -456,7 +456,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
       if (m_vStates[0].v_get_at<0>() > 192)
       {
-        printf("normalize\n");
+        //printf("normalize\n");
         Normalize(m_vStates, vNormMask);
       }
 
