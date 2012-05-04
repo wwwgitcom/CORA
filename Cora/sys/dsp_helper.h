@@ -12,8 +12,8 @@ __forceinline
   ListHead->Flink = ListHead->Blink = ListHead;
 }
 
-BOOLEAN
-  __forceinline
+__forceinline 
+  BOOLEAN
   IsListEmpty(
   const LIST_ENTRY * ListHead
   )
@@ -128,7 +128,7 @@ struct dsp_spin_lock
   volatile ULONG _lock;
   dsp_spin_lock(){_lock = 0;}
 
-  void Acquire()
+  __forceinline void Acquire()
   {
     ULONG v;
     while (TRUE)
@@ -141,7 +141,7 @@ struct dsp_spin_lock
     }
   }
 
-  void Release()
+  __forceinline void Release()
   {
     _lock = 0;
   }

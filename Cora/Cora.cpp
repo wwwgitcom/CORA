@@ -16,7 +16,7 @@
 #include "TObject.h"
 #include "TOP.h"
 #include "TTask.h"
-#include "TPipeline.h"
+#include "TParallel.h"
 #include "TSchedule.h"
 #include "TOnce.h"
 #include "TArray.h"
@@ -84,8 +84,8 @@ DEFINE_BLOCK(dummy_block, 1, 1)
 
 
 
-
 //m_pFunction = reinterpret_cast <TaskProc> (&::Concurrency::details::_UnrealizedChore::_InvokeBridge<task_handle>);
+
 
 
 
@@ -93,15 +93,20 @@ DEFINE_BLOCK(dummy_block, 1, 1)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-  
-  auto tsk = make_dsp_task([]{
-    printf("invoke---\n");
+  SetThreadAffinityMask(GetCurrentThread(), 1);
+
+  cpu_manager* cm = cpu_manager::Instance();
+
+  int k = 12;
+  auto tsk = make_dsp_task([&]{
+    printf("[%d]invoke---%d {%p}\n", GetCurrentThreadId(), k, &k);
   });
 
-  TaskProc pFunction = tsk.m_pFunction;
-
-  pFunction(&tsk);
-
+  PARALLEL(tsk, tsk, tsk, [&]{
+    printf("[%d]work2...%d {%p}\n", GetCurrentThreadId(), k, &k);
+  });
+  
+  
   autoref dummy = create_block<dummy_block>();
 
 #if 0
@@ -432,11 +437,11 @@ int _tmain(int argc, _TCHAR* argv[])
   START(src, cfo_comp, IF([&]
     {
       bool bRet = false;
-#if 0
+#if 1
       START(IF(remove_gi1), fft_data1);
       START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, IF(l_sig_parser), STOP([&]{bRet = true;}));
 #else
-      parallel_invoke([&]
+      PARALLEL([&]
       {
         START(IF(remove_gi1), fft_data1);
       },[&]
@@ -462,14 +467,25 @@ int _tmain(int argc, _TCHAR* argv[])
   START(src, cfo_comp, IF([&]
     {
       bool bRet = false;
-      START(IF(remove_gi1), fft_data1);
-      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit, IF(ht_sig_parser), STOP([&]{bRet = true;}));
+      START(IF(remove_gi1), [&]
+      {
+        PARALLEL([&]
+        {
+          START(fft_data1);
+        }, [&]
+        {
+          START(remove_gi2, fft_data2);
+        });
+        START(siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit, IF(ht_sig_parser), STOP([&]{bRet = true;}));
+      });
       return bRet;
     }), STOP(NOP)
   );
 
+  // ht-stf
   START(src, cfo_comp, ht_stf, STOP(NOP));
 
+  // ht-ltf
   START(src, cfo_comp, IF([&]
     {
       bool bRet = false;
@@ -488,7 +504,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
   START(src, IF(IsTrue(frame_decode_done == false)), cfo_comp, [&]
     {
-#if 1
+#if 0
       START(remove_gi1, fft_data1);
       START(remove_gi2, fft_data2, mimo_channel_compensator);
       START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
@@ -498,29 +514,40 @@ int _tmain(int argc, _TCHAR* argv[])
         ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
       );
 #else
-      parallel_invoke([&]
+      START(IF(remove_gi1), [&]
       {
-        START(remove_gi1, fft_data1);
-      }, [&]
-      {
-        START(remove_gi2, fft_data2);
+        PARALLEL([&]
+        {
+          START(fft_data1);
+        }, [&]
+        {
+          START(remove_gi2, fft_data2);
+        });
+        START(mimo_channel_compensator);
+        PARALLEL([&]
+        {
+          START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
+        }, [&]
+        {
+          START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2);
+        });
+        START(ht_stream_joiner_1);
+
+        cpu_manager* cm = cpu_manager::Instance();
+        static task_obj to  = make_task_obj([&]
+        {
+          START(IF(ht_data_vit_12), 
+            IF(IsTrue(descramble_state == 0)), 
+            IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
+            ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
+            );
+        });
+        to.wait();
+        cm->run_task(&to);
       });
-      START(mimo_channel_compensator);
-      parallel_invoke([&]
-      {
-        START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
-      }, [&]
-      {
-        START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2);
-      });
-      START(ht_stream_joiner_1, ht_data_vit_12, 
-        IF(IsTrue(descramble_state == 0)), 
-          IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-        ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
-      );
 #endif
     },
-    ELSE, STOP([&]{printf("frame decode done %d\n", *crc32_check_result);})
+    ELSE, STOP(NOP)
   );
 #endif
   //getchar();
@@ -620,6 +647,8 @@ int _tmain(int argc, _TCHAR* argv[])
   tick_count t = t2 - t1;
   printf("time = %f ms, %f MSPS\n",
     t.ms(), src.report() / t.us());
+
+  printf("frame decode done %d\n", *crc32_check_result);
 
 	return 0;
 }

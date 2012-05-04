@@ -1,7 +1,65 @@
 #pragma once
+#include "dsp_helper.h"
+// already defined in ppl.h
+//typedef void (__cdecl * TaskProc)(void *);
 
+const size_t CacheLineSize = 64;
 
-//typedef void (__cdecl * DspTaskProc)(void *);
+//////////////////////////////////////////////////////////////////////////
+
+template<class T, int Size>
+struct padded_base : T {
+  char pad[CacheLineSize - sizeof(T) % CacheLineSize];
+};
+template<class T> struct padded_base<T, 0> : T {};
+
+//! Pads type T to fill out to a multiple of cache line size.
+template<class T>
+struct padded : padded_base<T, sizeof(T)> {};
+
+//////////////////////////////////////////////////////////////////////////
+
+class __declspec(align(64)) _sync_obj
+{
+public:
+  volatile unsigned __int32 status;
+};
+
+class sync_obj : public _sync_obj
+{
+  padded<_sync_obj> pad;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+class __declspec(align(64)) _task_obj
+{
+public:
+  volatile unsigned __int32 status;
+  LIST_ENTRY                entry;
+  TaskProc                  proc;
+  void *                    obj;
+
+  void invoke()
+  {
+    proc(obj);
+  }
+  void wait()
+  {
+    while (status)
+    {
+      //printf("waiting task for done\n");
+      __asm pause;
+    }
+  }
+};
+
+class task_obj : public _task_obj
+{
+  padded<_task_obj> pad;
+};
+
+//////////////////////////////////////////////////////////////////////////
 
 
 class _UnrealizedChore
@@ -13,39 +71,227 @@ public:
   {
     (*_PChore)();
   }
+  template <typename _ChoreType>
+  static void __cdecl _InvokeBridgeRef(_ChoreType & _PChore)
+  {
+    _PChore();
+  }
 };
 
 
 template<typename _Function>
 class dsp_task
 {
-  
+  TaskProc m_pFunction;
   _Function _M_function;
   dsp_task const & operator=(dsp_task const&);    // no assignment operator
 public:
 
-  TaskProc m_pFunction;
+  TaskProc GetProc() const {return m_pFunction;}
 
-  dsp_task(_Function &function) : _M_function(function)
+  dsp_task(const _Function &function) : _M_function(function)
   {
     m_pFunction = reinterpret_cast <TaskProc> (&::_UnrealizedChore::_InvokeBridge<dsp_task>);
   }
 
-  // Method that executes the unrealized chore.
-  void _Invoke()
-  {
-    m_pFunction(this);
-  }
+  __forceinline void operator()() const {_M_function();}
 
-  __forceinline void operator()(){_M_function();}
+  // mark
+  void IsDspTask(){}
 };
 
 
 template <class _Function>
-dsp_task<_Function> make_dsp_task(_Function& _Func)
+dsp_task<_Function> make_dsp_task(const _Function& _Func)
 {
     return dsp_task<_Function>(_Func);
 }
+
+template <class _Function>
+task_obj make_task_obj(const _Function& _Func)
+{
+  task_obj to;
+  to.status = 0;
+  to.proc   = reinterpret_cast <TaskProc> (&::_UnrealizedChore::_InvokeBridgeRef<_Function>);
+  to.obj    = &const_cast<_Function&>(_Func);
+  return to;
+}
+
+template <class _Function>
+task_obj make_task_obj(const dsp_task<_Function>& tsk)
+{
+  task_obj to;
+  to.status = 0;
+  to.proc   = tsk.GetProc();
+  to.obj    = &const_cast<dsp_task<_Function>&>(tsk);
+  return to;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+
+class cpu_processor
+{
+public:
+  cpu_processor(DWORD affinity = 0xFFFFFFFF)
+  {
+    m_hThread      = INVALID_HANDLE_VALUE;
+    m_affinity     = affinity;
+    m_active       = true;
+    m_status       = idle;
+    m_task_count   = 0;
+    m_event        = CreateEvent(NULL, FALSE, FALSE, NULL);
+    InitializeListHead(&m_TaskList);
+  }
+
+  static DWORD WINAPI processor_thread(LPVOID lpThreadParam);
+
+  void Create()
+  {
+    m_active  = true;
+    m_hThread = CreateThread(NULL, 0, cpu_processor::processor_thread, this, 0, NULL);
+    SetThreadAffinityMask(m_hThread, m_affinity);
+    SetThreadPriority(m_hThread, THREAD_PRIORITY_TIME_CRITICAL);
+  }
+
+  void Destroy()
+  {
+    m_active = false;
+    CloseHandle(m_hThread);
+    m_hThread = INVALID_HANDLE_VALUE;
+  }
+
+  __forceinline void Enqueue(task_obj* t)
+  {
+    m_spinlock.Acquire();
+    InsertTailList(&this->m_TaskList, &t->entry);
+    _InterlockedIncrement(&m_task_count);
+    m_spinlock.Release();
+  }
+
+  __forceinline task_obj* Dequeue()
+  {
+    task_obj* t                = NULL;
+    PLIST_ENTRY pListEntry = NULL;
+
+    do 
+    {
+      m_spinlock.Acquire();
+      if (IsListEmpty(&this->m_TaskList))
+      {
+        m_spinlock.Release();
+        break;
+      }
+
+      pListEntry = RemoveHeadList(&this->m_TaskList);
+      _InterlockedDecrement(&m_task_count);
+      m_spinlock.Release();
+
+      t = CONTAINING_RECORD(pListEntry, task_obj, entry);
+    } while (FALSE);
+
+    return t;
+  }
+
+  void wake_up();
+
+  void Run();
+
+  void Stop()
+  {
+    m_active = false;
+    TerminateThread(m_hThread, 0);
+  }
+
+  void set_status_mask(volatile unsigned int* mask){m_status_mask = mask;}
+
+  LIST_ENTRY      m_ListEntry;
+
+  enum status
+  {
+    running, idle
+  };
+  status processor_status() const {return m_status;}
+
+private:
+  volatile ULONG  m_active;
+  volatile LONG   m_task_count;
+  volatile status m_status;
+
+  HANDLE          m_hThread;
+  HANDLE          m_event;
+  DWORD           m_affinity;
+  dsp_spin_lock   m_spinlock;
+  LIST_ENTRY      m_TaskList;
+  volatile unsigned int* m_status_mask;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+class cpu_manager
+{
+private:
+  sync_obj        m_sync_obj;
+  cpu_processor **m_cpu_array;
+  int             m_nTotalProcessor;
+  int             m_nCurrentIndex;
+  dsp_spin_lock   m_lock;
+
+  cpu_manager();
+  cpu_manager(const cpu_manager&) ;
+  cpu_manager& operator=(const cpu_manager&) ;
+  void setup();
+  void destroy();
+public:
+  ~cpu_manager();
+
+  __forceinline static cpu_manager* Instance()
+  {
+    static cpu_manager s_cpu_manager;
+
+    return &s_cpu_manager;
+  }
+
+  __forceinline void run_task(task_obj* t)
+  {
+    DWORD dwFreeCpu = 0;
+
+    // spin wait
+    while (!m_sync_obj.status);
+
+    m_lock.Acquire();
+
+    log("[cpu_man] status %p.\n", m_sync_obj.status);
+    _BitScanForward(&dwFreeCpu, m_sync_obj.status);
+    {
+      //debug
+      //dwFreeCpu = 1;
+      _InterlockedXor((volatile long*)&m_sync_obj.status, (1L << dwFreeCpu));
+      t->status = 1;
+      m_cpu_array[dwFreeCpu]->Enqueue(t);
+      //if (m_cpu_array[dwFreeCpu]->processor_status() == cpu_processor::idle)
+      //{
+      //  m_cpu_array[dwFreeCpu]->wake_up();
+      //}
+      log("[cpu_man] enqueue task %p to processor %d.\n", t, (1L << dwFreeCpu));
+    }
+#if 0
+  else
+  {
+    // all cpu are busy, use random cpu
+    m_cpu_array[m_nCurrentIndex]->Enqueue(t);
+    log("[cpu_man] random enqueue task %p to processor %d.\n", t, (1L << m_nCurrentIndex));
+    m_nCurrentIndex++;
+    m_nCurrentIndex %= m_nTotalProcessor;
+  }
+#endif
+  m_lock.Release();
+  }
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////
 
 
 enum dsp_task_group_status
@@ -109,4 +355,7 @@ public:
     _Func();
     return dsp_task_group_status::completed;
   }
+private:
+  // Disallow passing in an r-value for a task handle argument
+  template<class _Function> void run(dsp_task<_Function>&& _Task_handle);
 };

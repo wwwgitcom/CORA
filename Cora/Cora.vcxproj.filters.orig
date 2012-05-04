@@ -183,9 +183,6 @@
     <ClInclude Include="blocks\b_dot11n_param.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
-    <ClInclude Include="TParallel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -229,9 +226,6 @@
     </ClCompile>
     <ClCompile Include="sys\dsp_processor.cpp">
       <Filter>Source Files\sys</Filter>
-    </ClCompile>
-    <ClCompile Include="TTask.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

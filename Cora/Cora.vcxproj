@@ -135,6 +135,7 @@
     <ClInclude Include="TObject.h" />
     <ClInclude Include="TOnce.h" />
     <ClInclude Include="TOP.h" />
+    <ClInclude Include="TParallel.h" />
     <ClInclude Include="TPipeline.h" />
     <ClInclude Include="TSchedule.h" />
     <ClInclude Include="TTask.h" />
@@ -157,6 +158,7 @@
     <ClCompile Include="sys\dsp_scramble.cpp" />
     <ClCompile Include="sys\dsp_sysconfig.cpp" />
     <ClCompile Include="sys\dsp_vector1.cpp" />
+    <ClCompile Include="TTask.cpp" />
     <ClCompile Include="TThread.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

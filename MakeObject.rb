@@ -138,7 +138,7 @@ def MakeSequentialExecute()
 end
 
 
-def MakePipelineExecutionFunction()
+def MakeParallelStart()
     print "#pragma once\n\n"
     for i in 2..64
         print "template<typename _Function1"
@@ -146,17 +146,22 @@ def MakePipelineExecutionFunction()
             print ", typename _Function#{j}"
         end
         print ">\n"
-        print "void dsp_parallel_invoke(_Function1 &_Func1"
+        print "__forceinline void PARALLEL(const _Function1 &_Func1"
         for j in 2..i
-            print ", _Function#{j} &_Func#{j}"
+            print ", const _Function#{j} &_Func#{j}"
         end
         print ")\n"
         print "{\n"
-        print "  dsp_task_group tg;\n"
+        print "  cpu_manager* cm = cpu_manager::Instance();\n"
         for j in 2..i
-            print "  tg.run(_Func#{j});\n"
+          print "  task_obj to#{j} = make_task_obj(_Func#{j});\n"
+          print "  cm->run_task(&to#{j});\n"
         end
-        print "  tg.run_and_wait(_Func1);\n"
+
+        print "  _Func1();\n"
+        for j in 2..i
+          print "  to#{j}.wait();\n";
+        end
         print "}\n"
         print "\n//---------------------------------------------\n\n"
     end
@@ -196,8 +201,9 @@ def MakeObject()
 end
 
 
-MakeSchedule()
+#MakeSchedule()
 #MakeObject()
+MakeParallelStart()
 #
 #MakePipelineExecutionFunction()
 #
