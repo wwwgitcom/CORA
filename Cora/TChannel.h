@@ -36,7 +36,7 @@ public:
 
   static Channel& Create(int ItemSize = 1, int MinItemCount = 1)
   {
-    cout << "Create channel " << ItemSize << " " << MinItemCount << endl;
+    //cout << "Create channel " << ItemSize << " " << MinItemCount << endl;
     return CreateObject<Channel, int, int>(MinItemCount, ItemSize);
   }
 

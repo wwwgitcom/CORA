@@ -91,6 +91,7 @@ DEFINE_BLOCK(dummy_block, 1, 1)
 
 
 
+
 int _tmain(int argc, _TCHAR* argv[])
 {
   SetThreadAffinityMask(GetCurrentThread(), 1);
@@ -438,8 +439,11 @@ int _tmain(int argc, _TCHAR* argv[])
     {
       bool bRet = false;
 #if 1
-      START(IF(remove_gi1), fft_data1);
-      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, IF(l_sig_parser), STOP([&]{bRet = true;}));
+      START(IF(remove_gi1), [&]
+      {
+        START(fft_data1);
+        START(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, IF(l_sig_parser), STOP([&]{bRet = true;}));
+      });
 #else
       PARALLEL([&]
       {
@@ -458,8 +462,11 @@ int _tmain(int argc, _TCHAR* argv[])
   START(src, cfo_comp, IF([&]
     {
       bool bRet = false;
-      START(IF(remove_gi1), fft_data1);
-      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, STOP([&]{bRet = true; *VitTotalSoftBits = 96;}));
+      START(IF(remove_gi1), [&]
+      {
+        START(fft_data1);
+        START(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, STOP([&]{bRet = true; *VitTotalSoftBits = 96;}));
+      });
       return bRet;
     }), STOP(NOP)
   );
@@ -469,13 +476,8 @@ int _tmain(int argc, _TCHAR* argv[])
       bool bRet = false;
       START(IF(remove_gi1), [&]
       {
-        PARALLEL([&]
-        {
-          START(fft_data1);
-        }, [&]
-        {
-          START(remove_gi2, fft_data2);
-        });
+        START(fft_data1);
+        START(remove_gi2, fft_data2);
         START(siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit, IF(ht_sig_parser), STOP([&]{bRet = true;}));
       });
       return bRet;
@@ -489,8 +491,11 @@ int _tmain(int argc, _TCHAR* argv[])
   START(src, cfo_comp, IF([&]
     {
       bool bRet = false;
-      START(remove_gi1, fft_data1);
-      START(remove_gi2, fft_data2, mimo_channel_estimator, STOP([&]{bRet = true;}));
+      START(IF(remove_gi1), [&]
+      {
+        START(fft_data1);
+        START(remove_gi2, fft_data2, mimo_channel_estimator, STOP([&]{bRet = true;}));        
+      });
       return bRet;
     }), STOP(NOP)
   );
@@ -502,7 +507,26 @@ int _tmain(int argc, _TCHAR* argv[])
   frame_decode_done = false;
   descramble_state = 0;
 
-  START(src, IF(IsTrue(frame_decode_done == false)), cfo_comp, [&]
+  int thread1_count = 0;
+  int thread2_count = 0;
+
+  int symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length);
+
+  task_obj vit_12_task  = make_task_obj([&]
+  {
+    START(WHILE(IsTrue(!frame_decode_done)), ht_data_vit_12, 
+      IF(IsTrue(descramble_state == 0)), 
+      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
+      ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
+      );
+    thread2_count++;
+    log("[2]thread1 %d thread2 %d, done?=%d, symbol_count=%d\n", thread1_count, thread2_count, frame_decode_done, symbol_count);
+  });
+
+  vit_12_task.wait();  
+  cm->run_task(&vit_12_task);
+
+  START(src, IF(IsTrue(symbol_count > 0)), cfo_comp, [&]
     {
 #if 0
       START(remove_gi1, fft_data1);
@@ -516,38 +540,14 @@ int _tmain(int argc, _TCHAR* argv[])
 #else
       START(IF(remove_gi1), [&]
       {
-        PARALLEL([&]
-        {
-          START(fft_data1);
-        }, [&]
-        {
-          START(remove_gi2, fft_data2);
-        });
-        START(mimo_channel_compensator);
-        PARALLEL([&]
-        {
-          START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
-        }, [&]
-        {
-          START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2);
-        });
-        START(ht_stream_joiner_1);
-
-        cpu_manager* cm = cpu_manager::Instance();
-        static task_obj to  = make_task_obj([&]
-        {
-          START(IF(ht_data_vit_12), 
-            IF(IsTrue(descramble_state == 0)), 
-            IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-            ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
-            );
-        });
-        to.wait();
-        cm->run_task(&to);
+        START(fft_data1);
+        START(remove_gi2, fft_data2, mimo_channel_compensator);
+        START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
+        START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1, [&]{symbol_count --;});
       });
 #endif
     },
-    ELSE, STOP(NOP)
+    ELSE, STOP([&]{vit_12_task.wait();})
   );
 #endif
   //getchar();
@@ -648,7 +648,9 @@ int _tmain(int argc, _TCHAR* argv[])
   printf("time = %f ms, %f MSPS\n",
     t.ms(), src.report() / t.us());
 
-  printf("frame decode done %d\n", *crc32_check_result);
+  Sleep(100);
+
+  printf("frame decode done %d, thread1=%d, thread2=%d\n", *crc32_check_result, thread1_count, thread2_count);
 
 	return 0;
 }

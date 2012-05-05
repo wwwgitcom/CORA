@@ -176,8 +176,13 @@ public:
 
     do 
     {
+      if (!m_task_count)
+      {
+        break;
+      }
       m_spinlock.Acquire();
-      if (IsListEmpty(&this->m_TaskList))
+      //if (IsListEmpty(&this->m_TaskList))
+      if (!m_task_count)
       {
         m_spinlock.Release();
         break;
