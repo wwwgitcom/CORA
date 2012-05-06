@@ -148,6 +148,8 @@ dsp_vmcircbuf* dsp_vmcircbuf::create(int size)
 
   assert(pvmBuf->m_pFirstCopy + size == pvmBuf->m_pSecondCopy);
 
+  SecureZeroMemory((void *)pvmBuf->m_pFirstCopy, size);
+
   pvmBuf->m_base = (char*)pvmBuf->m_pFirstCopy;
 
   return pvmBuf;
@@ -215,40 +217,6 @@ int dsp_buffer::space_available ()
   }
 }
 
-void * dsp_buffer::write_pointer ()
-{
-  return &m_base[m_write_index * m_sizeof_item];
-}
-
-void dsp_buffer::update_write_pointer (int nitems)
-{
-  m_write_index       = index_add (m_write_index, nitems);
-  m_abs_write_offset += nitems;
-  //dump();
-}
-
-unsigned int dsp_buffer::index_add (unsigned int a, unsigned int b)
-{
-  unsigned s = a + b;
-  s &= (m_bufsize - 1);
-  //if (s >= m_bufsize)
-  //    s -= m_bufsize;
-
-  assert (s < m_bufsize);
-  return s;
-}
-
-unsigned int dsp_buffer::index_sub (unsigned int a, unsigned int b)
-{
-  int s = a - b;
-  s &= (m_bufsize - 1);
-  //if (s < 0)
-  //    s += m_bufsize;
-
-  assert ((unsigned) s < m_bufsize);
-  return s;
-}
-
 void dsp_buffer::dump()
 {
   printf("[dump_buffer] %p write index: %d\n", m_base, m_write_index);
@@ -302,8 +270,7 @@ bool dsp_buffer::allocate_buffer (int nitems, size_t sizeof_item)
 dsp_buffer::dsp_buffer (int nitems, size_t sizeof_item)
   : m_base (0), m_bufsize (0), m_vmcircbuf (0),
   m_sizeof_item (sizeof_item),
-  m_write_index (0), m_abs_write_offset(0),
-  m_last_min_items_read(0)
+  m_write_index (0)
 {
   if (!allocate_buffer (nitems, sizeof_item))
     throw std::bad_alloc ();
@@ -316,8 +283,6 @@ dsp_buffer::~dsp_buffer()
     delete m_vmcircbuf;
     m_vmcircbuf = NULL;
   }
-
-  //assert (m_readers.size() == 0);
 }
 
 
@@ -345,27 +310,11 @@ dsp_buffer_reader_ptr
 
 //////////////////////////////////////////////////////////////////////////
 dsp_buffer_reader::dsp_buffer_reader(dsp_buffer_ptr buffer, unsigned int read_index)
-  : m_buffer(buffer), m_read_index(read_index), m_abs_read_offset(0)
+  : m_buffer(buffer), m_read_index(read_index)
 {
 }
 
 dsp_buffer_reader::~dsp_buffer_reader ()
 {
   //m_buffer->drop_reader(this);
-}
-
-const void* dsp_buffer_reader::read_pointer()
-{
-  return &m_buffer->m_base[m_read_index * m_buffer->m_sizeof_item];
-}
-
-int dsp_buffer_reader::items_available() const
-{
-  return m_buffer->index_sub (m_buffer->m_write_index, m_read_index);
-}
-
-void dsp_buffer_reader::update_read_pointer (int nitems)
-{
-  m_read_index       = m_buffer->index_add (m_read_index, nitems);
-  m_abs_read_offset += nitems;
 }

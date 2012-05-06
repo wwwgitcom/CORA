@@ -79,7 +79,7 @@ public:
 
   BLOCK_WORK
   {
-    if (noutput(0) < 1) return true;
+    //if (noutput(0) < 1) return true;
 
     log("%s\n", name());
 
@@ -235,12 +235,13 @@ public:
   BLOCK_WORK
   {
     //log("%s\n", name());
-    if (noutput(0) < 1) return true;
+    //if (noutput(0) < 1) return true;
     
     if ((char*)(*pSignalBlock1) >= (*pBufferEnd1))
     {
       (*pSignalBlock1) = (psignal_block)(*pBufferStart1);
-      std::cout << "source wrap once..." << endl;
+      (*pSignalBlock2) = (psignal_block)(*pBufferStart2);
+      //std::cout << "source wrap once..." << endl;
     }
     //printf("%d\n", *pBufferEnd - (char*)*pSignalBlock);
 

@@ -151,7 +151,7 @@ public:
     m_active  = true;
     m_hThread = CreateThread(NULL, 0, cpu_processor::processor_thread, this, 0, NULL);
     SetThreadAffinityMask(m_hThread, m_affinity);
-    SetThreadPriority(m_hThread, THREAD_PRIORITY_TIME_CRITICAL);
+    //SetThreadPriority(m_hThread, THREAD_PRIORITY_TIME_CRITICAL);
   }
 
   void Destroy()

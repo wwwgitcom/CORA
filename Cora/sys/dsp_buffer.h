@@ -60,21 +60,21 @@ class dsp_buffer
 public:
   char				       *m_base;		// base address of buffer
   unsigned int	 			m_bufsize;	// in items
-  size_t	 			        m_sizeof_item; // in bytes
-  dsp_vmcircbuf              *m_vmcircbuf;
+  size_t	 			      m_sizeof_item; // in bytes
+  dsp_vmcircbuf      *m_vmcircbuf;
+  vector<dsp_buffer_reader_ptr>	m_readers;
+  
+  _declspec(align(64))
+    volatile unsigned int       m_write_index;	// in items [0,d_bufsize)
 
-  volatile unsigned int       m_write_index;	// in items [0,d_bufsize)
-  unsigned __int64            m_abs_write_offset;
-  unsigned __int64            m_last_min_items_read;
-
-  vector<dsp_buffer_reader *>	m_readers;
+  
 
   dsp_buffer(int nitems, size_t sizeof_item);
   ~dsp_buffer();
 
   bool allocate_buffer (int nitems, size_t sizeof_item);
 
-  void reset()
+  __forceinline void reset()
   {
     m_write_index = 0;
   }
@@ -95,21 +95,35 @@ public:
   * The return value points at space that can hold at least
   * space_available() items.
   */
-  void *write_pointer ();
-
+  __forceinline void * write_pointer ()
+  {
+    return &m_base[m_write_index * m_sizeof_item];
+  }
   /*!
   * \brief tell buffer that we wrote \p nitems into it
   */
-  void update_write_pointer (int nitems);
+  __forceinline void update_write_pointer (int nitems)
+  {
+    m_write_index       = index_add (m_write_index, nitems);
+  }
 
-  size_t nreaders() const { return m_readers.size(); }
-  dsp_buffer_reader* reader(size_t index) { return m_readers[index]; }
+  __forceinline size_t nreaders() const { return m_readers.size(); }
+  __forceinline dsp_buffer_reader* reader(size_t index) { return m_readers[index]; }
   void drop_reader (dsp_buffer_reader *reader);
 
-  unsigned __int64 nitems_written() { return m_abs_write_offset; }
+  __forceinline unsigned int index_add (unsigned int a, unsigned int b)
+  {
+    unsigned s = a + b;
+    s &= (m_bufsize - 1);
+    return s;
+  }
 
-  unsigned int index_add (unsigned int a, unsigned int b);
-  unsigned int index_sub (unsigned int a, unsigned int b);
+  __forceinline unsigned int index_sub (unsigned int a, unsigned int b)
+  {
+    int s = a - b;
+    s &= (m_bufsize - 1);
+    return s;
+  }
 
   void dump();
 
@@ -122,8 +136,9 @@ class dsp_buffer_reader
 {
 public:
   dsp_buffer_ptr          m_buffer;
-  volatile unsigned int   m_read_index;	// in items [0,d->buffer.d_bufsize)
-  unsigned __int64        m_abs_read_offset;
+
+  _declspec(align(64))
+    volatile unsigned int   m_read_index;	// in items [0,d->buffer.d_bufsize)
 
   dsp_buffer_reader(dsp_buffer_ptr buffer, unsigned int read_index);
   ~dsp_buffer_reader ();
@@ -132,17 +147,24 @@ public:
 
   int max_possible_items_available () const { return m_buffer->m_bufsize - 1; }
 
-  const void *read_pointer ();
-  void update_read_pointer (int nitems);
+  __forceinline const void* read_pointer()
+  {
+    return &m_buffer->m_base[m_read_index * m_buffer->m_sizeof_item];
+  }
+  __forceinline void update_read_pointer (int nitems)
+  {
+    m_read_index       = m_buffer->index_add (m_read_index, nitems);
+  }
 
-  void reset()
+  __forceinline void reset()
   {
     m_read_index = 0;
   }
 
-  int items_available () const;
-  unsigned __int64 nitems_read() { return m_abs_read_offset; }
-
+  __forceinline int items_available() const
+  {
+    return m_buffer->index_sub (m_buffer->m_write_index, m_read_index);
+  }
 };
 
 dsp_buffer_reader_ptr dsp_buffer_add_reader (dsp_buffer_ptr buf);
