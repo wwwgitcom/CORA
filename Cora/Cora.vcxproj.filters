@@ -186,6 +186,9 @@
     <ClInclude Include="TParallel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_pilot_tracking.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

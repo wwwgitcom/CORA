@@ -107,6 +107,7 @@
     <ClInclude Include="blocks\b_mimo_channel_estimator.h" />
     <ClInclude Include="blocks\b_moving_energy.h" />
     <ClInclude Include="blocks\b_mrc_combine.h" />
+    <ClInclude Include="blocks\b_pilot_tracking.h" />
     <ClInclude Include="blocks\b_plot.h" />
     <ClInclude Include="blocks\b_remove_gi.h" />
     <ClInclude Include="blocks\b_stream_joiner.h" />

@@ -84,6 +84,8 @@ DEFINE_BLOCK(b_frequest_offset_estimator_1v, 1, 0)
     vcfodelta         = vcfodelta.v_shift_bytes_left<2>();
     (*vfo_delta_i)    = vcfodelta;
     
+    (*vfo_theta_i).v_zero();
+
     // I don't consume any input items
     return true;
   }
@@ -143,6 +145,8 @@ DEFINE_BLOCK(b_frequest_offset_estimator_2v, 2, 0)
     log("%s: cfo=%d\n", name(), (*vfo_delta_i)[1]);
 
     (*vfo_delta_i)    = vcfodelta;
+
+    (*vfo_theta_i).v_zero();
 
     // I don't consume any input items
     log("%s: cfo=%d\n", name(), (*vfo_delta_i)[1]);

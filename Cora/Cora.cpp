@@ -23,6 +23,7 @@
 #include "TChannel.h"
 #include "TThread.h"
 
+#define enable_draw 1
 //--------------------------------------------------
 #include "b_plot.h"
 
@@ -37,6 +38,7 @@
 #include "b_channel_estimator.h"
 #include "b_channel_compensator.h"
 #include "b_remove_gi.h"
+#include "b_pilot_tracking.h"
 #include "b_demap.h"
 #include "b_mrc_combine.h"
 #include "b_deinterleave.h"
@@ -51,6 +53,7 @@
 
 #include "b_dot11n_param.h"
 //#define split(T, ...) new (aligned_malloc<T>()) T(__VA_ARGS__)
+
 
 
 //----------------------------------
@@ -200,19 +203,19 @@ int _tmain(int argc, _TCHAR* argv[])
   autoref ht_data_vit_12 = create_block<b_viterbi64_1o2_1v1>(
     2,
     string("TraceBackLength=48"),
-    string("TraceBackOutput=48")
+    string("TraceBackOutput=128")
     );
 
-  autoref ht_data_vit_23 = create_block<b_viterbi64_1o2_1v1>(
+  autoref ht_data_vit_23 = create_block<b_viterbi64_2o3_1v1>(
     2,
-    string("TraceBackLength=48"),
-    string("TraceBackOutput=96")
-    );
-
-  autoref ht_data_vit_34 = create_block<b_viterbi64_1o2_1v1>(
-    2,
-    string("TraceBackLength=72"),
+    string("TraceBackLength=64"),
     string("TraceBackOutput=192")
+    );
+
+  autoref ht_data_vit_34 = create_block<b_viterbi64_3o4_1v1>(
+    2,
+    string("TraceBackLength=80"),
+    string("TraceBackOutput=256")
     );
 
   autoref l_sig_parser = create_block<b_lsig_parser_1v>();
@@ -295,6 +298,8 @@ int _tmain(int argc, _TCHAR* argv[])
   autoref descramble_seed = create_block<b_dot11_descramble_seed_1v>();
   autoref descramble = create_block<b_dot11_descramble_1v1>();
   autoref crc32_checker = create_block<b_crc32_check_1v>();
+  autoref pilot_tracking = create_block<b_dot11_pilot_tracking_2v>();
+
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
   .from(src, 0)
@@ -330,19 +335,22 @@ int _tmain(int argc, _TCHAR* argv[])
     .to(siso_channel_est, 1);
   
   Channel::Create(sizeof(v_cs))
-    .from(fft_data1, 0).to(siso_channel_comp, 0).to(mimo_channel_estimator, 0).to(mimo_channel_compensator, 0);
+    .from(fft_data1, 0)
+    .to(siso_channel_comp, 0).to(mimo_channel_estimator, 0).to(mimo_channel_compensator, 0);
   Channel::Create(sizeof(v_cs))
-    .from(fft_data2, 0).to(siso_channel_comp, 1).to(mimo_channel_estimator, 1).to(mimo_channel_compensator, 1);
+    .from(fft_data2, 0)
+    .to(siso_channel_comp, 1).to(mimo_channel_estimator, 1).to(mimo_channel_compensator, 1);
 
   Channel::Create(sizeof(v_cs))
     .from(siso_channel_comp, 0).to(siso_mrc_combine, 0)
-    .from(mimo_channel_compensator, 0).to(ht_demap_bpsk1, 0).to(ht_demap_qpsk1, 0).to(ht_demap_16qam1, 0).to(ht_demap_64qam1, 0);
+    .from(mimo_channel_compensator, 0).to(ht_demap_bpsk1, 0).to(ht_demap_qpsk1, 0).to(ht_demap_16qam1, 0).to(ht_demap_64qam1, 0).to(pilot_tracking, 0);
   Channel::Create(sizeof(v_cs))
     .from(siso_channel_comp, 1).to(siso_mrc_combine, 1)
-    .from(mimo_channel_compensator, 1).to(ht_demap_bpsk2, 0).to(ht_demap_qpsk2, 0).to(ht_demap_16qam2, 0).to(ht_demap_64qam2, 0);
+    .from(mimo_channel_compensator, 1).to(ht_demap_bpsk2, 0).to(ht_demap_qpsk2, 0).to(ht_demap_16qam2, 0).to(ht_demap_64qam2, 0).to(pilot_tracking, 1);
   
   Channel::Create(sizeof(v_cs))
-    .from(siso_mrc_combine, 0).to(siso_lsig_demap_bpsk_i, 0).to(htsig_demap_bpsk_q, 0);
+    .from(siso_mrc_combine, 0)
+    .to(siso_lsig_demap_bpsk_i, 0).to(htsig_demap_bpsk_q, 0);
 
   Channel::Create(sizeof(unsigned __int8))
     .from(siso_lsig_demap_bpsk_i, 0).from(htsig_demap_bpsk_q, 0)
@@ -611,7 +619,7 @@ int _tmain(int argc, _TCHAR* argv[])
               }
               else if (*ht_frame_mcs == 10 || *ht_frame_mcs == 12 || *ht_frame_mcs == 14)
               {
-                *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 4 / 3;
+                *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 4 / 3 + 1;
               }
               
               *crc32_check_length = *ht_frame_length;
@@ -626,53 +634,56 @@ int _tmain(int argc, _TCHAR* argv[])
         ELSE_IF(IsTrue(branch2 == HT_DATA)), 
           IF(IsTrue(symbol_count > 0)), [&]
           {
-            START(remove_gi1, fft_data1);
-            START(remove_gi2, fft_data2, mimo_channel_compensator, [&]
+            START(IF(remove_gi1), [&]
             {
-              START( IF(IsTrue(*ht_frame_mcs == 8)), [&]
+              START(fft_data1);
+              START(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking, [&]
               {
-                START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
-                START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
-              },
-              ELSE_IF(IsTrue( (*ht_frame_mcs == 9 || *ht_frame_mcs == 10) )), [&]
-              {
-                START(ht_demap_qpsk1, ht_deinterleave_2bpsc_iss1);
-                START(ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2, ht_stream_joiner_2);
-              },
-              ELSE_IF(IsTrue( (*ht_frame_mcs == 11 || *ht_frame_mcs == 12) )), [&]
-              {
-                START(ht_demap_16qam1, ht_deinterleave_4bpsc_iss1);
-                START(ht_demap_16qam2, ht_deinterleave_4bpsc_iss2, ht_stream_joiner_3);
-              },
-              ELSE_IF(IsTrue( (*ht_frame_mcs == 13 || *ht_frame_mcs == 14) )), [&]
-              {
-                START(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1);
-                START(ht_demap_64qam2, ht_deinterleave_6bpsc_iss2, ht_stream_joiner_4);
-              },
-              ELSE, NOP
-              );
-              symbol_count--;
-            });
-            
-            //----------------
-            // start viterbi
-            //----------------
-            START(
-              IF( IsTrue( (*ht_frame_mcs == 8 || *ht_frame_mcs == 9 || *ht_frame_mcs == 11) ) ),
-                ht_data_vit_12,
-              ELSE_IF( IsTrue( (*ht_frame_mcs == 13) ) ),
-                ht_data_vit_23,
-              ELSE_IF( IsTrue( (*ht_frame_mcs == 10 || *ht_frame_mcs == 12 || *ht_frame_mcs == 14) ) ),
-                ht_data_vit_34,
-              ELSE, NOP
-            );
+                START( IF(IsTrue(*ht_frame_mcs == 8)), [&]
+                {
+                  START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
+                  START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
+                },
+                ELSE_IF(IsTrue( (*ht_frame_mcs == 9 || *ht_frame_mcs == 10) )), [&]
+                {
+                  START(ht_demap_qpsk1, ht_deinterleave_2bpsc_iss1);
+                  START(ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2, ht_stream_joiner_2);
+                },
+                ELSE_IF(IsTrue( (*ht_frame_mcs == 11 || *ht_frame_mcs == 12) )), [&]
+                {
+                  START(ht_demap_16qam1, ht_deinterleave_4bpsc_iss1);
+                  START(ht_demap_16qam2, ht_deinterleave_4bpsc_iss2, ht_stream_joiner_3);
+                },
+                ELSE_IF(IsTrue( (*ht_frame_mcs == 13 || *ht_frame_mcs == 14) )), [&]
+                {
+                  START(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1);
+                  START(ht_demap_64qam2, ht_deinterleave_6bpsc_iss2, ht_stream_joiner_4);
+                },
+                ELSE, NOP
+                );
+                symbol_count--;
 
-            //printf("---symbol count = %d\n", symbol_count);
-            // descramble and crc32 checking
-            START(IF(IsTrue(descramble_state == 0)), 
-              IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-              ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true; printf("frame decode done! %d\n", *crc32_check_result);})
-            );
+                //----------------
+                // start viterbi
+                //----------------
+                START(
+                  IF( IsTrue( (*ht_frame_mcs == 8 || *ht_frame_mcs == 9 || *ht_frame_mcs == 11) ) ),
+                  ht_data_vit_12,
+                  ELSE_IF( IsTrue( (*ht_frame_mcs == 13) ) ),
+                  ht_data_vit_23,
+                  ELSE_IF( IsTrue( (*ht_frame_mcs == 10 || *ht_frame_mcs == 12 || *ht_frame_mcs == 14) ) ),
+                  ht_data_vit_34,
+                  ELSE, NOP
+                );
+
+                //printf("---symbol count = %d\n", symbol_count);
+                // descramble and crc32 checking
+                START(IF(IsTrue(descramble_state == 0)), 
+                  IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
+                  ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true; printf("frame decode done! %d\n", *crc32_check_result);})
+                );
+              });
+            });
           },
           ELSE, STOP([&]{branch1 = CS; branch2 = SISO_CHANNEL_ESTIMATION;}),
         ELSE, NOP
