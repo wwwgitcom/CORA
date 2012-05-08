@@ -72,6 +72,10 @@
       <AdditionalIncludeDirectories>.\sys;.\blocks;</AdditionalIncludeDirectories>
       <BrowseInformation>true</BrowseInformation>
       <AssemblerOutput>NoListing</AssemblerOutput>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

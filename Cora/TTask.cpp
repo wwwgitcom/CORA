@@ -78,17 +78,49 @@ void cpu_manager::setup()
 {
   dsp_sysconfig* config = dsp_sysconfig::Instance();
   m_nTotalProcessor     = config->GetCPUProcessorCount();
-  m_cpu_array           = new cpu_processor *[m_nTotalProcessor];
-
-  for (int i = 1; i < m_nTotalProcessor; i++)
+  
+  if (m_nTotalProcessor == 8)
   {
-    cpu_processor* cpu = new cpu_processor((1L << i));
-    m_sync_obj.status |= (1L << i);
-    cpu->set_status_mask(&m_sync_obj.status);
-    cpu->Create();
-    m_cpu_array[i] = cpu;
-    log("create virtual processor %d\n", i);
+    m_nTotalProcessor = 4;
+    m_cpu_array           = new cpu_processor *[m_nTotalProcessor];
+    for (int i = 2; i < 8; i += 2)
+    {
+      cpu_processor* cpu = new cpu_processor((1L << i));
+      m_sync_obj.status |= (1L << i);
+      cpu->set_status_mask(&m_sync_obj.status);
+      cpu->Create();
+      m_cpu_array[i] = cpu;
+      log("create virtual processor %d\n", i);
+    }
   }
+  else if (m_nTotalProcessor == 12)
+  {
+    m_nTotalProcessor = 6;
+    m_cpu_array           = new cpu_processor *[m_nTotalProcessor];
+    for (int i = 1; i < m_nTotalProcessor; i++)
+    {
+      cpu_processor* cpu = new cpu_processor((1L << i));
+      m_sync_obj.status |= (1L << i);
+      cpu->set_status_mask(&m_sync_obj.status);
+      cpu->Create();
+      m_cpu_array[i] = cpu;
+      log("create virtual processor %d\n", i);
+    }
+  }
+  else if (m_nTotalProcessor == 2)
+  {
+    m_cpu_array           = new cpu_processor *[m_nTotalProcessor];
+    for (int i = 1; i < m_nTotalProcessor; i++)
+    {
+      cpu_processor* cpu = new cpu_processor((1L << i));
+      m_sync_obj.status |= (1L << i);
+      cpu->set_status_mask(&m_sync_obj.status);
+      cpu->Create();
+      m_cpu_array[i] = cpu;
+      log("create virtual processor %d\n", i);
+    }
+  }
+  
 }
 
 void cpu_manager::destroy()

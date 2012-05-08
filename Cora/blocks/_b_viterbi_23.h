@@ -354,7 +354,7 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
 #define VITTRACE 0
 
   // A0 A1 A2 A3
-  // B0 *  B2 *
+  // B0 *  B2 * 
   // A0 B0 A1 A2 B2 A3
   BLOCK_WORK
   {
@@ -362,7 +362,7 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
 
     v_ub vShuffleMask;
     v_ub vNormMask;
-    
+
     v_ub vBM0, vBM1;
 
     int  BMIndex = 4;
@@ -415,8 +415,7 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
 
       vBM0 = pvBM[0];
       vBM1 = pvBM[1];
-      ButterFly(m_vStates[0], m_vStates[1], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
-      
+      ButterFly(m_vStates[0], m_vStates[1], vShuffleMask, vBM0, vBM1, iPH0, iPH1);      
       TBQ[TBQwit][0] = iPH0;
       TBQ[TBQwit][2] = iPH1;
 
@@ -469,10 +468,10 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
 
       if (iTrellis >= nTracebackDataCount)
       {
-        //printf("vit: trace back %d\n", iTrellis);
+        //printf("vit: trace back %d, B=%d, b=%d\n", iTrellis, nTraceBackOutputByte, nTraceBackOutput);
 
         unsigned __int8 MinAddress = FindMinValueAddress(m_vStates);
-        
+
         TraceBack(nTracebackOffset, MinAddress, nTraceBackLength, nTraceBackOutput, pDecodedBytes + nTraceBackOutputByte - 1);
 
         pDecodedBytes      += nTraceBackOutputByte;
@@ -528,7 +527,7 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
         TBQwit++;
 
         // stage StageIndex + 1
-        BMIndex = BMAddress(0);
+        BMIndex = BMAddress(0, 0);
 
         pvBM = &m_vBM[BMIndex][0];
 
@@ -551,7 +550,7 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
         unsigned __int8 MinAddress = FindMinValueAddress(m_vStates);
 
         TraceBack(nTracebackOffset, MinAddress, nTraceBackLength, nTraceBackOutput, pDecodedBytes + nTraceBackOutputByte - 1);
-        
+
         pDecodedBytes      += nTraceBackOutputByte;
         m_buffer_reader->update_read_pointer(nTraceBackOutput);
 

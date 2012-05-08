@@ -266,7 +266,7 @@ public:
 
     m_lock.Acquire();
 
-    log("[cpu_man] status %p.\n", m_sync_obj.status);
+    //printf("[cpu_man] status %p.\n", m_sync_obj.status);
     _BitScanForward(&dwFreeCpu, m_sync_obj.status);
     {
       //debug
@@ -278,7 +278,7 @@ public:
       //{
       //  m_cpu_array[dwFreeCpu]->wake_up();
       //}
-      log("[cpu_man] enqueue task %p to processor %d.\n", t, (1L << dwFreeCpu));
+      //printf("[cpu_man] enqueue task %p to processor %d.\n", t, (1L << dwFreeCpu));
     }
 #if 0
   else

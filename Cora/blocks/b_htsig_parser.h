@@ -4,6 +4,7 @@ DEFINE_BLOCK(b_htsig_parser_1v, 1, 0)
 {
   _global_(uint16, ht_frame_length);
   _global_(uint32, ht_frame_mcs);
+  _global_(bool, ht_sig_ok);
 
   crc::crc8 m_crc8;
 
@@ -15,8 +16,7 @@ DEFINE_BLOCK(b_htsig_parser_1v, 1, 0)
     auto ip = _$<unsigned __int8>(0);
     
     unsigned char  crc8value;
-    bool bRet = true;
-
+    
     do 
     {
       m_crc8.reset();
@@ -30,18 +30,19 @@ DEFINE_BLOCK(b_htsig_parser_1v, 1, 0)
         *ht_frame_length = 0;
         log(" ht-sig error: crc8 check failed %X.\n", crc8value);
 
-        bRet = false;
+        *ht_sig_ok = false;
         break;
       }
 
       *ht_frame_mcs    = (ip[0] & 0x7F);
       *ht_frame_length = *((unsigned short*)(ip + 1));
+      *ht_sig_ok = true;
     } while (false);
 
     log(" ht-sig : mcs %X, length %d B.\n", *ht_frame_mcs, *ht_frame_length);
 
     consume(0, 6);
 
-    return bRet;
+    return true;
   }
 };

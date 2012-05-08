@@ -59,7 +59,11 @@ DEFINE_BLOCK(b_dot11_pilot_tracking_2v, 2, 0)
     v_s v_theta;
     v_theta.v_setall(theta);
     
+#if 0
+    v_theta.v_zero();
+#endif
     (*vfo_theta_i) = v_add((*vfo_theta_i), v_theta);
+
     return true;
   }
 };

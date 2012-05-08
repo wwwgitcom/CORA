@@ -135,6 +135,16 @@ DEFINE_BLOCK(b_stream_joiner_3_2v1, 2, 1)
       op[iOut + 4] = ip2[iIn + 1];
       op[iOut + 5] = ip2[iIn + 2];
     }
+#if 0
+    for (int i = 0; i < 624; i++)
+    {
+      //printf("%u ", op[i]);
+      op[i] = i % 4;
+    }
+    //printf("\n\n");
+    //getchar();
+#endif
+
     consume(0, total);
     consume(1, total);
     produce(0, total << 1);

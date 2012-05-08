@@ -37,7 +37,7 @@ struct dsp_math
     }
   }
 
-  static char abs(char x)
+  __forceinline static char abs(char x)
   {
     char out   = x;
     char temp  = x;
@@ -47,7 +47,7 @@ struct dsp_math
     return out;
   }
 
-  static short abs(short x)
+  __forceinline static short abs(short x)
   {
     short out  = x;
     short temp = x;
@@ -57,7 +57,7 @@ struct dsp_math
     return out;
   }
 
-  static int abs(int x)
+  __forceinline static int abs(int x)
   {
     int out  = x;
     int temp = x;
@@ -67,22 +67,22 @@ struct dsp_math
     return out;
   }
 
-  static char imax(char x, char y)
+  __forceinline static char imax(char x, char y)
   {
     return ( ( (x + y) + dsp_math::abs(x - y) ) >> 1 );
   }
 
-  static short imax(short x, short y)
+  __forceinline static short imax(short x, short y)
   {
     return ( ( (x + y) + dsp_math::abs(x - y) ) >> 1 );
   }
 
-  static int imax(int x, int y)
+  __forceinline static int imax(int x, int y)
   {
     return ( ( (x + y) + dsp_math::abs(x - y) ) >> 1 );
   }
 
-  static complex16 sincos(short x)
+  __forceinline static complex16 sincos(short x)
   {
     return sincos_lookup_table[(unsigned short)x];
   }
@@ -92,7 +92,7 @@ struct dsp_math
   // return value lies in -PI/2 ~~ +PI/2 in radius
   // trick: atan(y/x)=PI/2 - atan(x/y)
   // verify: retvalue * 32767 / PI =?= atan(y/x)
-  static short atan(short x, short y)
+  __forceinline static short atan(short x, short y)
   {
     short absx, absy;
     short srad;
@@ -148,7 +148,7 @@ struct dsp_math
     return srad;
   }
 
-  static short atan(int x, int y)
+  __forceinline static short atan(int x, int y)
   {
     short srad;
     short sign = (short)(((x ^ y) >> 31) & 0x0000FFFF);
@@ -237,3 +237,5 @@ struct dsp_math
 
   //////////////////////////////////////////////////////////////////////////
 };
+
+__declspec(selectany) dsp_math global_math_init;

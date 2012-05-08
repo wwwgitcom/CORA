@@ -2,6 +2,7 @@
 
 DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
 {
+  _global_(bool, l_sig_ok);
   _global_(uint16, l_frame_length);
   _global_(uint32, l_frame_rate);
   _global_(uint32, l_frame_dbps);
@@ -17,8 +18,6 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
     unsigned int uiSignal = 0;
 
     uiSignal = *((unsigned int*)ip);
-
-    bool bRet = true;
 
     // signal rate look up table
     static const unsigned int g11a_rguiDBPSLookUp[16] = {
@@ -50,7 +49,7 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
       if (uiSignal & 0xFC0010) // all these bits should be always zero
       {
         log(" l-sig error: unexpected value %p\n", uiSignal);
-        bRet = false;
+        *l_sig_ok = false;
         break;
       }
 
@@ -62,7 +61,7 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
       if (uiParity & 0x1)
       {
         log(" l-sig error: parity check failes.\n");
-        bRet = false;
+        *l_sig_ok = false;
         break;
       }
 
@@ -70,12 +69,14 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
       if (!((*l_frame_rate) & 0x8))
       {
         log(" l-sig error: unexpected data rate %X.\n", *l_frame_rate);
-        bRet = false;
+        *l_sig_ok = false;
         break;
       }
 
       (*l_frame_length) = (uiSignal >> 5) & 0xFFF;
       (*l_frame_dbps) = g11a_rguiDBPSLookUp[*l_frame_rate];
+
+      *l_sig_ok = true;
       
       log(" l-sig : rate %X, length %d B, dbps = %d.\n", *l_frame_rate, *l_frame_length, *l_frame_dbps);
     } while (false);
