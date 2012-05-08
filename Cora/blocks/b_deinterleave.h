@@ -174,7 +174,7 @@ DEFINE_BLOCK(b_dot11n_deinterleave_2bpsc_1v1, 1, 1)
 DEFINE_BLOCK(b_dot11n_deinterleave_4bpsc_1v1, 1, 1)
 {
   static const int ItemsRequired = 52 * 4;
-  dot11n_deinterleaver<2> deinterleaver;
+  dot11n_deinterleaver<4> deinterleaver;
 
   _local_(int, iss, 1);
 
@@ -209,7 +209,7 @@ DEFINE_BLOCK(b_dot11n_deinterleave_4bpsc_1v1, 1, 1)
 DEFINE_BLOCK(b_dot11n_deinterleave_6bpsc_1v1, 1, 1)
 {
   static const int ItemsRequired = 52 * 6;
-  dot11n_deinterleaver<2> deinterleaver;
+  dot11n_deinterleaver<6> deinterleaver;
 
   _local_(int, iss, 1);
 

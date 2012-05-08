@@ -352,6 +352,10 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
   }
   //////////////////////////////////////////////////////////////////////////
 #define VITTRACE 0
+
+  // A0 A1 A2 A3
+  // B0 *  B2 *
+  // A0 B0 A1 A2 B2 A3
   BLOCK_WORK
   {
     trace();
@@ -430,9 +434,9 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
 #endif
       TBQwit++;
       // stage StageIndex + 1
-      BMIndex = BMAddress(pSoftBits[nSoftBits + 2], 4);
+      BMIndex = BMAddress(pSoftBits[nSoftBits + 2]);
 
-      pvBM = &m_vBM[BMIndex][0];
+      pvBM = &m_vBM0[BMIndex][0];
 
       vBM0 = pvBM[0];
       vBM1 = pvBM[1];

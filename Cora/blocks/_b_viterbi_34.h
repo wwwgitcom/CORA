@@ -352,6 +352,10 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
   }
   //////////////////////////////////////////////////////////////////////////
 #define VITTRACE 0
+
+  // A0 A1 *  A3 A4 *
+  // B0 *  B2 B3 *  B5
+  // A0 B0 A1 B2 A3 B3 A4 B5
   BLOCK_WORK
   {
     trace();
@@ -411,8 +415,7 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
 
       vBM0 = pvBM[0];
       vBM1 = pvBM[1];
-      ButterFly(m_vStates[0], m_vStates[1], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
-      
+      ButterFly(m_vStates[0], m_vStates[1], vShuffleMask, vBM0, vBM1, iPH0, iPH1);      
       TBQ[TBQwit][0] = iPH0;
       TBQ[TBQwit][2] = iPH1;
 
@@ -430,9 +433,9 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
 #endif
       TBQwit++;
       // stage StageIndex + 1
-      BMIndex = BMAddress(pSoftBits[nSoftBits + 2], 0);
+      BMIndex = BMAddress(pSoftBits[nSoftBits + 2]);
 
-      pvBM = &m_vBM[BMIndex][0];
+      pvBM = &m_vBM0[BMIndex][0];
 
       vBM0 = pvBM[0];
       vBM1 = pvBM[1];
@@ -455,9 +458,9 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
       TBQwit++;
 
       // stage StageIndex + 2
-      BMIndex = BMAddress(0, pSoftBits[nSoftBits + 3]);
+      BMIndex = BMAddress(pSoftBits[nSoftBits + 3]);
 
-      pvBM = &m_vBM[BMIndex][0];
+      pvBM = &m_vBM1[BMIndex][0];
 
       vBM0 = pvBM[0];
       vBM1 = pvBM[1];
@@ -505,9 +508,9 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
 #endif
       TBQwit++;
       // stage StageIndex + 4
-      BMIndex = BMAddress(pSoftBits[nSoftBits + 6], 0);
+      BMIndex = BMAddress(pSoftBits[nSoftBits + 6]);
 
-      pvBM = &m_vBM[BMIndex][0];
+      pvBM = &m_vBM0[BMIndex][0];
 
       vBM0 = pvBM[0];
       vBM1 = pvBM[1];
@@ -516,7 +519,7 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
       TBQ[TBQwit][2] = iPH1;
 
       vBM0 = pvBM[2];
-      vBM1 = pvBM[1];
+      vBM1 = pvBM[3];
       ButterFly(m_vStates[2], m_vStates[3], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
       TBQ[TBQwit][1] = iPH0;
       TBQ[TBQwit][3] = iPH1;
@@ -530,9 +533,9 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
       TBQwit++;
 
       // stage StageIndex + 5
-      BMIndex = BMAddress(0, pSoftBits[nSoftBits + 7]);
+      BMIndex = BMAddress(pSoftBits[nSoftBits + 7]);
 
-      pvBM = &m_vBM[BMIndex][0];
+      pvBM = &m_vBM1[BMIndex][0];
 
       vBM0 = pvBM[0];
       vBM1 = pvBM[1];
@@ -541,7 +544,7 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
       TBQ[TBQwit][1] = iPH1;
 
       vBM0 = pvBM[2];
-      vBM1 = pvBM[1];
+      vBM1 = pvBM[3];
       ButterFly(m_vStates[1], m_vStates[3], vShuffleMask, vBM0, vBM1, iPH0, iPH1);
       TBQ[TBQwit][2] = iPH0;
       TBQ[TBQwit][3] = iPH1;

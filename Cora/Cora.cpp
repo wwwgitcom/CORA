@@ -214,7 +214,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
   autoref ht_data_vit_34 = create_block<b_viterbi64_3o4_1v1>(
     2,
-    string("TraceBackLength=80"),
+    string("TraceBackLength=256"),
     string("TraceBackOutput=256")
     );
 
