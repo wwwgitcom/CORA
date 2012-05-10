@@ -40,11 +40,11 @@ public:
   TaskProc                  proc;
   void *                    obj;
 
-  void invoke()
+  __forceinline void invoke()
   {
     proc(obj);
   }
-  void wait()
+  __forceinline void wait()
   {
     while (status)
     {
@@ -222,13 +222,13 @@ private:
   volatile ULONG  m_active;
   volatile LONG   m_task_count;
   volatile status m_status;
+  dsp_spin_lock   m_spinlock;
+  LIST_ENTRY      m_TaskList;
+  volatile unsigned int* m_status_mask;
 
   HANDLE          m_hThread;
   HANDLE          m_event;
   DWORD           m_affinity;
-  dsp_spin_lock   m_spinlock;
-  LIST_ENTRY      m_TaskList;
-  volatile unsigned int* m_status_mask;
 };
 
 
@@ -261,13 +261,10 @@ public:
   {
     DWORD dwFreeCpu = 0;
 
-    // spin wait
-    while (!m_sync_obj.status);
-
     m_lock.Acquire();
 
     //printf("[cpu_man] status %p.\n", m_sync_obj.status);
-    _BitScanForward(&dwFreeCpu, m_sync_obj.status);
+    if (_BitScanForward(&dwFreeCpu, m_sync_obj.status))
     {
       //debug
       //dwFreeCpu = 1;
@@ -280,17 +277,15 @@ public:
       //}
       //printf("[cpu_man] enqueue task %p to processor %d.\n", t, (1L << dwFreeCpu));
     }
-#if 0
-  else
-  {
-    // all cpu are busy, use random cpu
-    m_cpu_array[m_nCurrentIndex]->Enqueue(t);
-    log("[cpu_man] random enqueue task %p to processor %d.\n", t, (1L << m_nCurrentIndex));
-    m_nCurrentIndex++;
-    m_nCurrentIndex %= m_nTotalProcessor;
-  }
-#endif
-  m_lock.Release();
+    else
+    {
+      // all cpu are busy, use random cpu
+      m_cpu_array[m_nCurrentIndex]->Enqueue(t);
+      log("[cpu_man] random enqueue task %p to processor %d.\n", t, (1L << m_nCurrentIndex));
+      m_nCurrentIndex++;
+      m_nCurrentIndex %= m_nTotalProcessor;
+    }
+    m_lock.Release();
   }
 };
 

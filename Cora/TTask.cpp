@@ -21,27 +21,26 @@ void cpu_processor::wake_up()
 
 void cpu_processor::Run()
 {
+  task_obj* t = NULL;
+
   while (m_active)
   {
-    task_obj* t = NULL;
-
-    
-    if (m_task_count)
+    t = Dequeue();
+    if (t)
     {
       m_status = running;
-      t = Dequeue();
       
       do 
       {
-        if (t)
-        {
-          t->invoke();
-          t->status = 0;
-        }
+        //printf("Get a work...%p\n", t);
+        t->invoke();
+        t->status = 0;
+        //printf("I finished work, %p\n", t);
         t = Dequeue();
       } while (t != NULL);
       // no task to do, mark it as free
       _InterlockedXor((volatile long*)m_status_mask, m_affinity);
+      
       m_status = idle;
     }
     else
@@ -117,7 +116,7 @@ void cpu_manager::setup()
       cpu->set_status_mask(&m_sync_obj.status);
       cpu->Create();
       m_cpu_array[i] = cpu;
-      log("create virtual processor %d\n", i);
+      log("create virtual processor %d, %X\n", i, m_sync_obj.status);
     }
   }
   

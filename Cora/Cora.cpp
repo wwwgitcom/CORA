@@ -455,6 +455,8 @@ int _tmain(int argc, _TCHAR* argv[])
       );
   });
 
+  task_obj* pTask = nullptr;
+
   do 
   {
     START(src, axorr, lstf, STOP(NOP));
@@ -551,26 +553,25 @@ int _tmain(int argc, _TCHAR* argv[])
     frame_decode_done = false;
     descramble_state = 0;
 
-    symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length);
+    symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalSoftBits);
     total_symbol_count = symbol_count;
 
     if (*ht_frame_mcs == 8 || *ht_frame_mcs == 9 || *ht_frame_mcs == 11)
     {
-      *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 2; // 1/2 coding
-      cm->run_task(&vit_12_task);
+      pTask = &vit_12_task;
+      cm->run_task(pTask);
     }
     else if (*ht_frame_mcs == 13)
     {
-      *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 3 / 2; // 2/3 coding
-      cm->run_task(&vit_23_task);
+      pTask = &vit_23_task;
+      cm->run_task(pTask);
     }
     else if (*ht_frame_mcs == 10 || *ht_frame_mcs == 12 || *ht_frame_mcs == 14)
     {
-      *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 4 / 4 + 1; // 3/4 coding
-      cm->run_task(&vit_34_task);
+      pTask = &vit_34_task;
+      cm->run_task(pTask);
     }
     
-
     t1 = tick_count::now();
     START(src, IF(IsTrue(symbol_count > 0)), cfo_comp, [&]
       {
@@ -584,6 +585,7 @@ int _tmain(int argc, _TCHAR* argv[])
           ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
         );
   #elif 1
+        //printf("symbol count = %d\n", symbol_count);
         START(IF(remove_gi1), [&]
         {
           START(fft_data1);
@@ -638,7 +640,7 @@ int _tmain(int argc, _TCHAR* argv[])
       },
       ELSE, STOP([&]
         {
-          vit_12_task.wait();
+          pTask->wait();
           t2 = tick_count::now();
           tick_count t = t2 - t1;
           printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());

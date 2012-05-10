@@ -394,8 +394,6 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
 
     SurviorPath* TBQ = (SurviorPath*)m_buffer->write_pointer();
 
-    log("TBQ=%p\n", TBQ);
-
     int iTrellis = m_buffer_reader->items_available();
     int nTotalSoftBits = *VitTotalSoftBits;
 #if VITTRACE
@@ -404,9 +402,8 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
     v_print(stdout, m_vStates[2]);
     v_print(stdout, m_vStates[3]);
 #endif
-    //printf("vit=> %d\n", iTrellis);
     __int32 nSoftBits;
-    for (nSoftBits = 0; nSoftBits < nInputSoftBits && m_IncomeSoftBits < nTotalSoftBits; nSoftBits += 8)
+    for (nSoftBits = 0; nSoftBits < nInputSoftBits; nSoftBits += 8)
     {
       // stage StageIndex
       BMIndex = BMAddress(pSoftBits[nSoftBits], pSoftBits[nSoftBits + 1]);
@@ -559,7 +556,6 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
       
       if (m_vStates[0].v_get_at<0>() > 192)
       {
-        //printf("normalize\n");
         Normalize(m_vStates, vNormMask);
       }
 
@@ -568,7 +564,7 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
 
       if (iTrellis >= nTracebackDataCount)
       {
-        //printf("vit: trace back %d, B=%d, b=%d\n", iTrellis, nTraceBackOutputByte, nTraceBackOutput);
+        m_buffer->update_write_pointer(TBQwit);
 
         unsigned __int8 MinAddress = FindMinValueAddress(m_vStates);
         
@@ -576,34 +572,43 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
 
         pDecodedBytes      += nTraceBackOutputByte;
         iTrellis           -= nTraceBackOutput;
-#if VITTRACE
-        printf("vit: trace back done %d\n", iTrellis);
-#endif
+
         m_buffer_reader->update_read_pointer(nTraceBackOutput);
 
         produce(0, nTraceBackOutputByte);
 
-        bRet = true;
+        //printf("in2: %d, total=%d, thisleft=%d\n", m_IncomeSoftBits, nTotalSoftBits, nInputSoftBits - nSoftBits - 8);
+
+        if (nTotalSoftBits - m_IncomeSoftBits <= nTraceBackOutput)
+        {
+          if (nInputSoftBits - nSoftBits > 0)
+          {
+            continue;
+          }
+          goto _VIT_FLUSH;
+        }
+
+        consume(0, nSoftBits + 8);
+        return true;
       }
     }
-
-    //printf("vit<= %d\n", iTrellis);
-
-    m_buffer->update_write_pointer(TBQwit);
-
+    //printf("in: %d, total=%d\n", m_IncomeSoftBits, nTotalSoftBits);
     if (m_IncomeSoftBits >= nTotalSoftBits)
     {
-#if 1
-      log("vitok\n");
-      log("vit over: income: %d, total=%d, tbq=%d\n", 
-        m_IncomeSoftBits, nTotalSoftBits,
-        m_buffer_reader->items_available()
-        );
-#endif
-      int tbitems = m_buffer_reader->items_available();
-      int nloop = tbitems / nTraceBackOutput;
-      nloop += (tbitems % nTraceBackLength) == 0 ? 0 : 1;
-      int npadding = nloop * nTraceBackLength;
+      goto _VIT_FLUSH;
+    }
+
+    m_buffer->update_write_pointer(TBQwit);
+    consume(0, nSoftBits);
+    return false;
+
+    _VIT_FLUSH:
+    {
+      int nloop = iTrellis / nTraceBackOutput;
+      int nleft = iTrellis % nTraceBackOutput;
+      nloop += (nleft == 0 ? 0 : 1);
+      int npadding = nTraceBackOutput - nleft + nTraceBackLength;
+
       npadding >>= 1;
 
       for (unsigned int i = 0; i < npadding; i++)
@@ -656,17 +661,11 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
 
         produce(0, nTraceBackOutputByte);
       }
-
-      bRet = true;
-
+      
       reset();
       consume(0, nInputSoftBits);
-      return bRet;
+      return true;
     }
-    
-    consume(0, nSoftBits);
-
-    return bRet;
   }
 };
 

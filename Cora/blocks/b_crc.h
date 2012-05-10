@@ -16,7 +16,7 @@ DEFINE_BLOCK(b_crc32_check_1v, 1, 0)
   BLOCK_WORK
   {
     auto n = ninput(0);
-    if (n < 1) return false;
+    if (n < 1) {return false; printf("crc*");}
 
     auto ip = _$<uint8>(0);
 
@@ -25,14 +25,13 @@ DEFINE_BLOCK(b_crc32_check_1v, 1, 0)
     for (; i < n && (*checked_length < (total - 4)); i++)
     {
       crc32_check(ip[i]);
-      (*checked_length)++;      
+      (*checked_length)++;
     }
-
+    //printf("checked length = %d\n", *checked_length);
     if (*checked_length == total - 4)
     {
       if (n - i >= 4)
       {
-        *checked_length = 0;
         uint32 calc_crc32 = crc32_check.value();
         uint32 local_crc32 = *((uint32*)&ip[i]);
 
@@ -40,6 +39,7 @@ DEFINE_BLOCK(b_crc32_check_1v, 1, 0)
 
         *crc32_check_result = ( *((uint32*)&ip[i]) == crc32_check.value() );
         crc32_check.reset();
+        *checked_length = 0;
         consume(0, n);
         return true;
       }
