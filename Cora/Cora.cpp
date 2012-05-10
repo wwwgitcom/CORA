@@ -386,6 +386,7 @@ int _tmain(int argc, _TCHAR* argv[])
   //---------------------------------------------------------
   
   _global_(int, VitTotalSoftBits);
+  _global_(int, VitTotalBits);
   _global_(uint16, ht_frame_length);
   _global_(uint32, ht_frame_mcs);
   _global_(int, crc32_check_length);
@@ -553,7 +554,7 @@ int _tmain(int argc, _TCHAR* argv[])
     frame_decode_done = false;
     descramble_state = 0;
 
-    symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalSoftBits);
+    symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
     total_symbol_count = symbol_count;
 
     if (*ht_frame_mcs == 8 || *ht_frame_mcs == 9 || *ht_frame_mcs == 11)

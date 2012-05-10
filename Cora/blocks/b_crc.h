@@ -27,7 +27,7 @@ DEFINE_BLOCK(b_crc32_check_1v, 1, 0)
       crc32_check(ip[i]);
       (*checked_length)++;
     }
-    //printf("checked length = %d\n", *checked_length);
+    printf("checked length = %d\n", *checked_length);
     if (*checked_length == total - 4)
     {
       if (n - i >= 4)

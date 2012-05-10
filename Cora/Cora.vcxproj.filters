@@ -22,6 +22,9 @@
     <Filter Include="Header Files\blocks">
       <UniqueIdentifier>{708e12fb-31b7-4a8c-92a2-3a28e3c83203}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\blocks">
+      <UniqueIdentifier>{3aa0245e-76f1-4dbe-a88c-0c8a8efe996a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -189,6 +192,9 @@
     <ClInclude Include="blocks\b_pilot_tracking.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\__b_viterbi.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -235,6 +241,9 @@
     </ClCompile>
     <ClCompile Include="TTask.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\__b_viterbi.cpp">
+      <Filter>Source Files\blocks</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

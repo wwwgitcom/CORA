@@ -33,6 +33,6 @@ __forceinline int ht_symbol_count(int mcs, int length_bytes, int* total_soft_bit
   int ntotalbits   = (length_bytes << 3) + 16 + 6; // + service: 16 bits, tail: 6 bits
   int nsymbolcount = (ntotalbits + DOT11N_RATE_PARAMS[mcs].ndbps) / DOT11N_RATE_PARAMS[mcs].ndbps;
 
-  *total_soft_bits = nsymbolcount * DOT11N_RATE_PARAMS[mcs].cdbps;
+  *total_soft_bits = nsymbolcount * DOT11N_RATE_PARAMS[mcs].ndbps;
   return nsymbolcount;
 }

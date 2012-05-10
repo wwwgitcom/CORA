@@ -72,9 +72,10 @@ __declspec(selectany) GlobalObjMan _GlobalObjMan;
 template<typename T, int NINPUT, int NOUTPUT>
 class dsp_block
 {
+  public:
   dsp_buffer_ptr        m_outputs[NOUTPUT + 1];// avoid zero ports
   dsp_buffer_reader_ptr m_inputs[NINPUT + 1];
-public:
+
   dsp_block(){}
   const char* name(){return typeid(T).name();}
 

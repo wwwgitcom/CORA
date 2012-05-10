@@ -116,6 +116,7 @@
     <ClInclude Include="blocks\b_remove_gi.h" />
     <ClInclude Include="blocks\b_stream_joiner.h" />
     <ClInclude Include="blocks\b_viterbi.h" />
+    <ClInclude Include="blocks\__b_viterbi.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />
     <ClInclude Include="sys\dsp_complex.h" />
@@ -147,6 +148,7 @@
     <ClInclude Include="TThread.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="blocks\__b_viterbi.cpp" />
     <ClCompile Include="Cora.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

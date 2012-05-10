@@ -38,7 +38,7 @@ DEFINE_BLOCK(b_dot11_descramble_1v1, 1, 1)
     for (int i = 0; i < n; i++)
     {
       op[i] = ds(ip[i]);
-      //printf("%02X    %02X ", ip[i], op[i]);
+      //printf("%02X %02X   ", ip[i], op[i]);
     }
     //printf("\n\n");
 
