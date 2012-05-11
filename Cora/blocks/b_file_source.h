@@ -21,6 +21,9 @@ public:
     return distance;
   }
 
+#if enable_draw
+  dsp_draw_window* m_draw;
+#endif
 
   BLOCK_INIT
   {
@@ -42,6 +45,9 @@ public:
       cout << msg << endl;
       throw::invalid_argument(msg);
     }
+#if enable_draw
+    m_draw = new dsp_draw_window("dot11 siso channel estimator", 200, 200, 400, 400);
+#endif
   }
 
   bool load_file()
@@ -91,6 +97,10 @@ public:
     //printf("%d\n", *pBufferEnd - (char*)*pSignalBlock);
 
     auto op = $_<v_cs>(0);
+
+#if enable_draw
+    m_draw->DrawSqrt((complex16*)m_outputs[0]->m_base, m_outputs[0]->bufsize() * 4);
+#endif
     
     *op = (*pSignalBlock)->operator[](*nOffset);
 
@@ -106,6 +116,7 @@ public:
   }
 };
 
+#define draw_source_2v 0
 
 ///----------------------------------------------------
 DEFINE_BLOCK(b_file_source_v2, 2, 2)
@@ -132,6 +143,13 @@ public:
     return distance;
   }
 
+#if draw_source_2v
+  dsp_draw_window* m_draw1;
+  dsp_draw_window* m_draw2;
+  _local_(int, iDrawIndex, 0);
+  _local_(int, iDrawLength, 10240);
+  _local_(int, iDrawOffset, 0);
+#endif
 
   BLOCK_INIT
   {
@@ -164,6 +182,11 @@ public:
       cout << msg << endl;
       throw::invalid_argument(msg);
     }
+
+#if draw_source_2v
+    m_draw1 = new dsp_draw_window("dot11 file source 1", 200, 200, 400, 400);
+    m_draw2 = new dsp_draw_window("dot11 file source 2", 300, 200, 400, 400);
+#endif
   }
 
   bool load_file1()
@@ -258,6 +281,16 @@ public:
       (*pSignalBlock2)++;
       *nOffset = 0;
     }
+
+#if draw_source_2v
+    (*iDrawIndex) += 4;
+    
+    if ((*iDrawIndex) % 1024 == 0)
+    {
+      m_draw1->DrawSqrt((complex16*)m_outputs[0]->m_base, m_outputs[0]->bufsize() * 4);
+      m_draw2->DrawSqrt((complex16*)m_outputs[1]->m_base, m_outputs[0]->bufsize() * 4);
+    }
+#endif
 
     produce(0, 1);
     produce(1, 1);

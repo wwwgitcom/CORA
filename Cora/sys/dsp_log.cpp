@@ -55,7 +55,7 @@ void dsp_log::operator()(const char * format, ... )
   va_start(argp, format);
 
   try{
-    vsprintf(msg, format, argp);
+    vsprintf_s(msg, 2048, format, argp);
   }
   catch(char * e){
     perror(e);

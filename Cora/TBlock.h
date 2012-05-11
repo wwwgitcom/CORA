@@ -57,7 +57,6 @@ public:
     pObj = new GlobalObj;
     pObj->m_name = objMeta->m_name;
     pObj->size   = objMeta->size;
-    //pObj->obj    = obj;// who allocate this obj?
     objMeta->p_var  = (void *)_aligned_malloc(objMeta->size, 16);
     pObj->p_var = objMeta->p_var;
     
@@ -160,31 +159,7 @@ class dsp_block
   {
     return true;
   }
-
-
-  dsp_block & connect(int from_port, dsp_block &to_block, int to_port)
-  {
-    dsp_endpoint &from_end = CreateObject<dsp_endpoint>(*this, from_port);
-    dsp_endpoint &to_end   = CreateObject<dsp_endpoint>(to_block, to_port);
-    dsp_edge     &edge     = CreateObject<dsp_edge>(from_end, to_end);
-    m_down_streams.push_back(edge);
-    cout << this << " -> " << &to_block << endl;
-    return *this;
-  }
-#if 0
-  void _init(va_list args)
-  {
-    T * t = static_cast<T*>(this);
-    t->init(args);
-  }
-
-  // overrideble
-  void init(va_list args)
-  {
-  }
-#endif
 };
-
 
 #define DEFINE_BLOCK(block_name, number_of_input, number_of_output)\
 class _declspec(align(16)) block_name : public dsp_block<block_name, number_of_input, number_of_output>

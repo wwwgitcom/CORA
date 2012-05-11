@@ -10,22 +10,16 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
   __int32                   nTracebackOffset;
   __int32                   nTraceBackOutputByte;
 
-
-  _global_(int, VitTotalBits);
-
   int i_trellis;    // index of trellis
-  int      nDecodedBits;
+  int nDecodedBits;
 
   vub *pTrellisBase;
   vub *pTrellis;  
   vub vNormMask;
   
-
+  _global_(int, VitTotalBits);
 
   //////////////////////////////////////////////////////////////////////////
-
-
-
   BLOCK_INIT
   {
     auto v = $["TraceBackLength"];
@@ -51,7 +45,7 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
     nTracebackOffset     = nTraceBackLength + nTraceBackOutput - 1;
     nTraceBackOutputByte = nTraceBackOutput / 8;
 
-    pTrellisBase = (vub*)_aligned_malloc(15000 * sizeof(vub), 64);
+    pTrellisBase = (vub*)_aligned_malloc(15000 * 4 * sizeof(vub), 64);
     pTrellis = pTrellisBase;
 
     // Initialize Trellis
@@ -223,7 +217,8 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
 
         i_trellis -= nTraceBackOutput;//?????????
         //printf("nTotalBits=%d\nSoftBits", nTotalBits);
-        printf("nDecodedBits=%d, nTotalBits=%d, i_trellis=%d\n", nDecodedBits, nVitTotalBits, i_trellis);
+        //printf("nDecodedBits=%d, nTotalBits=%d, i_trellis=%d, trellisoffset=%d\n",
+        //  nDecodedBits, nVitTotalBits, i_trellis, pTrellis - pTrellisBase);
         //if (nDecodedBits == 4096)
         //{
         //  printf("***");
@@ -238,7 +233,7 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
         if (nVitTotalBits - nDecodedBits - i_trellis <= nTraceBackOutput)
         {
           bFlush = true;
-          if (nInputSoftBits - nSoftBits > 0)
+          if (nInputSoftBits - nSoftBits - 3 > 0)
           {
             continue;
           }
@@ -257,28 +252,31 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
       {
         int npadding = nTracebackDataCount - i_trellis + TB_PREFIX_VITAS;
         unsigned char opad = 0;
+        //npadding >>= 1;
 
         for (int i = 0; i < npadding; i++)
         {
           ViterbiAdvance(pTrellis, (vub*)VIT_MA, opad, (vub*)VIT_MB, opad);
-          ViterbiAdvance(pTrellis, (vub*)VIT_MA, opad);
-          i_trellis += 2;
+          //ViterbiAdvance(pTrellis, (vub*)VIT_MA, opad);
+          //i_trellis += 2;
+          i_trellis++;
+
+          if (pTrellis[0][0] > 192)
+          {
+            pTrellis[0] = sub ( pTrellis[0], vNormMask);
+            pTrellis[1] = sub ( pTrellis[1], vNormMask);
+            pTrellis[2] = sub ( pTrellis[2], vNormMask);
+            pTrellis[3] = sub ( pTrellis[3], vNormMask);
+          }
         }
 
-        if (pTrellis[0][0] > 192)
-        {
-          pTrellis[0] = sub ( pTrellis[0], vNormMask);
-          pTrellis[1] = sub ( pTrellis[1], vNormMask);
-          pTrellis[2] = sub ( pTrellis[2], vNormMask);
-          pTrellis[3] = sub ( pTrellis[3], vNormMask);
-        }
-
+        
         if ( i_trellis >= nTracebackDataCount + TB_PREFIX_VITAS )
         {
           // track back
           // we need to find the minimal state and index of the state
 
-          printf("traceback...@%d\n", i_trellis);
+          //printf("traceback...@%d\n", i_trellis);
           // rub3 has the minimal value, we need to find the index
           // the algorithm to find the right index is to embed the index at the least
           // significant bits of state value, then we just find the minimal value

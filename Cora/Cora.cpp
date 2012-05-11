@@ -205,8 +205,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
   autoref ht_data_vit_34 = create_block<b_viterbi64_3o4_1v1>(
     2,
-    string("TraceBackLength=128"),
-    string("TraceBackOutput=256")
+    string("TraceBackLength=144"),
+    string("TraceBackOutput=384")
     );
 
   autoref l_sig_parser = create_block<b_lsig_parser_1v>();
@@ -273,23 +273,15 @@ int _tmain(int argc, _TCHAR* argv[])
   autoref ht_deinterleave_6bpsc_iss2 = create_block<b_dot11n_deinterleave_6bpsc_1v1>(
     1, string("iss=2"));
 
-  autoref ht_stream_joiner_1 = create_block<b_stream_joiner_1_2v1>(
-    1,
-    string("count_per_stream=52"));
-  autoref ht_stream_joiner_2 = create_block<b_stream_joiner_1_2v1>(
-    1,
-    string("count_per_stream=104"));
-  autoref ht_stream_joiner_3 = create_block<b_stream_joiner_2_2v1>(
-    1,
-    string("count_per_stream=208"));
-  autoref ht_stream_joiner_4 = create_block<b_stream_joiner_3_2v1>(
-    1,
-    string("count_per_stream=312"));
+  autoref ht_stream_joiner_1 = create_block<b_stream_joiner_1_2v1>();
+  autoref ht_stream_joiner_2 = create_block<b_stream_joiner_1_2v1>();
+  autoref ht_stream_joiner_3 = create_block<b_stream_joiner_2_2v1>();
+  autoref ht_stream_joiner_4 = create_block<b_stream_joiner_3_2v1>();
 
   autoref descramble_seed = create_block<b_dot11_descramble_seed_1v>();
-  autoref descramble = create_block<b_dot11_descramble_1v1>();
-  autoref crc32_checker = create_block<b_crc32_check_1v>();
-  autoref pilot_tracking = create_block<b_dot11_pilot_tracking_2v>();
+  autoref descramble      = create_block<b_dot11_descramble_1v1>();
+  autoref crc32_checker   = create_block<b_crc32_check_1v>();
+  autoref pilot_tracking  = create_block<b_dot11_pilot_tracking_2v>();
 
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
@@ -467,7 +459,7 @@ int _tmain(int argc, _TCHAR* argv[])
       {
         bool bRet = false;
         START(fft_lltf1);
-        START(fft_lltf2, siso_channel_est, STOP([&]{bRet = true; *VitTotalSoftBits = 48;}));
+        START(fft_lltf2, siso_channel_est, STOP([&]{bRet = true; *VitTotalBits = 24;}));
         return bRet;
       }), STOP(NOP)
     );
@@ -509,7 +501,7 @@ int _tmain(int argc, _TCHAR* argv[])
         START(IF(remove_gi1), [&]
         {
           START(fft_data1);
-          START(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, STOP([&]{bRet = true; *VitTotalSoftBits = 96;}));
+          START(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, STOP([&]{bRet = true; *VitTotalBits = 48;}));
         });
         return bRet;
       }), STOP(NOP)
