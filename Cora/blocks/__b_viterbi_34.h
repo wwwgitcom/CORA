@@ -29,7 +29,7 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
     }
     else
     {
-      nTraceBackLength = 36;
+      nTraceBackLength = 72;
     }
 
     v = $["TraceBackOutput"];
@@ -39,7 +39,7 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
     }
     else
     {
-      nTraceBackOutput = 48;
+      nTraceBackOutput = 192;
     }
     nTracebackDataCount  = nTraceBackLength + nTraceBackOutput;
     nTracebackOffset     = nTraceBackLength + nTraceBackOutput - 1;

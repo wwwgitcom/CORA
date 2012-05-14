@@ -99,11 +99,13 @@
     <ClInclude Include="blocks\b_demap.h" />
     <ClInclude Include="blocks\b_descramble.h" />
     <ClInclude Include="blocks\b_dot11n_param.h" />
+    <ClInclude Include="blocks\b_dot11n_rx.h" />
     <ClInclude Include="blocks\b_drop.h" />
     <ClInclude Include="blocks\b_fft.h" />
     <ClInclude Include="blocks\b_file_source.h" />
     <ClInclude Include="blocks\b_frequest_offset.h" />
     <ClInclude Include="blocks\b_htsig_parser.h" />
+    <ClInclude Include="blocks\b_interleave.h" />
     <ClInclude Include="blocks\b_lsig_parser.h" />
     <ClInclude Include="blocks\b_lstf_searcher.h" />
     <ClInclude Include="blocks\b_map.h" />
@@ -114,11 +116,13 @@
     <ClInclude Include="blocks\b_pilot_tracking.h" />
     <ClInclude Include="blocks\b_plot.h" />
     <ClInclude Include="blocks\b_remove_gi.h" />
+    <ClInclude Include="blocks\b_scramble.h" />
     <ClInclude Include="blocks\b_stream_joiner.h" />
     <ClInclude Include="blocks\b_viterbi.h" />
     <ClInclude Include="blocks\__b_viterbi.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />
+    <ClInclude Include="sys\dsp_cmd.h" />
     <ClInclude Include="sys\dsp_complex.h" />
     <ClInclude Include="sys\dsp_crc.h" />
     <ClInclude Include="sys\dsp_demap.h" />
@@ -127,6 +131,7 @@
     <ClInclude Include="sys\dsp_log.h" />
     <ClInclude Include="sys\dsp_map.h" />
     <ClInclude Include="sys\dsp_math.h" />
+    <ClInclude Include="sys\dsp_ofdm_symbol.h" />
     <ClInclude Include="sys\dsp_processor.h" />
     <ClInclude Include="sys\dsp_scramble.h" />
     <ClInclude Include="sys\dsp_source.h" />

@@ -43,6 +43,7 @@ public:
   __forceinline void invoke()
   {
     proc(obj);
+    status = 0;
   }
   __forceinline void wait()
   {
@@ -165,7 +166,8 @@ public:
   {
     m_spinlock.Acquire();
     InsertTailList(&this->m_TaskList, &t->entry);
-    _InterlockedIncrement(&m_task_count);
+    //_InterlockedIncrement(&m_task_count);
+    m_task_count++;
     m_spinlock.Release();
   }
 
@@ -189,7 +191,8 @@ public:
       }
 
       pListEntry = RemoveHeadList(&this->m_TaskList);
-      _InterlockedDecrement(&m_task_count);
+      //_InterlockedDecrement(&m_task_count);
+      m_task_count--;
       m_spinlock.Release();
 
       t = CONTAINING_RECORD(pListEntry, task_obj, entry);
@@ -261,7 +264,7 @@ public:
   {
     DWORD dwFreeCpu = 0;
 
-    m_lock.Acquire();
+    //m_lock.Acquire();
 
     //printf("[cpu_man] status %p.\n", m_sync_obj.status);
     if (_BitScanForward(&dwFreeCpu, m_sync_obj.status))
@@ -269,6 +272,7 @@ public:
       //debug
       //dwFreeCpu = 1;
       _InterlockedXor((volatile long*)&m_sync_obj.status, (1L << dwFreeCpu));
+      //m_sync_obj.status |= (1L << dwFreeCpu);
       t->status = 1;
       m_cpu_array[dwFreeCpu]->Enqueue(t);
       //if (m_cpu_array[dwFreeCpu]->processor_status() == cpu_processor::idle)
@@ -285,7 +289,7 @@ public:
       m_nCurrentIndex++;
       m_nCurrentIndex %= m_nTotalProcessor;
     }
-    m_lock.Release();
+    //m_lock.Release();
   }
 };
 

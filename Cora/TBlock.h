@@ -2,11 +2,6 @@
 #include "TOP.h"
 #include "dsp_buffer.h"
 #include <typeinfo>
-#include <string>
-#include <utility>
-#include <map>
-
-using namespace std;
 
 class GlobalObj
 {

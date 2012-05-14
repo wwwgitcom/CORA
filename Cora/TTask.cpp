@@ -34,13 +34,12 @@ void cpu_processor::Run()
       {
         //printf("Get a work...%p\n", t);
         t->invoke();
-        t->status = 0;
         //printf("I finished work, %p\n", t);
         t = Dequeue();
       } while (t != NULL);
       // no task to do, mark it as free
       _InterlockedXor((volatile long*)m_status_mask, m_affinity);
-      
+      //*m_status_mask |= m_affinity;
       m_status = idle;
     }
     else

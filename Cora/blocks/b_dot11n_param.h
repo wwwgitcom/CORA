@@ -1,5 +1,13 @@
 #pragma once
 
+#include "dsp_ofdm_symbol.h"
+
+// TX, over sampled
+typedef ofdm_symbol<complex16, v_cs, 128, 32> dot11n_tx_symbol;
+// RX 
+typedef ofdm_symbol<complex16, v_cs, 64, 16> dot11n_rx_symbol;
+
+
 struct dot11n_rate_param
 {
   int cdbps;
