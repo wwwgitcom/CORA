@@ -123,9 +123,6 @@
     <ClInclude Include="sys\dsp_map.h">
       <Filter>Header Files\sys</Filter>
     </ClInclude>
-    <ClInclude Include="blocks\b_map.h">
-      <Filter>Header Files\blocks</Filter>
-    </ClInclude>
     <ClInclude Include="blocks\b_demap.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
@@ -198,17 +195,68 @@
     <ClInclude Include="sys\dsp_cmd.h">
       <Filter>Header Files\sys</Filter>
     </ClInclude>
-    <ClInclude Include="blocks\b_interleave.h">
-      <Filter>Header Files\blocks</Filter>
-    </ClInclude>
     <ClInclude Include="blocks\b_dot11n_rx.h">
-      <Filter>Header Files\blocks</Filter>
-    </ClInclude>
-    <ClInclude Include="blocks\b_scramble.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
     <ClInclude Include="sys\dsp_ofdm_symbol.h">
       <Filter>Header Files\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="TReset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_conv.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_lstf.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_lltf.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_htstf.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_htltf.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_lsig.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_htsig.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_stream_parser.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_tx_ifft.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_csd.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_add_cp.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_dma_join.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_map.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11a_map.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11a_interleave.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_interleave.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_scramble.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11_add_pilot.h">
+      <Filter>Header Files\blocks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -258,6 +306,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="blocks\__b_viterbi.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_conv.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_lstf.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_lltf.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_htstf.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_htltf.cpp">
       <Filter>Source Files\blocks</Filter>
     </ClCompile>
   </ItemGroup>

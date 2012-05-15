@@ -137,6 +137,30 @@ def MakeSequentialExecute()
   end
 end
 
+def MakeReset()
+  print "#pragma once\n\n"
+
+  for i in 1..64      
+      print "template<typename T1"
+      for j in 2..i
+          print ", typename T#{j}"
+      end
+      print ">\n"
+      print "__forceinline void RESET(const T1 &t1"
+      for j in 2..i
+          print ", const T#{j} &t#{j}"
+      end
+      print ")\n"
+      print "{\n"
+      for j in 1..i
+        print "  __if_exists(T#{j}::reset)\n"
+        print "  {\n"
+        print "    const_cast<T#{j}&>(t#{j}).reset();\n"
+        print "  }\n"
+      end
+      print "}\n\n"
+  end
+end
 
 def MakeParallelStart()
     print "#pragma once\n\n"
@@ -203,8 +227,8 @@ end
 
 #MakeSchedule()
 #MakeObject()
-MakeParallelStart()
-#
+#MakeParallelStart()
+MakeReset()
 #MakePipelineExecutionFunction()
 #
 #MakePipelineExecutionFunction()

@@ -1,3 +1,5 @@
+#pragma once
+
 
 template<int nbpsc>
 struct dot11a_interleaver

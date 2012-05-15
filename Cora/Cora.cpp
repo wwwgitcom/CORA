@@ -23,10 +23,13 @@
 #include "TArray.h"
 #include "TChannel.h"
 #include "TThread.h"
+#include "TReset.h"
 
 #define enable_draw 0
 //--------------------------------------------------
 #include "b_plot.h"
+
+#include "b_dot11n_param.h"
 
 #include "b_drop.h"
 #include "b_file_source.h"
@@ -52,14 +55,30 @@
 #include "b_descramble.h"
 #include "b_crc.h"
 
-#include "b_dot11n_param.h"
-
 #include "b_dot11n_rx.h"
 
+//////////////////////////////////////////////////////////////////////////
+#include "b_dot11n_scramble.h"
+#include "b_conv.h"
+#include "b_dot11a_interleave.h"
+#include "b_dot11n_interleave.h"
 
-#include "b_scramble.h"
-#include "b_interleave.h"
-#include "b_map.h"
+#include "b_dot11a_map.h"
+#include "b_dot11n_map.h"
+
+#include "b_dot11n_lstf.h"
+#include "b_dot11n_lltf.h"
+#include "b_dot11n_htstf.h"
+#include "b_dot11n_htltf.h"
+#include "b_dot11n_lsig.h"
+#include "b_dot11n_htsig.h"
+#include "b_dot11n_tx_ifft.h"
+#include "b_dot11_add_pilot.h"
+#include "b_dot11n_csd.h"
+#include "b_dot11n_add_cp.h"
+#include "b_dot11n_dma_join.h"
+
+
 //#define split(T, ...) new (aligned_malloc<T>()) T(__VA_ARGS__)
 
 
@@ -90,7 +109,53 @@ int _tmain(int argc, _TCHAR* argv[])
   SetThreadAffinityMask(GetCurrentThread(), 1);
 
   
+  autoref dummy = create_block<dummy_block>();
 
+  autoref lstf = create_block<b_dot11n_lstf_v2>();
+  autoref lltf = create_block<b_dot11n_lltf_v2>();
+
+
+  // for L/HT-SIG
+  autoref add_pilot = create_block<b_dot11n_add_pilot_1v>(
+    2, string("iss=0"), string("pilot_start_index=0"));
+
+  // for HT-DATA
+  autoref add_pilot_1 = create_block<b_dot11n_add_pilot_1v>(
+    2, string("iss=0"), string("pilot_start_index=3"));
+  autoref add_pilot_2 = create_block<b_dot11n_add_pilot_1v>(
+    2, string("iss=1"), string("pilot_start_index=3"));
+
+  // for L/HT-SIG
+  autoref csd_sig = create_block<b_dot11n_csd_1v1>(
+    1, string("ncsd=4"));
+
+  // for HT-DATA
+  autoref csd = create_block<b_dot11n_csd_1v1>(
+    1, string("ncsd=4"));
+
+
+  autoref dma_join = create_block<b_dot11n_dma_join_2v1>();
+
+
+
+  Channel::Create(sizeof(dot11n_tx_symbol))
+    .from(lstf, 0).from(lltf, 0)
+    .to(dma_join, 0);
+  Channel::Create(sizeof(dot11n_tx_symbol))
+    .from(lstf, 1).from(lltf, 1)
+    .to(dma_join, 0);
+
+  Channel::Create(sizeof(dot11n_tx_symbol))
+    .from(dma_join, 0)
+    .to(dummy, 0);
+
+  ONCE(lstf, lltf, [&]
+  {
+    START(dma_join, dummy);
+  });
+
+  
+  
 
 	return 0;
 }

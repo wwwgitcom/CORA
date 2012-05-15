@@ -36,7 +36,7 @@ struct __declspec(align(16)) ofdm_symbol
     struct
     {
       __declspec(align(16)) VT vcp[vncp];
-      __declspec(align(16))VT vsubcarriers[vnsubcarrier];
+      __declspec(align(16)) VT vsubcarriers[vnsubcarrier];
     };
 
     struct  
