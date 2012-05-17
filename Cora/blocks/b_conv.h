@@ -17,6 +17,8 @@ DEFINE_BLOCK(b_conv_1o2_1v1, 1, 1)
 
   BLOCK_WORK
   {
+    trace();
+
     auto n = ninput(0);
     if (n < 1) return false;
 

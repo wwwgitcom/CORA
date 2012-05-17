@@ -115,6 +115,7 @@
     <ClInclude Include="blocks\b_dot11n_rx.h" />
     <ClInclude Include="blocks\b_dot11n_tx_ifft.h" />
     <ClInclude Include="blocks\b_dot11_add_pilot.h" />
+    <ClInclude Include="blocks\b_dot11_frame_source.h" />
     <ClInclude Include="blocks\b_drop.h" />
     <ClInclude Include="blocks\b_fft.h" />
     <ClInclude Include="blocks\b_file_source.h" />

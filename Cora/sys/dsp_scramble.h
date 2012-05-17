@@ -12,6 +12,7 @@ namespace scrambler
     unsigned __int8 _scrambler_register;
 
     dot11a_scrambler(unsigned __int8 scrambler_register) : _scrambler_register(scrambler_register){}
+    dot11a_scrambler() : _scrambler_register(0){}
 
     __forceinline unsigned __int8 operator()(unsigned __int8 &ubInput)
     {
@@ -35,6 +36,7 @@ namespace scrambler
   struct dot11n_scrambler : dot11a_scrambler
   {
     dot11n_scrambler(unsigned __int8 scrambler_register) : dot11a_scrambler(scrambler_register){}
+    dot11n_scrambler() : dot11a_scrambler(0){}
   };
 
   //////////////////////////////////////////////////////////////////////////

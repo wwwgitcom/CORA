@@ -8,6 +8,8 @@ DEFINE_BLOCK(b_stream_parser_bpsk_1v2, 1, 2)
 
   BLOCK_WORK
   {
+    trace();
+
     auto n = ninput(0);
     if (n < stream_paser_bpsk_2ss::NINPUT) return false;
 

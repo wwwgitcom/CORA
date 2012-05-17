@@ -1,7 +1,7 @@
 #pragma once
 
 
-DEFINE_BLOCK(b_dot11n_mcs8_map_bpsk_i_1v1, 1, 1)
+DEFINE_BLOCK(b_dot11n_map_bpsk_i_1v1, 1, 1)
 {
   dsp_mapper_bpsk<complex16> *mapper;
 

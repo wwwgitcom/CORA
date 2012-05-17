@@ -6,6 +6,15 @@ DEFINE_BLOCK(b_dot11n_interleaver_1bpsc_1v1, 1, 1)
 {
   dot11n_interleaver_1bpsc interleaver;
 
+  BLOCK_INIT
+  {
+    auto v = $["iss"];
+    if (!v.empty())
+    {
+      interleaver.init(atoi(v.c_str()));
+    }
+  }
+
   BLOCK_WORK
   {
     auto n = ninput(0);

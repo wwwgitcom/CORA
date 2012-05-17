@@ -37,17 +37,34 @@ __declspec(selectany) dot11n_rate_param DOT11N_RATE_PARAMS[16] =
   {624, 520},
 };
 
-__forceinline int ht_symbol_count(int mcs, int length_bytes, int* total_soft_bits)
+__forceinline int ht_symbol_count(int mcs, int length_bytes)
 {
   int ntotalbits   = (length_bytes << 3) + 16 + 6; // + service: 16 bits, tail: 6 bits
   int nsymbolcount = (ntotalbits + DOT11N_RATE_PARAMS[mcs].ndbps) / DOT11N_RATE_PARAMS[mcs].ndbps;
 
-  *total_soft_bits = nsymbolcount * DOT11N_RATE_PARAMS[mcs].ndbps;
+  return nsymbolcount;
+}
+
+__forceinline int ht_symbol_count(int mcs, int length_bytes, int* total_bits)
+{
+  int ntotalbits   = (length_bytes << 3) + 16 + 6; // + service: 16 bits, tail: 6 bits
+  int nsymbolcount = (ntotalbits + DOT11N_RATE_PARAMS[mcs].ndbps) / DOT11N_RATE_PARAMS[mcs].ndbps;
+
+  *total_bits = nsymbolcount * DOT11N_RATE_PARAMS[mcs].ndbps;
   return nsymbolcount;
 }
 
 __forceinline int ht_padding_bytes(int mcs, int length_bytes)
 {
-  int ntotalbytes = 2 + length_bytes;
+  int padding_bytes   = 0;
+  int symbol_count    = 0;
+  int total_bits      = 0;
+  int total_bytes     = 0;
+  symbol_count = ht_symbol_count(mcs, length_bytes, &total_bits);
 
+  total_bytes = total_bits / 8;
+  total_bytes += total_bits % 8 > 0 ? 1 : 0;
+  padding_bytes = total_bytes - length_bytes - 2;
+
+  return padding_bytes;
 }
