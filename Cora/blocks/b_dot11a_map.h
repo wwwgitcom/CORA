@@ -12,16 +12,17 @@ DEFINE_BLOCK(b_dot11a_map_bpsk_q_1v1, 1, 1)
   BLOCK_WORK
   {
     int n = ninput(0);
-    // need 6 bytes
-    if (n < 6) return false;
+    // need 6 bytes contained in 1 v_ub
+    if (n < 1) return false;
 
-    auto ip = _$<unsigned __int8>(0);
+    auto ip = _$<v_ub>(0);
+    uint8* p = reinterpret_cast<uint8*>(ip);
     auto op = $_<dot11n_tx_symbol>(0);
 
     unsigned int sc_idx = 128 - 26;
     for (int i = 0; i < 6; i++)
     {
-      dsp_mapper_bpsk<complex16>::output_type& out = (*mapper)[ip[i]];
+      dsp_mapper_bpsk<complex16>::output_type& out = (*mapper)[p[i]];
 
       for(int j = 0; j < 8; j++, sc_idx++)
       {
@@ -41,8 +42,9 @@ DEFINE_BLOCK(b_dot11a_map_bpsk_q_1v1, 1, 1)
       }
     }
 
-    consume(0, 6);
+    consume(0, 1);
     produce(0, 1);
+    return true;
   }
 };
 
@@ -58,16 +60,17 @@ DEFINE_BLOCK(b_dot11a_map_bpsk_i_1v1, 1, 1)
   BLOCK_WORK
   {
     int n = ninput(0);
-    // need 6 bytes
-    if (n < 6) return false;
+    // need 6 bytes contained in 1 v_ub
+    if (n < 1) return false;
 
-    auto ip = _$<uint8>(0);
+    auto ip = _$<v_ub>(0);
+    uint8* p = reinterpret_cast<uint8*>(ip);
     auto op = $_<dot11n_tx_symbol>(0);
 
     unsigned int sc_idx = 128 - 26;
     for (int i = 0; i < 6; i++)
     {
-      dsp_mapper_bpsk<complex16>::output_type& out = (*mapper)[ip[i]];
+      dsp_mapper_bpsk<complex16>::output_type& out = (*mapper)[p[i]];
 
       for(int j = 0; j < 8; j++, sc_idx++)
       {
@@ -87,7 +90,8 @@ DEFINE_BLOCK(b_dot11a_map_bpsk_i_1v1, 1, 1)
       }
     }
 
-    consume(0, 6);
+    consume(0, 1);
     produce(0, 1);
+    return true;
   }
 };

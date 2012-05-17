@@ -7,6 +7,8 @@ struct conv_1_2
 
   conv_1_2(unsigned __int16 conv_register) : _conv_register(conv_register){}
 
+  conv_1_2() : _conv_register(0){}
+
   __forceinline unsigned __int16 operator()(unsigned __int8 &ubInput)
   {
     unsigned __int16 usOutput;
@@ -45,6 +47,7 @@ struct conv_2_3
   static const int lut_size   = input_size;
 
   conv_2_3(unsigned __int16 conv_register) : _conv_register(conv_register){}
+  conv_2_3() : _conv_register(0){}
 
   __forceinline void operator()(unsigned __int8 pubInput[2], unsigned __int8 pubOutput[3])
   {
@@ -80,6 +83,7 @@ struct conv_3_4
   static const int lut_size   = input_size;
 
   conv_3_4(unsigned __int16 conv_register) : _conv_register(conv_register){}
+  conv_3_4() : _conv_register(0){}
 
   __forceinline void operator()(unsigned __int8 pubInput[3], unsigned __int8 pubOutput[4])
   {

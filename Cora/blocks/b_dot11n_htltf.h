@@ -9,7 +9,7 @@ DEFINE_BLOCK(b_dot11n_htltf_v2, 0, 2)
   BLOCK_WORK
   {
     auto op1 = $_<dot11n_tx_symbol>(0);
-    auto op2 = $_<dot11n_tx_symbol>(0);
+    auto op2 = $_<dot11n_tx_symbol>(1);
 
     _htltf.get_ltf_11(op1->data);
     op1++;

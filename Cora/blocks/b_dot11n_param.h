@@ -45,3 +45,9 @@ __forceinline int ht_symbol_count(int mcs, int length_bytes, int* total_soft_bit
   *total_soft_bits = nsymbolcount * DOT11N_RATE_PARAMS[mcs].ndbps;
   return nsymbolcount;
 }
+
+__forceinline int ht_padding_bytes(int mcs, int length_bytes)
+{
+  int ntotalbytes = 2 + length_bytes;
+
+}

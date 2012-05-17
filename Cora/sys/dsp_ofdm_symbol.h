@@ -108,7 +108,7 @@ struct __declspec(align(16)) ofdm_symbol
     }
     for (int i = 0; i < vnsubcarrier; i++)
     {
-      output.vdata[i].vsubcarriers.m128i = vsubcarriers[i].m128i;
+      output.vsubcarriers[i].m128i = vsubcarriers[i].m128i;
     }
   }
 

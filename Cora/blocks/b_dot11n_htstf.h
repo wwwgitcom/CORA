@@ -9,7 +9,7 @@ DEFINE_BLOCK(b_dot11n_htstf_v2, 0, 2)
   BLOCK_WORK
   {
     auto op1 = $_<dot11n_tx_symbol>(0);
-    auto op2 = $_<dot11n_tx_symbol>(0);
+    auto op2 = $_<dot11n_tx_symbol>(1);
 
     _htstf.get_stf_1(op1->data);
     _htstf.get_stf_2(op2->data);

@@ -12,7 +12,7 @@ DEFINE_BLOCK(b_dot11a_interleaver_1bpsc_1v1, 1, 1)
     if (n < 6) return false;
 
     auto ip = _$<uint8>(0);
-    auto op = _$<v_ub>(0);
+    auto op = $_<v_ub>(0);
 
     interleaver(ip, op);
 
