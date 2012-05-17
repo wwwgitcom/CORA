@@ -21,7 +21,7 @@ DEFINE_BLOCK(b_dot11_frame_source_v1, 1, 1)
     auto op = $_<uint8>(0);
 
     op[0] = 0;
-    op[0] = 1;
+    op[1] = 0;
 
     for (int i = 2; i < *ntotal_bytes + 2; i++)
     {
