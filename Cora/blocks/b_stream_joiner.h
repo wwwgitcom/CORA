@@ -24,6 +24,15 @@ DEFINE_BLOCK(b_stream_joiner_1_2v1, 2, 1)
     consume(1, iIn);
     produce(0, iOut);
 
+#if 0
+    for (int i = 0; i < iOut; i++)
+    {
+      printf("%u ", op[i]);
+    }
+    printf("\n\n");
+    getchar();
+#endif
+
     return true;
   }
 };

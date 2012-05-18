@@ -6,11 +6,9 @@ struct dot11_ofdm_pilot
 
   __forceinline void operator()(int iss, int n, __int16 pilots[4])
   {
-    int pilot_sign_idx = n % 127;
+    int pilot_sign_idx = (n + 3) % 127;
 
-    // since n start from 3 in ht-data
-    //int pilot_idx = n & 0x3;
-    int pilot_idx = (n - 3 )& 0x3;
+    int pilot_idx = n & 0x3;
 
     pilots[0] = (_pilot_sign[pilot_sign_idx] * _pilot[pilot_idx][iss][0]);
     pilots[1] = (_pilot_sign[pilot_sign_idx] * _pilot[pilot_idx][iss][1]);

@@ -32,8 +32,6 @@ DEFINE_BLOCK(b_dot11n_tx_ifft_128_1v1, 1, 1)
 
     IFFT<128>(reinterpret_cast<vcs *>(ip->vsubcarriers), reinterpret_cast<vcs *>(op->vsubcarriers));
 
-
-
     consume(0, 1);
     produce(0, 1);
     return true;

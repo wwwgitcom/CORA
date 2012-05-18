@@ -4,9 +4,8 @@
 
 DEFINE_BLOCK(b_dot11n_add_pilot_1v, 1, 0)
 {
-  _local_(int, pilot_start_index, 0);
   _local_(int, pilot_index, 0);
-  _local_(int, iss, 0);
+  _local_(int, iss, 1);
   _local_(complex16, bpsk_one, complex16(30339, 0));
 
   dot11_ofdm_pilot _pilot_tracker;
@@ -14,17 +13,16 @@ DEFINE_BLOCK(b_dot11n_add_pilot_1v, 1, 0)
 
   BLOCK_INIT
   {
-    auto v = $["pilot_start_index"];
-    if (!v.empty()) *pilot_start_index = atoi(v.c_str());
-    *pilot_index = *pilot_start_index;
-
-    v = $["iss"];
-    if (!v.empty()) *iss = atoi(v.c_str());
+    auto v = $["iss"];
+    if (!v.empty())
+    {
+      *iss = atoi(v.c_str());
+    }
   }
 
   BLOCK_RESET
   {
-    *pilot_index = *pilot_start_index;
+    *pilot_index = 0;
   }
 
   BLOCK_WORK
@@ -40,7 +38,6 @@ DEFINE_BLOCK(b_dot11n_add_pilot_1v, 1, 0)
     ip->subcarriers[128 - 7]   = *bpsk_one * _pilots[1];
     ip->subcarriers[7]         = *bpsk_one * _pilots[2];
     ip->subcarriers[21]        = *bpsk_one * _pilots[3];
-
 
     (*pilot_index)++;
 

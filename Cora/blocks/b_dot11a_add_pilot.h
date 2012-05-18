@@ -4,26 +4,15 @@
 
 DEFINE_BLOCK(b_dot11a_add_pilot_1v, 1, 0)
 {
-  _local_(int, pilot_start_index, 0);
   _local_(int, pilot_index, 0);
   _local_(complex16, bpsk_one, complex16(30339, 0));
   _local_(complex16, bpsk_neg_one, complex16(-30339, 0));
 
   dot11_ofdm_pilot _pilot_tracker;
 
-  BLOCK_INIT
-  {
-    auto v = $["pilot_start_index"];
-    if (!v.empty())
-    {
-      *pilot_start_index = atoi(v.c_str());
-      *pilot_index = *pilot_start_index;
-    }
-  }
-
   BLOCK_RESET
   {
-    *pilot_index = *pilot_start_index;
+    *pilot_index = 0;
   }
 
   BLOCK_WORK

@@ -27,11 +27,10 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
   autoref sigmapq  = create_block<b_dot11a_map_bpsk_q_1v1>();
   autoref sigifft  = create_block<b_dot11n_tx_ifft_128_1v1>();
 
-  autoref add_sigpilot = create_block<b_dot11a_add_pilot_1v>(
-    1, string("pilot_start_index=0"));
+  autoref add_sigpilot = create_block<b_dot11a_add_pilot_1v>();
 
   autoref csd_sig = create_block<b_dot11n_csd_1v1>(
-    1, string("ncsd=4"));
+    1, string("ncsd=2"));
 
   autoref add_sigcp1 = create_block<b_dot11n_add_cp_1v1>();
   autoref add_sigcp2 = create_block<b_dot11n_add_cp_1v1>();
@@ -79,9 +78,9 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 
   // pilot
   autoref ht_add_pilot_1 = create_block<b_dot11n_add_pilot_1v>(
-    2, string("iss=0"), string("pilot_start_index=3"));
+    1, string("iss=0"));
   autoref ht_add_pilot_2 = create_block<b_dot11n_add_pilot_1v>(
-    2, string("iss=1"), string("pilot_start_index=3"));
+    1, string("iss=1"));
 
   // ifft
   autoref ht_ifft_1  = create_block<b_dot11n_tx_ifft_128_1v1>();
