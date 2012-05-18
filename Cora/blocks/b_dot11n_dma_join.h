@@ -7,6 +7,8 @@ DEFINE_BLOCK(b_dot11n_dma_join_2v1, 2, 1)
 
   BLOCK_WORK
   {
+    trace();
+
     auto n = ninput(0);
     if (n < 1) return false;
 
@@ -22,11 +24,16 @@ DEFINE_BLOCK(b_dot11n_dma_join_2v1, 2, 1)
         ip2->vdata[i].v_storent(op + 1);
         op += 2;
       }
+      ip1 ++;
+      ip2 ++;
     }
 
     consume(0, n);
     consume(1, n);
-    produce(0, n * dot11n_tx_symbol::vntotal << 1);
+    int nproduce = n * dot11n_tx_symbol::vntotal * 2;
+    produce(0, nproduce);
+
+    //cout << ".... dma join... " << n << " produce " << nproduce << endl;
 
     return true;
   }
@@ -75,6 +82,40 @@ DEFINE_BLOCK(b_dot11n_dma_join_2v1, 2, 1)
       for (; iout < 28; iout++)
       {
         fwrite(&padding, sizeof(complex16) * 1, 1, hFile);
+      }
+
+      fclose(hFile);
+    }
+  }
+
+
+  void toTxtFile(const char* filename)
+  {
+    for (int i = 0; i < 2; i++)
+    {
+      char namebuffer[1024];
+      memset(namebuffer, 0, 1024);
+      sprintf_s(namebuffer, 1024, "%s_%d.txt", filename, i);
+      FILE* hFile;
+      fopen_s(&hFile, namebuffer, "w");
+
+      int nvtotal_count = (v_cs*)m_outputs[0]->write_pointer() - (v_cs*)m_outputs[0]->m_base;
+      nvtotal_count >>= 1; // per stream
+
+      int total_count = nvtotal_count << 2; // count in complex16
+
+      complex16* pc = (complex16*)&m_outputs[0]->m_base[0];
+
+      pc += (i * 4); // adjust pc to the start of the ith stream
+
+      for (int j = 0; j < total_count; j += 8)
+      {
+        fprintf(hFile, "%d\t%d\n", pc[0].re, pc[0].im);
+        fprintf(hFile, "%d\t%d\n", pc[1].re, pc[1].im);
+        fprintf(hFile, "%d\t%d\n", pc[2].re, pc[2].im);
+        fprintf(hFile, "%d\t%d\n", pc[3].re, pc[3].im);
+
+        pc += 8;
       }
 
       fclose(hFile);

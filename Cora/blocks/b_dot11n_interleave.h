@@ -13,6 +13,10 @@ DEFINE_BLOCK(b_dot11n_interleaver_1bpsc_1v1, 1, 1)
     {
       interleaver.init(atoi(v.c_str()));
     }
+    else
+    {
+      interleaver.init(1);
+    }
   }
 
   BLOCK_WORK
@@ -24,6 +28,15 @@ DEFINE_BLOCK(b_dot11n_interleaver_1bpsc_1v1, 1, 1)
     auto op = $_<v_ub>(0);
 
     interleaver(ip, op);
+
+
+#if 0
+    for (int i = 0; i < interleaver.total_bytes; i++)
+    {
+      printf("%02x ", op[0][i]);
+    }
+    printf("\n");
+#endif
 
     consume(0, interleaver.total_bytes);
     produce(0, interleaver.voutbuffer_size);
@@ -42,6 +55,10 @@ DEFINE_BLOCK(b_dot11n_interleaver_2bpsc_1v1, 1, 1)
     if (!v.empty())
     {
       interleaver.init(atoi(v.c_str()));
+    }
+    else
+    {
+      interleaver.init(1);
     }
   }
 
@@ -73,6 +90,10 @@ DEFINE_BLOCK(b_dot11n_interleaver_4bpsc_1v1, 1, 1)
     {
       interleaver.init(atoi(v.c_str()));
     }
+    else
+    {
+      interleaver.init(1);
+    }
   }
 
   BLOCK_WORK
@@ -102,6 +123,10 @@ DEFINE_BLOCK(b_dot11n_interleaver_6bpsc_1v1, 1, 1)
     if (!v.empty())
     {
       interleaver.init(atoi(v.c_str()));
+    }
+    else
+    {
+      interleaver.init(1);
     }
   }
 

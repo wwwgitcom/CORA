@@ -2,6 +2,20 @@
 
 #include "dsp_ofdm_symbol.h"
 
+
+enum DOT11A_RATE
+{
+  _6M  = 0xB, // 1-011
+  _9M  = 0XF, // 1-111
+  _12M = 0xA, // 1-010
+  _18M = 0xE, // 1-110
+  _24M = 0x9, // 1-001
+  _36M = 0xD, // 1-101
+  _48M = 0x8, // 1-000
+  _54M = 0xC  // 1-100
+};
+
+
 // TX, over sampled
 typedef ofdm_symbol<complex16, v_cs, 128, 32> dot11n_tx_symbol;
 // RX 

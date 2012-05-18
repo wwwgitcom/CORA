@@ -4,7 +4,6 @@
 
 DEFINE_BLOCK(b_dot11n_lsig_v1, 0, 1)
 {
-  _global_(uint32, dot11_tx_frame_mcs);
   _global_(uint32, dot11_tx_frame_length);
 
   L_SIG _lsig;
@@ -14,7 +13,8 @@ DEFINE_BLOCK(b_dot11n_lsig_v1, 0, 1)
     auto op = $_<uint8>(0);
 
     _lsig.clear();
-    _lsig.update(*dot11_tx_frame_mcs, *dot11_tx_frame_length);
+    // indicate as legacy 6Mbps frame
+    _lsig.update(DOT11A_RATE::_6M, *dot11_tx_frame_length);
 
     op[0] = _lsig.cdata[0];
     op[1] = _lsig.cdata[1];

@@ -19,7 +19,7 @@ public:
 };
 extern dsp_log& _log;
 
-#if 0
+#if 1
 #define log(...)
 #else
 #define log _log

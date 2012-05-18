@@ -19,6 +19,13 @@ DEFINE_BLOCK(b_stream_parser_bpsk_1v2, 1, 2)
 
     _stream_parser(ip, op1, op2);
 
+#if 0
+    for (int i = 0; i < stream_paser_bpsk_2ss::NOUTPUT; i++)
+    {
+      printf("%02x, %02x\n", op1[i], op2[i]);
+    }
+#endif
+
     consume(0, stream_paser_bpsk_2ss::NINPUT);
     produce(0, stream_paser_bpsk_2ss::NOUTPUT);
     produce(1, stream_paser_bpsk_2ss::NOUTPUT);

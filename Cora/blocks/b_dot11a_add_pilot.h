@@ -37,17 +37,17 @@ DEFINE_BLOCK(b_dot11a_add_pilot_1v, 1, 0)
 
     if (pilot_sign == 1)
     {
-      ip->subcarriers[128 - 21]  = *bpsk_one;
-      ip->subcarriers[128 - 7]   = *bpsk_neg_one;
       ip->subcarriers[7]         = *bpsk_one;
-      ip->subcarriers[21]        = *bpsk_one;
+      ip->subcarriers[21]        = *bpsk_neg_one;
+      ip->subcarriers[128 - 21]  = *bpsk_one;
+      ip->subcarriers[128 - 7]   = *bpsk_one;
     }
     else
     {
-      ip->subcarriers[128 - 21]  = *bpsk_neg_one;
-      ip->subcarriers[128 - 7]   = *bpsk_one;
       ip->subcarriers[7]         = *bpsk_neg_one;
-      ip->subcarriers[21]        = *bpsk_neg_one;
+      ip->subcarriers[21]        = *bpsk_one;
+      ip->subcarriers[128 - 21]  = *bpsk_neg_one;
+      ip->subcarriers[128 - 7]   = *bpsk_neg_one;
     }
 
     (*pilot_index)++;

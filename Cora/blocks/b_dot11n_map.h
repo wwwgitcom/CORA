@@ -16,9 +16,11 @@ DEFINE_BLOCK(b_dot11n_map_bpsk_i_1v1, 1, 1)
     // need 6.5 bytes contained in 1 v_ub
     if (n < 1) return false;
 
-    auto ip = _$<v_ub>(0);
+    auto ip  = _$<v_ub>(0);
     uint8* p = reinterpret_cast<uint8*>(ip);
-    auto op = $_<dot11n_tx_symbol>(0);
+    auto op  = $_<dot11n_tx_symbol>(0);
+
+    memset(op, 0, sizeof(dot11n_tx_symbol));
 
     unsigned int sc_idx = 100;
     for (int i = 0; i < 6; i++)
@@ -87,7 +89,9 @@ DEFINE_BLOCK(b_dot11n_map_qpsk_1v1, 1, 1)
     uint8* p = reinterpret_cast<uint8*>(ip);
     auto op = $_<dot11n_tx_symbol>(0);
 
-    unsigned int sc_idx = 128 - 26;
+    memset(op, 0, sizeof(dot11n_tx_symbol));
+
+    unsigned int sc_idx = 100;
     for (int i = 0; i < 13; i++)
     {
       dsp_mapper_qpsk<complex16>::output_type& out = (*mapper)[p[i]];
@@ -135,7 +139,9 @@ DEFINE_BLOCK(b_dot11n_map_16qam_1v1, 1, 1)
     uint8* p = reinterpret_cast<uint8*>(ip);
     auto op = $_<dot11n_tx_symbol>(0);
 
-    unsigned int sc_idx = 128 - 26;
+    memset(op, 0, sizeof(dot11n_tx_symbol));
+
+    unsigned int sc_idx = 100;
     for (int i = 0; i < 26; i++)
     {
       dsp_mapper_16qam<complex16>::output_type& out = (*mapper)[p[i]];
@@ -183,7 +189,9 @@ DEFINE_BLOCK(b_dot11n_map_64qam_1v1, 1, 1)
     uint8* p = reinterpret_cast<uint8*>(ip);
     auto op = $_<dot11n_tx_symbol>(0);
 
-    unsigned int sc_idx = 128 - 26;
+    memset(op, 0, sizeof(dot11n_tx_symbol));
+
+    unsigned int sc_idx = 100;
     for (int i = 0; i < 39; i += 3)
     {
       uint32 lo = p[i];

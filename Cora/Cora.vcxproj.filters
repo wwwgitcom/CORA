@@ -255,10 +255,16 @@
     <ClInclude Include="blocks\b_dot11n_scramble.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
-    <ClInclude Include="blocks\b_dot11_add_pilot.h">
+    <ClInclude Include="blocks\b_dot11_frame_source.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
-    <ClInclude Include="blocks\b_dot11_frame_source.h">
+    <ClInclude Include="blocks\b_dot11a_add_pilot.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_add_pilot.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_tx.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
   </ItemGroup>

@@ -11,9 +11,9 @@
 template<int N>
 DSP_INLINE1 void IFFTSSE(vcs* pInput)
 {
-    const int INPUT_SHIFT = 2;
+    const int INPUT_SHIFT  = 2;
     const int OUTPUT_SHIFT = 15;
-    const int nArray = N / vcs::size;
+    const int nArray       = N / vcs::size;
 
     vcs *pi = pInput;
     for (int n = 0; n < nArray/4; n++, pi++)
@@ -32,16 +32,16 @@ DSP_INLINE1 void IFFTSSE(vcs* pInput)
         pi[0] = saturation_add(ac, bd);
 
         // Calc X(4k+2) Start
-        vcs x2 = saturation_sub(ac, bd);
+        vcs x2       = saturation_sub(ac, bd);
         pi[nArray/4] = conj_mul_shift(x2, FFT_GetTwiddleConst<N, 2>()[n], OUTPUT_SHIFT);
 
         // Calc X(4k+1) Start
-        vcs jb_d = mul_j(b_d);
-        vcs x4 = saturation_add(a_c, jb_d);
+        vcs jb_d     = mul_j(b_d);
+        vcs x4       = saturation_add(a_c, jb_d);
         pi[nArray/2] = conj_mul_shift(x4, FFT_GetTwiddleConst<N, 1>()[n], OUTPUT_SHIFT);
 
         // Calc X(4k+3) Start
-        vcs x5 = saturation_sub(a_c, jb_d);
+        vcs x5         = saturation_sub(a_c, jb_d);
         pi[nArray/4*3] = conj_mul_shift(x5, FFT_GetTwiddleConst<N, 3>()[n], OUTPUT_SHIFT);
     }
 }
@@ -88,7 +88,7 @@ template<>
 DSP_INLINE1 void
 IFFTSSEEx<8> (vcs* pInput)
 {
-    const int INPUT_SHIFT = 3;
+    const int INPUT_SHIFT  = 3;
     const int OUTPUT_SHIFT = 15;
 
     vcs xmm0 = shift_right(pInput[0], INPUT_SHIFT);     // xmm0 = a
