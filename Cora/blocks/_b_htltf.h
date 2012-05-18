@@ -38,14 +38,14 @@ struct HT_LTF
     v_cs *pvout = reinterpret_cast<v_cs*>(pout);
 
     int i = 0;
-    for (; i < 64; i++)
+    for (; i < 32; i++)
     {
-      pvout[i + 16] = pvin[i + 16 - csd];
+      pvout[i + 8] = pvin[i + 8 - csd];
     }
 
-    for (i = 0; i < 16; i++)
+    for (i = 0; i < 8; i++)
     {
-      pvout[i] = pvout[80 - 16 + i];
+      pvout[i] = pvout[VCOUNT - 8 + i];
     }
   }
   __forceinline void get_ltf_22(complex16* pout)

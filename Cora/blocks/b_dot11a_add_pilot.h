@@ -14,11 +14,11 @@ DEFINE_BLOCK(b_dot11a_add_pilot_1v, 1, 0)
   BLOCK_INIT
   {
     auto v = $["pilot_start_index"];
-    if (!v.empty()) *pilot_start_index = atoi(v.c_str());
-    *pilot_index = *pilot_start_index;
-
-    v = $["iss"];
-    if (!v.empty()) *iss = atoi(v.c_str());
+    if (!v.empty())
+    {
+      *pilot_start_index = atoi(v.c_str());
+      *pilot_index = *pilot_start_index;
+    }
   }
 
   BLOCK_RESET
@@ -37,17 +37,17 @@ DEFINE_BLOCK(b_dot11a_add_pilot_1v, 1, 0)
 
     if (pilot_sign == 1)
     {
-      ip->subcarriers[128 - 21]  = *bpsk_one;
-      ip->subcarriers[128 - 7]   = *bpsk_neg_one;
       ip->subcarriers[7]         = *bpsk_one;
-      ip->subcarriers[21]        = *bpsk_one;
+      ip->subcarriers[21]        = *bpsk_neg_one;
+      ip->subcarriers[128 - 21]  = *bpsk_one;
+      ip->subcarriers[128 - 7]   = *bpsk_one;
     }
     else
     {
-      ip->subcarriers[128 - 21]  = *bpsk_neg_one;
-      ip->subcarriers[128 - 7]   = *bpsk_one;
       ip->subcarriers[7]         = *bpsk_neg_one;
-      ip->subcarriers[21]        = *bpsk_neg_one;
+      ip->subcarriers[21]        = *bpsk_one;
+      ip->subcarriers[128 - 21]  = *bpsk_neg_one;
+      ip->subcarriers[128 - 7]   = *bpsk_neg_one;
     }
 
     (*pilot_index)++;

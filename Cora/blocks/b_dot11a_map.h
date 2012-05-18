@@ -19,6 +19,8 @@ DEFINE_BLOCK(b_dot11a_map_bpsk_q_1v1, 1, 1)
     uint8* p = reinterpret_cast<uint8*>(ip);
     auto op = $_<dot11n_tx_symbol>(0);
 
+    memset(op, 0, sizeof(dot11n_tx_symbol));
+
     unsigned int sc_idx = 128 - 26;
     for (int i = 0; i < 6; i++)
     {
@@ -66,6 +68,8 @@ DEFINE_BLOCK(b_dot11a_map_bpsk_i_1v1, 1, 1)
     auto ip = _$<v_ub>(0);
     uint8* p = reinterpret_cast<uint8*>(ip);
     auto op = $_<dot11n_tx_symbol>(0);
+
+    memset(op, 0, sizeof(dot11n_tx_symbol));
 
     unsigned int sc_idx = 128 - 26;
     for (int i = 0; i < 6; i++)

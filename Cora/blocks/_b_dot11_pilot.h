@@ -8,7 +8,9 @@ struct dot11_ofdm_pilot
   {
     int pilot_sign_idx = n % 127;
 
-    int pilot_idx = n & 0x3;
+    // since n start from 3 in ht-data
+    //int pilot_idx = n & 0x3;
+    int pilot_idx = (n - 3 )& 0x3;
 
     pilots[0] = (_pilot_sign[pilot_sign_idx] * _pilot[pilot_idx][iss][0]);
     pilots[1] = (_pilot_sign[pilot_sign_idx] * _pilot[pilot_idx][iss][1]);

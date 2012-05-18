@@ -35,8 +35,7 @@ DEFINE_BLOCK(b_dot11n_add_pilot_1v, 1, 0)
     auto ip = _$<dot11n_tx_symbol>(0);
 
     _pilot_tracker(*iss, *pilot_index, _pilots);
-
-
+    
     ip->subcarriers[128 - 21]  = *bpsk_one * _pilots[0];
     ip->subcarriers[128 - 7]   = *bpsk_one * _pilots[1];
     ip->subcarriers[7]         = *bpsk_one * _pilots[2];
