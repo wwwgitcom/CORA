@@ -7,6 +7,11 @@ public:
   arg_obj(string str) : str_obj(str){}
   arg_obj(char* str) : str_obj(str){}
 
+  bool exist()
+  {
+    return !str_obj.empty();
+  }
+
   int as_int()
   {
     return atoi(str_obj.c_str());

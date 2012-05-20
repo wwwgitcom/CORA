@@ -34,7 +34,7 @@ DEFINE_BLOCK(b_dot11n_scramble_1v1, 1, 1)
     {
       op[i] = _scrambler(ip[i]);
       (*scrambled_length)++;
-      if (*scrambled_length == *scramble_length)
+      if (*scrambled_length == *scramble_length + 1)
       {
         op[i] &= 0xC0;
       }

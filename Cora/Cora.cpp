@@ -103,10 +103,11 @@
 #include "b_dot11n_tx.h"
 
 
+int kkk = 100;
 
 auto make_func() -> std::function<void()>
 {
-  static int a = 10;
+  int& a = kkk;
   auto f = [&]{
     printf("inside function...a=%d\n", a++);
   };
@@ -117,7 +118,9 @@ auto make_func() -> std::function<void()>
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-  
+  dsp_cmd cmdline;
+
+  cmdline.parse(argc, argv);
 
   SetThreadAffinityMask(GetCurrentThread(), 1);
 
@@ -127,11 +130,18 @@ int _tmain(int argc, _TCHAR* argv[])
   f2();
 
 
-  dot11n_2x2_tx(argc, argv);
-  //dot11n_2x2_rx(argc, argv);
-
-
-
+  if ( cmdline.get("rx").exist() )
+  {
+    dot11n_2x2_rx(argc, argv);
+  }
+  else if ( cmdline.get("rx").exist() )
+  {
+    dot11n_2x2_tx(argc, argv);
+  }
+  else
+  {
+    printf("invalid arguments....\n");
+  }
 
 	return 0;
 }
