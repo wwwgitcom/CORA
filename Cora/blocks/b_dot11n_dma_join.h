@@ -26,13 +26,13 @@ DEFINE_BLOCK(b_dot11n_dma_join_2v1, 2, 1)
         ip2->vdata[i].v_storent(op + 1);
         op += 2;
       }
-
+#if 0
       for (int j = 0; j < ip1->ntotal; j++)
       {
         printf("%d, %d     %d, %d\n", ip1->data[j].re, ip1->data[j].im, 
           ip2->data[j].re, ip2->data[j].im);
       }
-      
+#endif
       ip1 ++;
       ip2 ++;
     }

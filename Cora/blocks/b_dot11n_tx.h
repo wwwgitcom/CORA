@@ -179,6 +179,18 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
   _global_(uint32, dot11_tx_frame_length);
   _global_(int,    scramble_length);
 
+  tick_count t1, t2, t3, tdiff;
+  
+  auto get_time = [&](tick_count & t)
+  {
+    t = tick_count::now();
+  };
+  auto get_throughput = [&] (tick_count& t1, tick_count& t2, uint32 nbytes)
+  {
+    tick_count t = t2 - t1;
+
+    printf("time is %f us, throughput is %f Mbps\n", t.us(), nbytes * 8.0f / t.us());
+  };
   //////////////////////////////////////////////////////////////////////////
 
   auto make_lsig = [&]
@@ -274,37 +286,37 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 
   auto mcs8_entry = [&]
   {
-    ONCE(ht_data_source, make_plcp, make_htdata_mcs8);
+    ONCE(ht_data_source, [&]{get_time(t1);}, make_plcp, make_htdata_mcs8, [&]{get_time(t2); get_throughput(t1, t2, *dot11_tx_frame_length);});
   };
 
   auto mcs9_entry = [&]
   {
-    ONCE(ht_data_source, make_plcp, make_htdata_mcs9);
+    ONCE(ht_data_source, [&]{get_time(t1);}, make_plcp, make_htdata_mcs9, [&]{get_time(t2); get_throughput(t1, t2, *dot11_tx_frame_length);});
   };
 
   auto mcs10_entry = [&]
   {
-    ONCE(ht_data_source, make_plcp, make_htdata_mcs10);
+    ONCE(ht_data_source, [&]{get_time(t1);}, make_plcp, make_htdata_mcs10, [&]{get_time(t2); get_throughput(t1, t2, *dot11_tx_frame_length);});
   };
 
   auto mcs11_entry = [&]
   {
-    ONCE(ht_data_source, make_plcp, make_htdata_mcs11);
+    ONCE(ht_data_source, [&]{get_time(t1);}, make_plcp, make_htdata_mcs11, [&]{get_time(t2); get_throughput(t1, t2, *dot11_tx_frame_length);});
   };
 
   auto mcs12_entry = [&]
   {
-    ONCE(ht_data_source, make_plcp, make_htdata_mcs12);
+    ONCE(ht_data_source, [&]{get_time(t1);}, make_plcp, make_htdata_mcs12, [&]{get_time(t2); get_throughput(t1, t2, *dot11_tx_frame_length);});
   };
 
   auto mcs13_entry = [&]
   {
-    ONCE(ht_data_source, make_plcp, make_htdata_mcs13);
+    ONCE(ht_data_source, [&]{get_time(t1);}, make_plcp, make_htdata_mcs13, [&]{get_time(t2); get_throughput(t1, t2, *dot11_tx_frame_length);});
   };
 
   auto mcs14_entry = [&]
   {
-    ONCE(ht_data_source, make_plcp, make_htdata_mcs14);
+    ONCE(ht_data_source, [&]{get_time(t1);}, make_plcp, make_htdata_mcs14, [&]{get_time(t2); get_throughput(t1, t2, *dot11_tx_frame_length);});
   };
 
   //////////////////////////////////////////////////////////////////////////
@@ -330,7 +342,10 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 
   _init_(mcs, frame_length);
 
+  int nloop = 10000;
+
   START(
+    WHILE(IsTrue(nloop-- > 0)), 
     IF(IsTrue(*dot11_tx_frame_mcs == 8)),       mcs8_entry,
     ELSE_IF(IsTrue(*dot11_tx_frame_mcs == 9)),  mcs9_entry,
     ELSE_IF(IsTrue(*dot11_tx_frame_mcs == 10)), mcs10_entry,
@@ -339,7 +354,7 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
     ELSE_IF(IsTrue(*dot11_tx_frame_mcs == 13)), mcs13_entry,
     ELSE_IF(IsTrue(*dot11_tx_frame_mcs == 14)), mcs14_entry,
     ELSE, NOP
-    );
+   );
 
 
 

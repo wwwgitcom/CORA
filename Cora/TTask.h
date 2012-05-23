@@ -36,15 +36,25 @@ class __declspec(align(64)) _task_obj
 {
 public:
   volatile unsigned __int32 status;
-  LIST_ENTRY                entry;
+  SLIST_ENTRY               entry;
   TaskProc                  proc;
   void *                    obj;
+
+  __forceinline void operator ()()
+  {
+    proc(obj);
+  }
 
   __forceinline void invoke()
   {
     proc(obj);
+  }
+
+  __forceinline void done()
+  {
     status = 0;
   }
+
   __forceinline void wait()
   {
     while (status)
@@ -142,7 +152,7 @@ public:
     m_status       = idle;
     m_task_count   = 0;
     m_event        = CreateEvent(NULL, FALSE, FALSE, NULL);
-    InitializeListHead(&m_TaskList);
+    InitializeSListHead(&m_TaskList);
   }
 
   static DWORD WINAPI processor_thread(LPVOID lpThreadParam);
@@ -158,23 +168,24 @@ public:
   void Destroy()
   {
     m_active = false;
+    WaitForSingleObject(m_hThread, INFINITE);
     CloseHandle(m_hThread);
     m_hThread = INVALID_HANDLE_VALUE;
   }
 
   __forceinline void Enqueue(task_obj* t)
   {
-    m_spinlock.Acquire();
-    InsertTailList(&this->m_TaskList, &t->entry);
-    //_InterlockedIncrement(&m_task_count);
-    m_task_count++;
-    m_spinlock.Release();
+    t->status = 1;
+    //m_spinlock.Acquire();
+    InterlockedPushEntrySList(&this->m_TaskList, &t->entry);
+    _InterlockedIncrement(&m_task_count);
+    //m_spinlock.Release();
   }
 
   __forceinline task_obj* Dequeue()
   {
-    task_obj* t                = NULL;
-    PLIST_ENTRY pListEntry = NULL;
+    task_obj* t            = NULL;
+    PSLIST_ENTRY pListEntry = NULL;
 
     do 
     {
@@ -182,18 +193,17 @@ public:
       {
         break;
       }
-      m_spinlock.Acquire();
+      //m_spinlock.Acquire();
       //if (IsListEmpty(&this->m_TaskList))
-      if (!m_task_count)
-      {
-        m_spinlock.Release();
-        break;
-      }
+      //if (!m_task_count)
+      //{
+      //  m_spinlock.Release();
+      //  break;
+      //}
 
-      pListEntry = RemoveHeadList(&this->m_TaskList);
-      //_InterlockedDecrement(&m_task_count);
-      m_task_count--;
-      m_spinlock.Release();
+      pListEntry = InterlockedPopEntrySList(&this->m_TaskList);
+      _InterlockedDecrement(&m_task_count);
+      //m_spinlock.Release();
 
       t = CONTAINING_RECORD(pListEntry, task_obj, entry);
     } while (FALSE);
@@ -213,8 +223,6 @@ public:
 
   void set_status_mask(volatile unsigned int* mask){m_status_mask = mask;}
 
-  LIST_ENTRY      m_ListEntry;
-
   enum status
   {
     running, idle
@@ -225,10 +233,10 @@ private:
   volatile ULONG  m_active;
   volatile LONG   m_task_count;
   volatile status m_status;
-  dsp_spin_lock   m_spinlock;
-  LIST_ENTRY      m_TaskList;
+  dsp_spin_lock   m_spinlock;  
   volatile unsigned int* m_status_mask;
 
+  SLIST_HEADER    m_TaskList;
   HANDLE          m_hThread;
   HANDLE          m_event;
   DWORD           m_affinity;
@@ -241,8 +249,11 @@ class cpu_manager
 private:
   sync_obj        m_sync_obj;
   cpu_processor **m_cpu_array;
-  int             m_nTotalProcessor;
+  ULONG          *m_cpu_index;
+  ULONG           m_cpu_count;
   int             m_nCurrentIndex;
+
+  int             m_nTotalProcessor;  
   dsp_spin_lock   m_lock;
 
   cpu_manager();
@@ -264,16 +275,17 @@ public:
   {
     DWORD dwFreeCpu = 0;
 
-    //m_lock.Acquire();
+    m_lock.Acquire();
 
     //printf("[cpu_man] status %p.\n", m_sync_obj.status);
     if (_BitScanForward(&dwFreeCpu, m_sync_obj.status))
     {
       //debug
       //dwFreeCpu = 1;
+
       _InterlockedXor((volatile long*)&m_sync_obj.status, (1L << dwFreeCpu));
-      //m_sync_obj.status |= (1L << dwFreeCpu);
-      t->status = 1;
+      //m_sync_obj.status ^= (1L << dwFreeCpu);
+      
       m_cpu_array[dwFreeCpu]->Enqueue(t);
       //if (m_cpu_array[dwFreeCpu]->processor_status() == cpu_processor::idle)
       //{
@@ -283,13 +295,19 @@ public:
     }
     else
     {
+      printf("[cpu_man] random access status %p.\n", m_sync_obj.status);
+      t->invoke();
+      t->done();
+#if 0
       // all cpu are busy, use random cpu
-      m_cpu_array[m_nCurrentIndex]->Enqueue(t);
-      log("[cpu_man] random enqueue task %p to processor %d.\n", t, (1L << m_nCurrentIndex));
+      printf("[cpu_man] random access status %p.\n", m_sync_obj.status);
+      m_cpu_array[m_cpu_index[m_nCurrentIndex]]->Enqueue(t);
+      printf("[cpu_man] random enqueue task %p to processor %d.\n", t, m_cpu_index[m_nCurrentIndex]);
       m_nCurrentIndex++;
-      m_nCurrentIndex %= m_nTotalProcessor;
+      m_nCurrentIndex %= m_cpu_count;
+#endif
     }
-    //m_lock.Release();
+    m_lock.Release();
   }
 };
 
