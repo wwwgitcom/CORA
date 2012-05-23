@@ -130,18 +130,17 @@ int _tmain(int argc, _TCHAR* argv[])
   SetThreadAffinityMask(GetCurrentThread(), 1 << nAffinity);
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-
-
-
-  int nwork1 = 1000000;
+  
+  int nwork1 = 10;
   int nwork2 = 0;
   int nwork3 = 0;
   int nwork4 = 0;
   int nwork5 = 0;
+  int nwork6 = 0;
 
   auto work1 = [&]
   {
-    //printf("worker1 : %d, cpu=%d\n", nwork1, GetThreadId(GetCurrentThread()));
+    printf("worker1 : %d, cpu=%d\n", nwork1, GetThreadId(GetCurrentThread()));
     nwork1--;
     if (nwork1 == 0)
     {
@@ -154,34 +153,41 @@ int _tmain(int argc, _TCHAR* argv[])
   {
     //Sleep(1000);
     nwork2++;
-    //printf("worker2 : %d, cpu=%d\n", nwork2, GetThreadId(GetCurrentThread()));    
+    printf("worker2 : %d, cpu=%d\n", nwork2, GetThreadId(GetCurrentThread()));    
   };
 
   auto work3 = [&]
   {
     //Sleep(2000);
     nwork3++;
-    //printf("worker3 : %d, cpu=%d\n", nwork3, GetThreadId(GetCurrentThread()));
+    printf("worker3 : %d, cpu=%d\n", nwork3, GetThreadId(GetCurrentThread()));
   };
 
   auto work4 = [&]
   {
     //Sleep(3000);
     nwork4++;
-    //printf("worker4 : %d, cpu=%d\n", nwork4, GetThreadId(GetCurrentThread()));
+    printf("worker4 : %d, cpu=%d\n", nwork4, GetThreadId(GetCurrentThread()));
   };
 
   auto work5 = [&]
   {
     //Sleep(3000);
     nwork5++;
-    //printf("worker5 : %d, cpu=%d\n", nwork5, GetThreadId(GetCurrentThread()));
+    printf("worker5 : %d, cpu=%d\n", nwork5, GetThreadId(GetCurrentThread()));
+  };
+
+  auto work6 = [&]
+  {
+    //Sleep(3000);
+    nwork6++;
+    printf("worker6 : %d, cpu=%d\n", nwork6, GetThreadId(GetCurrentThread()));
   };
   
-  PIPE_LINE(work1, work2, work3, work4, work5);
+  PIPE_LINE(work1, work2, work3, work4, work5, work6);
 
-  printf("nworker1 : %d, nworker2 : %d, nworker3 : %d, nworker4 : %d, nworker4 : %d\n", 
-    nwork1, nwork2, nwork3, nwork4, nwork5);
+  printf("nworker1 : %d, nworker2 : %d, nworker3 : %d, nworker4 : %d, nworker5 : %d, nworker6 : %d\n", 
+    nwork1, nwork2, nwork3, nwork4, nwork5, nwork6);
 
 #if 0
   if ( cmdline.get("rx").exist() )

@@ -29,13 +29,15 @@ void cpu_processor::Run()
     if (t)
     {
       //printf("Get a work...%p\n", t);
-      t->invoke();
-
+      do 
+      {
+        t->invoke();
+        t->done();
+        t = Dequeue();
+      } while (t);
+      
       // BUG::: Only one task could be queued at a time.
       _InterlockedXor((volatile long*)m_status_mask, m_affinity);
-
-      t->done();
-
       //*m_status_mask ^= m_affinity;
     }
     else

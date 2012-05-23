@@ -1,7 +1,16 @@
 #pragma once
 
+__forceinline void _PIPE_LINE(task_obj &_Func1, task_obj &_Func2)
+{
+  static cpu_manager* cm = cpu_manager::Instance();
+
+  _Func1();
+  _Func2.wait();
+  cm->run_task(&_Func2);
+}
+
 template<typename _Function1, typename _Function2>
-void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2)
+__forceinline void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2)
 {
   static cpu_manager* cm = cpu_manager::Instance();
   task_obj to = make_task_obj(_Func2);
@@ -16,17 +25,8 @@ void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2)
   to.wait();
 }
 
-__forceinline void _PIPE_LINE(task_obj &_Func1, task_obj &_Func2)
-{
-  static cpu_manager* cm = cpu_manager::Instance();
-
-  _Func1();
-  _Func2.wait();
-  cm->run_task(&_Func2);
-}
-
 template<typename _Function1, typename _Function2, typename _Function3>
-void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3)
+__forceinline void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3)
 {
   static cpu_manager* cm = cpu_manager::Instance();
   task_obj to2 = make_task_obj(_Func2);
@@ -49,7 +49,7 @@ void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3)
 }
 
 template<typename _Function1, typename _Function2, typename _Function3, typename _Function4>
-void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3, _Function4 &_Func4)
+__forceinline void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3, _Function4 &_Func4)
 {
   static cpu_manager* cm = cpu_manager::Instance();
   task_obj to2 = make_task_obj(_Func2);
@@ -79,7 +79,7 @@ void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3, _Func
 }
 
 template<typename _Function1, typename _Function2, typename _Function3, typename _Function4, typename _Function5>
-void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3, _Function4 &_Func4, _Function5 &_Func5)
+__forceinline void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3, _Function4 &_Func4, _Function5 &_Func5)
 {
   static cpu_manager* cm = cpu_manager::Instance();
   task_obj to2 = make_task_obj(_Func2);
@@ -115,6 +115,48 @@ void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3, _Func
   to5.wait();
 }
 
+template<typename _Function1, typename _Function2, typename _Function3, typename _Function4, typename _Function5, typename _Function6>
+__forceinline void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 &_Func3, _Function4 &_Func4, _Function5 &_Func5, _Function6 &_Func6)
+{
+  static cpu_manager* cm = cpu_manager::Instance();
+  task_obj to2 = make_task_obj(_Func2);
+  task_obj to3 = make_task_obj(_Func3);
+  task_obj to4 = make_task_obj(_Func4);
+  task_obj to5 = make_task_obj(_Func5);
+  task_obj to6 = make_task_obj(_Func6);
 
+  task_obj to56 = make_task_obj([&]
+  {
+    _PIPE_LINE(to5, to6);
+  });
+
+  task_obj to456 = make_task_obj([&]
+  {
+    _PIPE_LINE(to4, to56);
+  });
+
+  task_obj to3456 = make_task_obj([&]
+  {
+    _PIPE_LINE(to3, to456);
+  });
+
+  task_obj to23456 = make_task_obj([&]
+  {
+    _PIPE_LINE(to2, to3456);
+  });
+
+  while(_Func1())
+  {
+    to23456.wait();
+    cm->run_task(&to23456);
+  }
+  to23456.wait();
+  cm->run_task(&to23456);
+  to23456.wait();
+  to3456.wait();
+  to456.wait();
+  to56.wait();
+  to6.wait();
+}
 
 
