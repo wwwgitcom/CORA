@@ -58,6 +58,9 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
 
     v_ci vcih1, vcih2;
 
+    int n = ninput(0);
+    if (n < 32) return false;
+
     const v_cs vMulMask = VMASK::__0x80000001800000018000000180000001<v_cs>();
     const v_cs vNegMask = VMASK::__0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF<v_cs>();
 
@@ -65,9 +68,6 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
 
     auto ip1 = _$<v_cs>(0);
     auto ip2 = _$<v_cs>(1);
-
-    int n = ninput(0);
-    if (n < 32) return false;
 
     auto ipc1 = (complex16*)ip1;
     auto ipc2 = (complex16*)ip2;

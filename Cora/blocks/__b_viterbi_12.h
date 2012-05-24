@@ -12,7 +12,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
 
   int i_trellis;    // index of trellis
   int nDecodedBits;
-
+  int nTotalSoftBits;
   vub *pTrellisBase;
   vub *pTrellis;  
   vub vNormMask;
@@ -54,6 +54,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
     pTrellis[2] = vub(ALL_INIT);
     pTrellis[3] = vub(ALL_INIT);
     nDecodedBits = 0;
+    nTotalSoftBits = 0;
     i_trellis = 0;
     for (int i = 0; i < 16; i++)
     {
@@ -67,6 +68,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
     pTrellis = pTrellisBase;
     i_trellis = 0;
     nDecodedBits = 0;
+    nTotalSoftBits = 0;
   }
   //////////////////////////////////////////////////////////////////////////
 #define VITTRACE 0
@@ -203,15 +205,17 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
             continue;
           }
         }
-
+        nTotalSoftBits += nSoftBits + 2;
         consume(0, nSoftBits + 2);
         return true;
       }
     }
 
+    nTotalSoftBits += nSoftBits;
+
     consume(0, nSoftBits);
 
-    if (bFlush || (nInputSoftBits >> 1) == nVitTotalBits)
+    if (bFlush || (nInputSoftBits >> 1) == nVitTotalBits || (nTotalSoftBits >> 1) == nVitTotalBits)
     {
       while ( nDecodedBits < nVitTotalBits)
       {

@@ -47,7 +47,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     string("vHisLength=8")
     );
 
-  autoref lstf = create_block<b_lstf_searcher_2v1>();
+  autoref lstf_searcher = create_block<b_lstf_searcher_2v1>();
 
   autoref cfo_est = create_block<b_frequest_offset_estimator_2v>(
     2,
@@ -196,9 +196,8 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     1, string("iss=2"));
 
   autoref ht_stream_joiner_1 = create_block<b_stream_joiner_1_2v1>();
-  autoref ht_stream_joiner_2 = create_block<b_stream_joiner_1_2v1>();
-  autoref ht_stream_joiner_3 = create_block<b_stream_joiner_2_2v1>();
-  autoref ht_stream_joiner_4 = create_block<b_stream_joiner_3_2v1>();
+  autoref ht_stream_joiner_2 = create_block<b_stream_joiner_2_2v1>();
+  autoref ht_stream_joiner_3 = create_block<b_stream_joiner_3_2v1>();
 
   autoref descramble_seed = create_block<b_dot11_descramble_seed_1v>();
   autoref descramble      = create_block<b_dot11_descramble_1v1>();
@@ -213,14 +212,14 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   Channel::Create(sizeof(v_cs))
     .from(src, 1)
     .to(axorr, 1).to(cfo_est, 1).to(cfo_comp, 1);
-  
+
   Channel::Create(sizeof(v_q))
     .from(axorr, 0)
-    .to(lstf, 0);
+    .to(lstf_searcher, 0);
 
   Channel::Create(sizeof(v_q))
     .from(axorr, 1)
-    .to(lstf, 1);
+    .to(lstf_searcher, 1);
 
   Channel::Create(sizeof(v_cs))
     .from(cfo_comp, 0)
@@ -281,13 +280,13 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   Channel::Create(sizeof(unsigned __int8))
     .from(ht_deinterleave_1bpsc_iss1, 0).from(ht_deinterleave_2bpsc_iss1, 0).from(ht_deinterleave_4bpsc_iss1, 0).from(ht_deinterleave_6bpsc_iss1, 0)
-    .to(ht_stream_joiner_1, 0).to(ht_stream_joiner_2, 0).to(ht_stream_joiner_3, 0).to(ht_stream_joiner_4, 0);
+    .to(ht_stream_joiner_1, 0).to(ht_stream_joiner_2, 0).to(ht_stream_joiner_3, 0);
   Channel::Create(sizeof(unsigned __int8))
     .from(ht_deinterleave_1bpsc_iss2, 0).from(ht_deinterleave_2bpsc_iss2, 0).from(ht_deinterleave_4bpsc_iss2, 0).from(ht_deinterleave_6bpsc_iss2, 0)
-    .to(ht_stream_joiner_1, 1).to(ht_stream_joiner_2, 1).to(ht_stream_joiner_3, 1).to(ht_stream_joiner_4, 1);
+    .to(ht_stream_joiner_1, 1).to(ht_stream_joiner_2, 1).to(ht_stream_joiner_3, 1);
 
   Channel::Create(sizeof(unsigned __int8))
-    .from(ht_stream_joiner_1, 0).from(ht_stream_joiner_2, 0).from(ht_stream_joiner_3, 0).from(ht_stream_joiner_4, 0)
+    .from(ht_stream_joiner_1, 0).from(ht_stream_joiner_2, 0).from(ht_stream_joiner_3, 0)
     .to(ht_data_vit_12, 0).to(ht_data_vit_23, 0).to(ht_data_vit_34, 0);
 
   Channel::Create(sizeof(uint8))
@@ -372,85 +371,80 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   task_obj* pTask = nullptr;
 
-  do 
+  auto frame_detection = [&]() -> bool
   {
-    START(src, axorr, lstf, STOP(NOP));
-    START(src, cfo_est, STOP(NOP));
+    START(src, axorr, lstf_searcher, STOP(NOP));
+    return true;
+  };
 
-    START(src, cfo_comp, IF([&]
-    {
-      bool bRet = false;
-      START(fft_lltf1);
-      START(fft_lltf2, siso_channel_est, STOP([&]{bRet = true; *VitTotalBits = 24;}));
-      return bRet;
-    }), STOP(NOP)
-      );
+  auto lltf_handler = [&]() -> bool
+  {
+    START(src, cfo_est, cfo_comp, fft_lltf1, fft_lltf2, siso_channel_est, STOP(NOP));
+    return true;
+  };
 
+  auto lsig_handler = [&]() -> bool
+  {
+    *VitTotalBits = 24;
+    *l_sig_ok = false;
     //l-sig
-    START(src, cfo_comp, IF([&]
+    START(src, cfo_comp, remove_gi1, IF([&]
     {
       bool bRet = false;
-      START(IF(remove_gi1), [&]
-      {
-        START(fft_data1);
-        START(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, l_sig_parser, STOP([&]{bRet = true;}));
-      });
+      ONCE(fft_data1);
+      ONCE(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit);
+
+      START(IF(l_sig_parser), [&]{bRet = true;});
       return bRet;
-    }), STOP(NOP)
-    );
+    }), STOP(NOP), ELSE, NOP);
+    return *l_sig_ok;
+  };
 
-    if (*l_sig_ok == false)
-    {
-      continue;
-    }
-
-    // ht-sig1
-    START(src, cfo_comp, IF([&]
+  auto htsig_handler = [&]() -> bool
+  {
+    *VitTotalBits = 48;
+    *ht_sig_ok = false;
+    //ht-sig
+    START(src, cfo_comp, remove_gi1, IF([&]
     {
       bool bRet = false;
-      START(IF(remove_gi1), [&]
-      {
-        START(fft_data1);
-        START(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, STOP([&]{bRet = true; *VitTotalBits = 48;}));
-      });
-      return bRet;
-    }), STOP(NOP)
-      );
-    // ht-sig2
-    START(src, cfo_comp, IF([&]
-    {
-      bool bRet = false;
-      START(IF(remove_gi1), [&]
-      {
-        START(fft_data1);
-        START(remove_gi2, fft_data2);
-        START(siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit, ht_sig_parser, STOP([&]{bRet = true;}));
-      });
-      return bRet;
-    }), STOP(NOP)
-      );
+      ONCE(fft_data1);
+      ONCE(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit);
 
-    if (*ht_sig_ok == false)
-    {
-      continue;
-    }
+      START(IF(ht_sig_parser), [&]{bRet = true;});
+      return bRet;
+    }), STOP(NOP), ELSE, NOP);
     printf("HT_SIG: MCS=%d, Length=%d\n", *ht_frame_mcs, *ht_frame_length);
+    return *ht_sig_ok;
+  };
+
+  auto htstf_handler = [&]() -> bool
+  {
     // ht-stf
     START(src, cfo_comp, ht_stf, STOP(NOP));
+    return true;
+  };
 
+  auto htltf_handler = [&]() -> bool
+  {
     // ht-ltf
-    START(src, cfo_comp, IF([&]
+    START(src, cfo_comp, remove_gi1, IF([&]
     {
       bool bRet = false;
-      START(IF(remove_gi1), [&]
-      {
-        START(fft_data1);
-        START(remove_gi2, fft_data2, mimo_channel_estimator, STOP([&]{bRet = true;}));        
-      });
-      return bRet;
-    }), STOP(NOP)
-      );
 
+      ONCE(fft_data1);
+      ONCE(remove_gi2, fft_data2);
+
+      START(IF(mimo_channel_estimator), [&]{bRet = true;});
+
+      return bRet;
+    }), STOP(NOP), ELSE, NOP);
+    return true;
+  };
+
+
+  auto pipeline_init = [&]
+  {
     *crc32_check_length = *ht_frame_length;
 
     frame_decode_done = false;
@@ -458,51 +452,203 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
     symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
     total_symbol_count = symbol_count;
+  };
 
-    int nwork1 = 0;
-    int nwork2 = 0;
-    auto rx_mcs8_pipeline_1 = [&]() -> bool
+  int nwork1 = 0;
+  int nwork2 = 0;
+
+  auto rx_vit12_pipeline = [&]
+  {
+    START(ht_data_vit_12, 
+      IF(IsTrue(descramble_state == 0)), 
+      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
+      ELSE, descramble, crc32_checker, STOP(NOP)
+      );
+    //printf("nworker2 : %d\n", ++nwork2);
+  };
+
+  auto rx_vit23_pipeline = [&]
+  {
+    START(ht_data_vit_23, 
+      IF(IsTrue(descramble_state == 0)), 
+      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
+      ELSE, descramble, crc32_checker, STOP(NOP)
+      );
+    //printf("nworker2 : %d\n", ++nwork2);
+  };
+
+  auto rx_vit34_pipeline = [&]
+  {
+    START(ht_data_vit_34, 
+      IF(IsTrue(descramble_state == 0)), 
+      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
+      ELSE, descramble, crc32_checker, STOP(NOP)
+      );
+    //printf("nworker2 : %d\n", ++nwork2);
+  };
+  //////////////////////////////////////////////////////////////////////////
+  auto rx_bpsk_pipeline_1 = [&]() -> bool
+  {
+    START(src, cfo_comp, IF(remove_gi1), STOP([&]
     {
-      START(src, cfo_comp, IF(remove_gi1), STOP([&]
-      {
-        ONCE(fft_data1, 
-          remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
+      ONCE(fft_data1, 
+        remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
 
-        ONCE(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1,
-          ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
-      }),
+      ONCE(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1,
+        ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
+    }),
       ELSE, NOP);
 
-      //printf("nworker1 : %d\n", ++nwork1);
+    //printf("nworker1 : %d\n", ++nwork1);
 
-      symbol_count--;
-      return symbol_count > 0;
-    };
+    symbol_count--;
+    return symbol_count > 0;
+  };
 
-    auto rx_mcs8_pipeline_2 = [&]
+  auto rx_qpsk_pipeline_1 = [&]() -> bool
+  {
+    START(src, cfo_comp, IF(remove_gi1), STOP([&]
     {
-      START(ht_data_vit_12, 
-        IF(IsTrue(descramble_state == 0)), 
-        IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-        ELSE, descramble, crc32_checker, STOP(NOP)
-        );
-      //printf("nworker2 : %d\n", ++nwork2);
-    };
+      ONCE(fft_data1, 
+        remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
 
-    auto rx_mcs8_pipeline = [&]
+      ONCE(ht_demap_qpsk1, ht_deinterleave_2bpsc_iss1,
+        ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2, ht_stream_joiner_1);
+    }),
+      ELSE, NOP);
+
+    //printf("nworker1 : %d\n", ++nwork1);
+
+    symbol_count--;
+    return symbol_count > 0;
+  };
+
+  auto rx_16qam_pipeline_1 = [&]() -> bool
+  {
+    START(src, cfo_comp, IF(remove_gi1), STOP([&]
     {
-      t1 = tick_count::now();
-      PIPE_LINE(rx_mcs8_pipeline_1, rx_mcs8_pipeline_2);
-      t2 = tick_count::now();
-      tick_count t = t2 - t1;
-      printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-      printf("frame decode done! %d\n", *crc32_check_result);
-    };
+      ONCE(fft_data1, 
+        remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
 
-    rx_mcs8_pipeline();
+      ONCE(ht_demap_16qam1, ht_deinterleave_4bpsc_iss1,
+        ht_demap_16qam2, ht_deinterleave_4bpsc_iss2, ht_stream_joiner_2);
+    }),
+      ELSE, NOP);
+
+    //printf("nworker1 : %d\n", ++nwork1);
+
+    symbol_count--;
+    return symbol_count > 0;
+  };
+
+  auto rx_64qam_pipeline_1 = [&]() -> bool
+  {
+    START(src, cfo_comp, IF(remove_gi1), STOP([&]
+    {
+      ONCE(fft_data1, 
+        remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
+
+      ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1,
+        ht_demap_64qam2, ht_deinterleave_6bpsc_iss2, ht_stream_joiner_3);
+    }),
+      ELSE, NOP);
+
+    //printf("nworker1 : %d\n", ++nwork1);
+
+    symbol_count--;
+    return symbol_count > 0;
+  };
+  //////////////////////////////////////////////////////////////////////////
+  auto rx_mcs8_pipeline = [&]
+  {
+    t1 = tick_count::now();
+    PIPE_LINE(rx_bpsk_pipeline_1, rx_vit12_pipeline);
+    t2 = tick_count::now();
+    tick_count t = t2 - t1;
+    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
+    printf("frame decode done! %d\n", *crc32_check_result);
+  };
+
+  auto rx_mcs9_pipeline = [&]
+  {
+    t1 = tick_count::now();
+    PIPE_LINE(rx_qpsk_pipeline_1, rx_vit12_pipeline);
+    t2 = tick_count::now();
+    tick_count t = t2 - t1;
+    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
+    printf("frame decode done! %d\n", *crc32_check_result);
+  };
+
+  auto rx_mcs10_pipeline = [&]
+  {
+    t1 = tick_count::now();
+    PIPE_LINE(rx_qpsk_pipeline_1, rx_vit34_pipeline);
+    t2 = tick_count::now();
+    tick_count t = t2 - t1;
+    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
+    printf("frame decode done! %d\n", *crc32_check_result);
+  };
+
+  auto rx_mcs11_pipeline = [&]
+  {
+    t1 = tick_count::now();
+    PIPE_LINE(rx_16qam_pipeline_1, rx_vit12_pipeline);
+    t2 = tick_count::now();
+    tick_count t = t2 - t1;
+    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
+    printf("frame decode done! %d\n", *crc32_check_result);
+  };
+
+  auto rx_mcs12_pipeline = [&]
+  {
+    t1 = tick_count::now();
+    PIPE_LINE(rx_16qam_pipeline_1, rx_vit34_pipeline);
+    t2 = tick_count::now();
+    tick_count t = t2 - t1;
+    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
+    printf("frame decode done! %d\n", *crc32_check_result);
+  };
+
+  auto rx_mcs13_pipeline = [&]
+  {
+    t1 = tick_count::now();
+    PIPE_LINE(rx_64qam_pipeline_1, rx_vit23_pipeline);
+    t2 = tick_count::now();
+    tick_count t = t2 - t1;
+    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
+    printf("frame decode done! %d\n", *crc32_check_result);
+  };
+
+  auto rx_mcs14_pipeline = [&]
+  {
+    t1 = tick_count::now();
+    PIPE_LINE(rx_64qam_pipeline_1, rx_vit34_pipeline);
+    t2 = tick_count::now();
+    tick_count t = t2 - t1;
+    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
+    printf("frame decode done! %d\n", *crc32_check_result);
+  };
+
+  auto htdata_handler = [&]
+  {
+    ONCE(pipeline_init);
+    START(
+      IF(IsTrue(*ht_frame_mcs == 8)),  rx_mcs8_pipeline,
+      ELSE_IF(IsTrue(*ht_frame_mcs == 9)),  rx_mcs9_pipeline,
+      ELSE_IF(IsTrue(*ht_frame_mcs == 10)), rx_mcs10_pipeline,
+      ELSE_IF(IsTrue(*ht_frame_mcs == 11)), rx_mcs11_pipeline,
+      ELSE_IF(IsTrue(*ht_frame_mcs == 12)), rx_mcs12_pipeline,
+      ELSE_IF(IsTrue(*ht_frame_mcs == 13)), rx_mcs13_pipeline,
+      ELSE_IF(IsTrue(*ht_frame_mcs == 14)), rx_mcs14_pipeline,
+      ELSE, NOP
+      );
+  };
+
+  START(
+    WHILE(frame_detection), IF(lltf_handler), IF(lsig_handler), IF(htsig_handler), IF(htstf_handler), IF(htltf_handler), htdata_handler
+    );
 
 
-  } while (true);
 
 #else
 
@@ -538,7 +684,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     // frame detection
     IF(IsTrue(branch1 == CS)),[&]
   {
-    START(axorr, IF(lstf), STOP([&]{branch1 = CFO;}));
+    START(axorr, IF(lstf_searcher), STOP([&]{branch1 = CFO;}));
   },
     ELSE_IF(IsTrue(branch1 == CFO)),
     // carrier frequency offset estimation using L-LTF
