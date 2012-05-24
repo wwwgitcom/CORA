@@ -117,6 +117,9 @@ auto make_func() -> std::function<void()>
 
 
 
+
+
+
 int _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
@@ -130,7 +133,7 @@ int _tmain(int argc, _TCHAR* argv[])
   SetThreadAffinityMask(GetCurrentThread(), 1 << nAffinity);
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-  
+
   v_align(64) int nwork1 = 10000;
   tick_count  t1;
   v_align(64) int nwork2 = 0; 
@@ -215,8 +218,9 @@ int _tmain(int argc, _TCHAR* argv[])
     t6 = tick_count::now();
     //printf("worker6 : %d, cpu=%d\n", nwork6, GetThreadId(GetCurrentThread()));
   };
-  
-  PIPE_LINE(work1, work2);
+
+
+  PIPE_LINE(work1, work2, work3);
 
   printf("nworker1 : %d, nworker2 : %d, nworker3 : %d, nworker4 : %d, nworker5 : %d, nworker6 : %d\n", 
     nwork1, nwork2, nwork3, nwork4, nwork5, nwork6);
