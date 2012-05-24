@@ -220,10 +220,12 @@ int _tmain(int argc, _TCHAR* argv[])
   };
 
 
-  PIPE_LINE(work1, work2, work3);
+  //PIPE_LINE(work1, work2, work3);
 
   printf("nworker1 : %d, nworker2 : %d, nworker3 : %d, nworker4 : %d, nworker5 : %d, nworker6 : %d\n", 
     nwork1, nwork2, nwork3, nwork4, nwork5, nwork6);
+
+  dot11n_2x2_rx(argc, argv);
 
 #if 0
   if ( cmdline.get("rx").exist() )

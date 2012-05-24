@@ -176,7 +176,7 @@ def MakeParallelStart()
         end
         print ")\n"
         print "{\n"
-        print "  cpu_manager* cm = cpu_manager::Instance();\n"
+        print "  static cpu_manager* cm = cpu_manager::Instance();\n"
         for j in 2..i
           print "  task_obj to#{j} = make_task_obj(_Func#{j});\n"
           print "  cm->run_task(&to#{j});\n"
@@ -227,8 +227,8 @@ end
 
 #MakeSchedule()
 #MakeObject()
-#MakeParallelStart()
-MakeReset()
+MakeParallelStart()
+#MakeReset()
 #MakePipelineExecutionFunction()
 #
 #MakePipelineExecutionFunction()

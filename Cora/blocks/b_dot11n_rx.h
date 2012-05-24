@@ -213,8 +213,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   Channel::Create(sizeof(v_cs))
     .from(src, 1)
     .to(axorr, 1).to(cfo_est, 1).to(cfo_comp, 1);
-
-
+  
   Channel::Create(sizeof(v_q))
     .from(axorr, 0)
     .to(lstf, 0);
@@ -391,26 +390,14 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     START(src, cfo_comp, IF([&]
     {
       bool bRet = false;
-#if 1
       START(IF(remove_gi1), [&]
       {
         START(fft_data1);
         START(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, l_sig_parser, STOP([&]{bRet = true;}));
       });
-#else
-      PARALLEL([&]
-      {
-        START(IF(remove_gi1), fft_data1);
-      },[&]
-      {
-        START(IF(remove_gi2), fft_data2);
-      });
-
-      START(siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, l_sig_parser, STOP([&]{bRet = true;}));
-#endif
       return bRet;
     }), STOP(NOP)
-      );
+    );
 
     if (*l_sig_ok == false)
     {
@@ -472,101 +459,49 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
     total_symbol_count = symbol_count;
 
-    if (*ht_frame_mcs == 8 || *ht_frame_mcs == 9 || *ht_frame_mcs == 11)
+    int nwork1 = 0;
+    int nwork2 = 0;
+    auto rx_mcs8_pipeline_1 = [&]() -> bool
     {
-      pTask = &vit_12_task;
-      cm->run_task(pTask);
-    }
-    else if (*ht_frame_mcs == 13)
-    {
-      pTask = &vit_23_task;
-      cm->run_task(pTask);
-    }
-    else if (*ht_frame_mcs == 10 || *ht_frame_mcs == 12 || *ht_frame_mcs == 14)
-    {
-      pTask = &vit_34_task;
-      cm->run_task(pTask);
-    }
+      START(src, cfo_comp, IF(remove_gi1), STOP([&]
+      {
+        ONCE(fft_data1, 
+          remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
 
-    t1 = tick_count::now();
-    START(src, IF(IsTrue(symbol_count > 0)), cfo_comp, [&]
+        ONCE(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1,
+          ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
+      }),
+      ELSE, NOP);
+
+      //printf("nworker1 : %d\n", ++nwork1);
+
+      symbol_count--;
+      return symbol_count > 0;
+    };
+
+    auto rx_mcs8_pipeline_2 = [&]
     {
-#if 0
-      START(remove_gi1, fft_data1);
-      START(remove_gi2, fft_data2, mimo_channel_compensator);
-      START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
-      START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1, ht_data_vit_12, 
+      START(ht_data_vit_12, 
         IF(IsTrue(descramble_state == 0)), 
         IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-        ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
+        ELSE, descramble, crc32_checker, STOP(NOP)
         );
-#elif 1
-      //printf("symbol count = %d\n", symbol_count);
-      START(IF(remove_gi1), [&]
-      {
-        START(fft_data1);
-        START(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking, [&]
-        {
-          START( 
-            IF(IsTrue(*ht_frame_mcs == 8)), [&]
-          {
-            START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
-            START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
-          },
-            ELSE_IF(IsTrue( (*ht_frame_mcs == 9 || *ht_frame_mcs == 10) )), [&]
-          {
-            START(ht_demap_qpsk1, ht_deinterleave_2bpsc_iss1);
-            START(ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2, ht_stream_joiner_2);
-          },
-            ELSE_IF(IsTrue( (*ht_frame_mcs == 11 || *ht_frame_mcs == 12) )), [&]
-          {
-            START(ht_demap_16qam1, ht_deinterleave_4bpsc_iss1);
-            START(ht_demap_16qam2, ht_deinterleave_4bpsc_iss2, ht_stream_joiner_3);
-          },
-            ELSE_IF(IsTrue( (*ht_frame_mcs == 13 || *ht_frame_mcs == 14) )), [&]
-          {
-            START(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1);
-            START(ht_demap_64qam2, ht_deinterleave_6bpsc_iss2, ht_stream_joiner_4);
-          },
-            ELSE, NOP
-            );
-          symbol_count--;
-        });
-      });
-#else
-      START(IF(remove_gi1), [&]
-      {
-        PARALLEL([&]{
-          START(fft_data1);
-        }, [&]{
-          START(remove_gi2, fft_data2);
-        });
-        START(mimo_channel_compensator);
+      //printf("nworker2 : %d\n", ++nwork2);
+    };
 
-        PARALLEL([&]{
-          START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
-        }, [&]{
-          START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2);
-        });
-        START(ht_stream_joiner_1, [&]{symbol_count --;});
-      });
-#endif
-      //vit_12_task.wait();
-      //cm->run_task(&vit_12_task);
-    },
-      ELSE, STOP([&]
+    auto rx_mcs8_pipeline = [&]
     {
+      t1 = tick_count::now();
+      PIPE_LINE(rx_mcs8_pipeline_1, rx_mcs8_pipeline_2);
       t2 = tick_count::now();
-      pTask->wait();
-      t3 = tick_count::now();
       tick_count t = t2 - t1;
       printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-      t = t3 - t1;
-      printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-
       printf("frame decode done! %d\n", *crc32_check_result);
-    })
-      );
+    };
+
+    rx_mcs8_pipeline();
+
+
   } while (true);
 
 #else
