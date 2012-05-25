@@ -77,7 +77,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
       }
       else
       {
-        log("%I64d\t%I64d\n", _ip0[i], _ip1[i]);
+        //log("%I64d\t%I64d\n", _ip0[i], _ip1[i]);
         if ( _ip0[i] < (_ip1[i] >> *peak_down_shift) )
         {
           if (*peak_count > 96 && *peak_count < 160)

@@ -29,7 +29,7 @@
 #define enable_draw 0
 //--------------------------------------------------
 #include "b_plot.h"
-
+#include "b_wait.h"
 #include "b_dot11n_param.h"
 
 #include "b_drop.h"

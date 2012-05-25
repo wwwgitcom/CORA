@@ -255,32 +255,40 @@ public:
     return true;
   }
 
+  static const int nproduce = 1;
+
   BLOCK_WORK
   {
     //log("%s\n", name());
     //if (noutput(0) < 1) return true;
     
-    if ((char*)(*pSignalBlock1) >= (*pBufferEnd1))
-    {
-      (*pSignalBlock1) = (psignal_block)(*pBufferStart1);
-      (*pSignalBlock2) = (psignal_block)(*pBufferStart2);
-      //std::cout << "source wrap once..." << endl;
-    }
+
     //printf("%d\n", *pBufferEnd - (char*)*pSignalBlock);
 
     auto op1 = $_<v_cs>(0);
     auto op2 = $_<v_cs>(1);
     
-    *op1 = (*pSignalBlock1)->operator[](*nOffset);
-    *op2 = (*pSignalBlock2)->operator[](*nOffset);
-
-    (*nOffset)++;
-    if (*nOffset == 7)
+    for (int i = 0; i < nproduce; i++)
     {
-      (*pSignalBlock1)++;
-      (*pSignalBlock2)++;
-      *nOffset = 0;
+      op1[i] = (*pSignalBlock1)->operator[](*nOffset);
+      op2[i] = (*pSignalBlock2)->operator[](*nOffset);
+
+      (*nOffset)++;
+      if (*nOffset == 7)
+      {
+        (*pSignalBlock1)++;
+        (*pSignalBlock2)++;
+        *nOffset = 0;
+
+        if ((char*)(*pSignalBlock1) >= (*pBufferEnd1))
+        {
+          (*pSignalBlock1) = (psignal_block)(*pBufferStart1);
+          (*pSignalBlock2) = (psignal_block)(*pBufferStart2);
+          //std::cout << "source wrap once..." << endl;
+        }
+      }
     }
+
 
 #if draw_source_2v
     (*iDrawIndex) += 4;
@@ -292,8 +300,8 @@ public:
     }
 #endif
 
-    produce(0, 1);
-    produce(1, 1);
+    produce(0, nproduce);
+    produce(1, nproduce);
     return true;
   }
 };

@@ -254,11 +254,14 @@ DEFINE_BLOCK(b_frequest_offset_compensator_1v1, 1, 1)
 DEFINE_BLOCK(b_frequest_offset_compensator_2v2, 2, 2)
 {
   _local_(int, vCompensateLength, 16);// 16 v_cs => 64 complex16
-  v_cs* vfo_coeff;
-
+  
+  
   _global_(v_s, vfo_delta_i);
   _global_(v_s, vfo_step_i);
   _global_(v_s, vfo_theta_i);
+
+  //v_cs* vfo_coeff;
+  v_cs vfo_coeff[2];
 
   BLOCK_INIT
   {
@@ -268,8 +271,9 @@ DEFINE_BLOCK(b_frequest_offset_compensator_2v2, 2, 2)
       *vCompensateLength = atoi(v.c_str());
     }
 
-    vfo_coeff = (v_cs*)_aligned_malloc( *vCompensateLength * sizeof(v_cs), 16);
-    memset(vfo_coeff, 0, *vCompensateLength * sizeof(v_cs));
+    //vfo_coeff = (v_cs*)_aligned_malloc( *vCompensateLength * sizeof(v_cs), 16);
+    //memset(vfo_coeff, 0, *vCompensateLength * sizeof(v_cs));
+    memset(vfo_coeff, 0, 2 * sizeof(v_cs));
   }
 
   BLOCK_WORK
@@ -277,7 +281,8 @@ DEFINE_BLOCK(b_frequest_offset_compensator_2v2, 2, 2)
     trace();
 
     auto n = ninput(0);
-    if (n < *vCompensateLength) return false;
+    //if (n < *vCompensateLength) return false;
+    if (n < 2) return false;
 
     auto ip1 = _$<v_cs>(0);
     auto op1 = $_<v_cs>(0);
@@ -292,18 +297,35 @@ DEFINE_BLOCK(b_frequest_offset_compensator_2v2, 2, 2)
       op2[i] = ip2[i];
     }
 #else
-    v_make_coeff_i(vfo_coeff, *vCompensateLength, *vfo_delta_i, *vfo_step_i, *vfo_theta_i);
-    v_compensate_i(ip1, vfo_coeff, op1, *vCompensateLength);
-    v_compensate_i(ip2, vfo_coeff, op2, *vCompensateLength);
-
     log("%s: n=%d,cfo=%d", name(), n, (*vfo_delta_i)[1]);
 #endif
 
+#if 0
+    v_make_coeff_i(vfo_coeff, *vCompensateLength, *vfo_delta_i, *vfo_step_i, *vfo_theta_i);
+    v_compensate_i(ip1, vfo_coeff, op1, *vCompensateLength);
+    v_compensate_i(ip2, vfo_coeff, op2, *vCompensateLength);
     consume(0, *vCompensateLength);
     consume(1, *vCompensateLength);
 
-    produce(0, *vCompensateLength);    
+    produce(0, *vCompensateLength);
     produce(1, *vCompensateLength);
+#else
+    int iOut = 0;
+    //int i = 0;
+    for ( int i = 0; i < n; i += 2 )
+    {
+      v_make_coeff_i(vfo_coeff, 2, *vfo_delta_i, *vfo_step_i, *vfo_theta_i);
+      v_compensate_i(&ip1[i], vfo_coeff, &op1[i], 2);
+      v_compensate_i(&ip2[i], vfo_coeff, &op2[i], 2);
+      iOut += 2;
+    }
+
+    consume(0, iOut);
+    consume(1, iOut);
+
+    produce(0, iOut);    
+    produce(1, iOut);
+#endif
     return true;
   }
 };

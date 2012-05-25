@@ -137,6 +137,7 @@
     <ClInclude Include="blocks\b_stream_joiner.h" />
     <ClInclude Include="blocks\b_stream_parser.h" />
     <ClInclude Include="blocks\b_viterbi.h" />
+    <ClInclude Include="blocks\b_wait.h" />
     <ClInclude Include="blocks\__b_viterbi.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />
@@ -201,4 +202,3 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
-

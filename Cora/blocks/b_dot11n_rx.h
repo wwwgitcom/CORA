@@ -42,6 +42,12 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     );
 #endif
 
+  autoref wait_lltf = create_block<b_wait_2v2>(
+    1, string("nwait=32"));
+
+  autoref wait_ofdm = create_block<b_wait_2v2>(
+    1, string("nwait=20"));
+
   autoref axorr = create_block<b_auto_corr_2v2>(
     1, 
     string("vHisLength=8")
@@ -84,7 +90,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   autoref siso_mrc_combine = create_block<b_mrc_combine_2v1>(
     1,
-    string("Combinelength=1"));
+    string("Combinelength=16"));
 
   autoref siso_lsig_demap_bpsk_i = create_block<b_dot11_demap_bpsk_i_1v1>(
     2,
@@ -207,11 +213,11 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
     .from(src, 0)
-    .to(axorr, 0).to(cfo_est, 0).to(cfo_comp, 0);
+    .to(wait_lltf, 0).to(wait_ofdm, 0).to(axorr, 0).to(cfo_est, 0).to(cfo_comp, 0);
 
   Channel::Create(sizeof(v_cs))
     .from(src, 1)
-    .to(axorr, 1).to(cfo_est, 1).to(cfo_comp, 1);
+    .to(wait_lltf, 1).to(wait_ofdm, 1).to(axorr, 1).to(cfo_est, 1).to(cfo_comp, 1);
 
   Channel::Create(sizeof(v_q))
     .from(axorr, 0)
@@ -296,15 +302,18 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   Channel::Create(sizeof(uint8))
     .from(descramble, 0).to(crc32_checker, 0);
   //---------------------------------------------------------
-
-  _global_(int, VitTotalSoftBits);
-  _global_(int, VitTotalBits);
-  _global_(uint16, ht_frame_length);
-  _global_(uint32, ht_frame_mcs);
-  _global_(int, crc32_check_length);
-  _global_(bool, crc32_check_result);
+  v_align(64)
   _global_(bool, l_sig_ok);
   _global_(bool, ht_sig_ok);
+  _global_(uint32, ht_frame_mcs);
+  _global_(uint16, ht_frame_length);
+
+  v_align(64)
+  _global_(int, VitTotalSoftBits);
+  _global_(int, VitTotalBits);  
+  _global_(int, crc32_check_length);
+  _global_(bool, crc32_check_result);
+  
   //////////////////////////////////////////////////////////////////////////
   //auto fk = make_thread([&]{    
   //});
@@ -330,46 +339,20 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     HT_OTHER
   }branch2 = SISO_CHANNEL_ESTIMATION;
 
-  bool frame_decode_done = false;
-  int descramble_state = 0;
+  bool frame_decode_done = false;  
   int symbol_count;
   int total_symbol_count;
   int thread1_count = 0;
   int thread2_count = 0;
+
+  v_align(64) int descramble_state = 0;
 
   tick_count t1, t2, t3;
 
   cpu_manager* cm = cpu_manager::Instance();
 
 #if 1
-  task_obj vit_12_task  = make_task_obj([&]
-  {
-    START(WHILE(IsTrue(!frame_decode_done)), ht_data_vit_12, 
-      IF(IsTrue(descramble_state == 0)), 
-      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-      ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
-      );
-  });
 
-  task_obj vit_23_task  = make_task_obj([&]
-  {
-    START(WHILE(IsTrue(!frame_decode_done)), ht_data_vit_23, 
-      IF(IsTrue(descramble_state == 0)), 
-      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-      ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
-      );
-  });
-
-  task_obj vit_34_task  = make_task_obj([&]
-  {
-    START(WHILE(IsTrue(!frame_decode_done)), ht_data_vit_34, 
-      IF(IsTrue(descramble_state == 0)), 
-      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-      ELSE, descramble, crc32_checker, STOP([&]{frame_decode_done = true;})
-      );
-  });
-
-  task_obj* pTask = nullptr;
 
   auto frame_detection = [&]() -> bool
   {
@@ -379,7 +362,15 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   auto lltf_handler = [&]() -> bool
   {
-    START(src, cfo_est, cfo_comp, fft_lltf1, fft_lltf2, siso_channel_est, STOP(NOP));
+    START(src, wait_lltf, IF([&]
+    {
+      ONCE(cfo_est, cfo_comp);
+      START(fft_lltf1, fft_lltf2);
+      ONCE(siso_channel_est);
+      return true;
+    }), STOP(NOP));
+
+    printf("lltf_handler\n");
     return true;
   };
 
@@ -388,15 +379,13 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     *VitTotalBits = 24;
     *l_sig_ok = false;
     //l-sig
-    START(src, cfo_comp, remove_gi1, IF([&]
+    START(src, wait_ofdm, STOP([&]
     {
-      bool bRet = false;
-      ONCE(fft_data1);
+      ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit);
 
-      START(IF(l_sig_parser), [&]{bRet = true;});
-      return bRet;
-    }), STOP(NOP), ELSE, NOP);
+      ONCE(l_sig_parser);
+    }));
     return *l_sig_ok;
   };
 
@@ -405,10 +394,10 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     *VitTotalBits = 48;
     *ht_sig_ok = false;
     //ht-sig
-    START(src, cfo_comp, remove_gi1, IF([&]
+    START(src, wait_ofdm, IF([&]
     {
       bool bRet = false;
-      ONCE(fft_data1);
+      ONCE(cfo_comp, remove_gi1,fft_data1);
       ONCE(remove_gi2, fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit);
 
       START(IF(ht_sig_parser), [&]{bRet = true;});
@@ -421,18 +410,18 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   auto htstf_handler = [&]() -> bool
   {
     // ht-stf
-    START(src, cfo_comp, ht_stf, STOP(NOP));
+    START(src, wait_ofdm, cfo_comp, ht_stf, STOP(NOP));
     return true;
   };
 
   auto htltf_handler = [&]() -> bool
   {
     // ht-ltf
-    START(src, cfo_comp, remove_gi1, IF([&]
+    START(src, wait_ofdm, IF([&]
     {
       bool bRet = false;
 
-      ONCE(fft_data1);
+      ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
 
       START(IF(mimo_channel_estimator), [&]{bRet = true;});
@@ -441,7 +430,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     }), STOP(NOP), ELSE, NOP);
     return true;
   };
-
 
   auto pipeline_init = [&]
   {
@@ -487,17 +475,17 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     //printf("nworker2 : %d\n", ++nwork2);
   };
   //////////////////////////////////////////////////////////////////////////
+
   auto rx_bpsk_pipeline_1 = [&]() -> bool
   {
-    START(src, cfo_comp, IF(remove_gi1), STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
-      ONCE(fft_data1, 
-        remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
+      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
 
       ONCE(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1,
         ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
-    }),
-      ELSE, NOP);
+    }));
 
     //printf("nworker1 : %d\n", ++nwork1);
 
@@ -507,15 +495,14 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   auto rx_qpsk_pipeline_1 = [&]() -> bool
   {
-    START(src, cfo_comp, IF(remove_gi1), STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
-      ONCE(fft_data1, 
-        remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
+      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
 
       ONCE(ht_demap_qpsk1, ht_deinterleave_2bpsc_iss1,
         ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2, ht_stream_joiner_1);
-    }),
-      ELSE, NOP);
+    }));
 
     //printf("nworker1 : %d\n", ++nwork1);
 
@@ -525,15 +512,14 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   auto rx_16qam_pipeline_1 = [&]() -> bool
   {
-    START(src, cfo_comp, IF(remove_gi1), STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
-      ONCE(fft_data1, 
-        remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
+      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
 
       ONCE(ht_demap_16qam1, ht_deinterleave_4bpsc_iss1,
         ht_demap_16qam2, ht_deinterleave_4bpsc_iss2, ht_stream_joiner_2);
-    }),
-      ELSE, NOP);
+    }));
 
     //printf("nworker1 : %d\n", ++nwork1);
 
@@ -543,15 +529,14 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   auto rx_64qam_pipeline_1 = [&]() -> bool
   {
-    START(src, cfo_comp, IF(remove_gi1), STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
-      ONCE(fft_data1, 
-        remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
+      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
 
       ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1,
         ht_demap_64qam2, ht_deinterleave_6bpsc_iss2, ht_stream_joiner_3);
-    }),
-      ELSE, NOP);
+    }));
 
     //printf("nworker1 : %d\n", ++nwork1);
 
