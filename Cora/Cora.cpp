@@ -89,34 +89,8 @@
 
 //----------------------------------
 
-
-
-
-
-
-
-
-
-
-//m_pFunction = reinterpret_cast <TaskProc> (&::Concurrency::details::_UnrealizedChore::_InvokeBridge<task_handle>);
-
 #include "b_dot11n_rx.h"
 #include "b_dot11n_tx.h"
-
-
-int kkk = 100;
-
-auto make_func() -> std::function<void()>
-{
-  int& a = kkk;
-  auto f = [&]{
-    printf("inside function...a=%d\n", a++);
-  };
-  return f;
-}
-
-
-
 
 
 
@@ -134,99 +108,8 @@ int _tmain(int argc, _TCHAR* argv[])
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
-  v_align(64) int nwork1 = 10000;
-  tick_count  t1;
-  v_align(64) int nwork2 = 0; 
-  tick_count  t2;
-  v_align(64) int nwork3 = 0;
-  tick_count  t3;
-  v_align(64) int nwork4 = 0;
-  tick_count  t4;
-  v_align(64) int nwork5 = 0;
-  tick_count  t5;
-  v_align(64) int nwork6 = 0;
-  tick_count  t6;
-
-  auto work1 = [&]
-  {
-    t1 = tick_count::now();
-    //printf("worker1 : %d, cpu=%d\n", nwork1, GetThreadId(GetCurrentThread()));
-    nwork1--;
-    if (nwork1 == 0)
-    {
-      return false;
-    }
-    return true;
-  };
-
-  auto work2 = [&]
-  {
-    tick_count t;
-    t2 = tick_count::now();
-    t = t2 - t1;
-    //Sleep(1000);
-    nwork2++;
-    printf("work2: %f us\n", t.us());
-    t2 = tick_count::now();
-    //printf("worker2 : %d, cpu=%d\n", nwork2, GetThreadId(GetCurrentThread()));
-  };
-
-  auto work3 = [&]
-  {
-    tick_count t;
-    t3 = tick_count::now();
-    t = t3 - t2;
-    //Sleep(2000);
-    nwork3++;
-    printf("work3: %f us\n", t.us());
-    t3 = tick_count::now();
-    //printf("worker3 : %d, cpu=%d\n", nwork3, GetThreadId(GetCurrentThread()));
-  };
-
-  auto work4 = [&]
-  {
-    tick_count t;
-    t4 = tick_count::now();
-    t = t4 - t3;
-    //Sleep(3000);
-    nwork4++;
-    printf("work4: %f us\n", t.us());
-    t4 = tick_count::now();
-    //printf("worker4 : %d, cpu=%d\n", nwork4, GetThreadId(GetCurrentThread()));
-  };
-
-  auto work5 = [&]
-  {
-    tick_count t;
-    t5 = tick_count::now();
-    t = t5 - t4;
-    //Sleep(3000);
-    nwork5++;
-    printf("work5: %f us\n", t.us());
-    t5 = tick_count::now();
-    //printf("worker5 : %d, cpu=%d\n", nwork5, GetThreadId(GetCurrentThread()));
-  };
-
-  auto work6 = [&]
-  {
-    tick_count t;
-    t6 = tick_count::now();
-    t = t5 - t5;
-    //Sleep(3000);
-    nwork6++;
-    printf("work6: %f us\n", t.us());
-    t6 = tick_count::now();
-    //printf("worker6 : %d, cpu=%d\n", nwork6, GetThreadId(GetCurrentThread()));
-  };
-
-
-  //PIPE_LINE(work1, work2, work3);
-
-  printf("nworker1 : %d, nworker2 : %d, nworker3 : %d, nworker4 : %d, nworker5 : %d, nworker6 : %d\n", 
-    nwork1, nwork2, nwork3, nwork4, nwork5, nwork6);
-
-  dot11n_2x2_rx(argc, argv);
-
+  //dot11n_2x2_rx(argc, argv);
+  
 #if 0
   if ( cmdline.get("rx").exist() )
   {

@@ -119,33 +119,25 @@ class dsp_block
 
   __forceinline void consume (int which_input, int how_many_items)
   {
-    if (how_many_items > 0) {
-      m_inputs[which_input]->update_read_pointer (how_many_items);
-    }
+    m_inputs[which_input]->update_read_pointer (how_many_items);    
   }
 
   __forceinline void consume_each (int how_many_items)
   {
-    if (how_many_items > 0) {
-      for (int i = 0; i < NINPUT; i++) {
-        m_inputs[i]->update_read_pointer (how_many_items);
-      }
+    for (int i = 0; i < NINPUT; i++) {
+      m_inputs[i]->update_read_pointer (how_many_items);
     }
   }
 
   __forceinline void produce (int which_output, int how_many_items)
   {
-    if (how_many_items > 0){
-      m_outputs[which_output]->update_write_pointer (how_many_items);
-    }
+    m_outputs[which_output]->update_write_pointer (how_many_items);    
   }
 
   __forceinline void produce_each (int how_many_items)
   {
-    if (how_many_items > 0) {
-      for (int i = 0; i < NOUTPUT; i++) {
-        m_outputs[i]->update_write_pointer (how_many_items);
-      }
+    for (int i = 0; i < NOUTPUT; i++) {
+      m_outputs[i]->update_write_pointer (how_many_items);
     }
   }
 

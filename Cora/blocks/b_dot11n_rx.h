@@ -88,9 +88,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   autoref siso_channel_est = create_block<b_dot11_siso_channel_estimator_2v>();
   autoref siso_channel_comp = create_block<b_dot11_siso_channel_compensator_2v2>();
 
-  autoref siso_mrc_combine = create_block<b_mrc_combine_2v1>(
-    1,
-    string("Combinelength=16"));
+  autoref siso_mrc_combine = create_block<b_mrc_combine_2v1>();
 
   autoref siso_lsig_demap_bpsk_i = create_block<b_dot11_demap_bpsk_i_1v1>(
     2,
@@ -140,49 +138,31 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   autoref l_sig_parser = create_block<b_lsig_parser_1v>();
   autoref ht_sig_parser = create_block<b_htsig_parser_1v>();
   autoref ht_stf = create_block<b_drop_2v>(
-    1,
-    string("nDrop=20")
-    );
+    1, string("nDrop=20") );
 
   autoref mimo_channel_estimator = create_block<b_dot11_mimo_channel_estimator_2v>();
 
   autoref mimo_channel_compensator = create_block<b_dot11_mimo_channel_compensator_2v2>();
 
   autoref ht_demap_bpsk1 = create_block<b_dot11_demap_bpsk_i_1v1>(
-    2,
-    string("low=-28"),
-    string("high=28"));
+    2, string("low=-28"), string("high=28"));
   autoref ht_demap_bpsk2 = create_block<b_dot11_demap_bpsk_i_1v1>(
-    2,
-    string("low=-28"),
-    string("high=28"));
+    2, string("low=-28"), string("high=28"));
 
   autoref ht_demap_qpsk1 = create_block<b_dot11_demap_qpsk_1v1>(
-    2,
-    string("low=-28"),
-    string("high=28"));
+    2, string("low=-28"), string("high=28"));
   autoref ht_demap_qpsk2 = create_block<b_dot11_demap_qpsk_1v1>(
-    2,
-    string("low=-28"),
-    string("high=28"));
+    2, string("low=-28"), string("high=28"));
 
   autoref ht_demap_16qam1 = create_block<b_dot11_demap_16qam_1v1>(
-    2,
-    string("low=-28"),
-    string("high=28"));
+    2, string("low=-28"), string("high=28"));
   autoref ht_demap_16qam2 = create_block<b_dot11_demap_16qam_1v1>(
-    2,
-    string("low=-28"),
-    string("high=28"));
+    2, string("low=-28"), string("high=28"));
 
   autoref ht_demap_64qam1 = create_block<b_dot11_demap_64qam_1v1>(
-    2,
-    string("low=-28"),
-    string("high=28"));
+    2, string("low=-28"), string("high=28"));
   autoref ht_demap_64qam2 = create_block<b_dot11_demap_64qam_1v1>(
-    2,
-    string("low=-28"),
-    string("high=28"));
+    2, string("low=-28"), string("high=28"));
 
   autoref ht_deinterleave_1bpsc_iss1 = create_block<b_dot11n_deinterleave_1bpsc_1v1>(
     1, string("iss=1"));
@@ -546,77 +526,43 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   //////////////////////////////////////////////////////////////////////////
   auto rx_mcs8_pipeline = [&]
   {
-    t1 = tick_count::now();
     PIPE_LINE(rx_bpsk_pipeline_1, rx_vit12_pipeline);
-    t2 = tick_count::now();
-    tick_count t = t2 - t1;
-    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-    printf("frame decode done! %d\n", *crc32_check_result);
   };
 
   auto rx_mcs9_pipeline = [&]
   {
-    t1 = tick_count::now();
     PIPE_LINE(rx_qpsk_pipeline_1, rx_vit12_pipeline);
-    t2 = tick_count::now();
-    tick_count t = t2 - t1;
-    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-    printf("frame decode done! %d\n", *crc32_check_result);
   };
 
   auto rx_mcs10_pipeline = [&]
   {
-    t1 = tick_count::now();
     PIPE_LINE(rx_qpsk_pipeline_1, rx_vit34_pipeline);
-    t2 = tick_count::now();
-    tick_count t = t2 - t1;
-    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-    printf("frame decode done! %d\n", *crc32_check_result);
   };
 
   auto rx_mcs11_pipeline = [&]
   {
-    t1 = tick_count::now();
     PIPE_LINE(rx_16qam_pipeline_1, rx_vit12_pipeline);
-    t2 = tick_count::now();
-    tick_count t = t2 - t1;
-    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-    printf("frame decode done! %d\n", *crc32_check_result);
   };
 
   auto rx_mcs12_pipeline = [&]
   {
-    t1 = tick_count::now();
     PIPE_LINE(rx_16qam_pipeline_1, rx_vit34_pipeline);
-    t2 = tick_count::now();
-    tick_count t = t2 - t1;
-    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-    printf("frame decode done! %d\n", *crc32_check_result);
   };
 
   auto rx_mcs13_pipeline = [&]
   {
-    t1 = tick_count::now();
     PIPE_LINE(rx_64qam_pipeline_1, rx_vit23_pipeline);
-    t2 = tick_count::now();
-    tick_count t = t2 - t1;
-    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-    printf("frame decode done! %d\n", *crc32_check_result);
   };
 
   auto rx_mcs14_pipeline = [&]
   {
-    t1 = tick_count::now();
     PIPE_LINE(rx_64qam_pipeline_1, rx_vit34_pipeline);
-    t2 = tick_count::now();
-    tick_count t = t2 - t1;
-    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-    printf("frame decode done! %d\n", *crc32_check_result);
   };
 
   auto htdata_handler = [&]
   {
     ONCE(pipeline_init);
+    t1 = tick_count::now();
     START(
       IF(IsTrue(*ht_frame_mcs == 8)),  rx_mcs8_pipeline,
       ELSE_IF(IsTrue(*ht_frame_mcs == 9)),  rx_mcs9_pipeline,
@@ -627,6 +573,10 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       ELSE_IF(IsTrue(*ht_frame_mcs == 14)), rx_mcs14_pipeline,
       ELSE, NOP
       );
+    t2 = tick_count::now();
+    tick_count t = t2 - t1;
+    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
+    printf("frame decode done! %d\n", *crc32_check_result);
   };
 
   START(
