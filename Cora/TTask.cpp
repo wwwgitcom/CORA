@@ -59,6 +59,8 @@ void cpu_processor::Run()
 
 //////////////////////////////////////////////////////////////////////////
 
+
+
 cpu_manager::cpu_manager() : m_nCurrentIndex(0), m_nTotalProcessor(0)
 {
   m_sync_obj.status = 0;
@@ -71,22 +73,16 @@ cpu_manager::~cpu_manager()
 
 void cpu_manager::setup()
 {
-  static int iconfig = 0;
-
-  printf("cpu manager configed %d times...\n", ++iconfig);
-
   dsp_sysconfig* config = dsp_sysconfig::Instance();
   m_nTotalProcessor     = config->GetCPUProcessorCount();
   m_cpu_count = 0;
 
   m_sync_obj.status = 0;
 
-  m_cpu_array           = new cpu_processor *[m_nTotalProcessor];
   m_cpu_index           = new ULONG[m_nTotalProcessor];
 
   for (int i = 0; i < m_nTotalProcessor; i++)
   {
-    m_cpu_array[i] = nullptr;
     m_cpu_index[i] = 0;
   }
 
@@ -96,11 +92,9 @@ void cpu_manager::setup()
     int j = 0;
     for (int i = 2; i < 8; i += 2)
     {
-      cpu_processor* cpu = new cpu_processor((1L << i));
       m_sync_obj.status |= (1L << i);
-      cpu->set_status_mask(&m_sync_obj.status);
-      cpu->Create();
-      m_cpu_array[i] = cpu;
+      m_cpus[i].set_status_mask(&m_sync_obj.status);
+      m_cpus[i].Create((1L << i));
       m_cpu_index[j] = i;
       m_cpu_count++;
       j++;
@@ -114,11 +108,9 @@ void cpu_manager::setup()
     int j = 0;
     for (int i = 1; i < 6; i++)
     {
-      cpu_processor* cpu = new cpu_processor((1L << i));
       m_sync_obj.status |= (1L << i);
-      cpu->set_status_mask(&m_sync_obj.status);
-      cpu->Create();
-      m_cpu_array[i] = cpu;
+      m_cpus[i].set_status_mask(&m_sync_obj.status);
+      m_cpus[i].Create((1L << i));
       m_cpu_index[j] = i;
       m_cpu_count++;
       j++;
@@ -131,11 +123,9 @@ void cpu_manager::setup()
     int j = 0;
     for (int i = 1; i < m_nTotalProcessor; i++)
     {
-      cpu_processor* cpu = new cpu_processor((1L << i));
       m_sync_obj.status |= (1L << i);
-      cpu->set_status_mask(&m_sync_obj.status);
-      cpu->Create();
-      m_cpu_array[i] = cpu;
+      m_cpus[i].set_status_mask(&m_sync_obj.status);
+      m_cpus[i].Create((1L << i));
       m_cpu_index[j] = i;
       m_cpu_count++;
       j++;
@@ -147,18 +137,31 @@ void cpu_manager::setup()
 
 void cpu_manager::destroy()
 {
-  for (int i = 0; i < m_nTotalProcessor; i++)
+  for (int i = 0; i < 16; i++)
   {
-    if (m_cpu_array[i])
-    {
-      m_cpu_array[i]->Destroy();
-      delete m_cpu_array[i];
-    }
+    m_cpus[i].Destroy();
   }
-
-  delete[] m_cpu_array;
   delete[] m_cpu_index;
 }
 
 //////////////////////////////////////////////////////////////////////////
-static cpu_manager* g_cm = cpu_manager::Instance();
+cpu_manager g_cm;
+
+#if 1
+#pragma section("dsp_shared_section", read, write, shared)
+
+#define declare_shared_var(...)\
+  __declspec(allocate("dsp_shared_section")) __VA_ARGS__
+
+declare_shared_var(int idsp = 0;);
+declare_shared_var(int idsp2 = 0;);
+#else
+
+#pragma comment(linker,"/SECTION:dsp_shared_section,RWS")
+
+#pragma data_seg("dsp_shared_section")
+int idsp = 0;
+int idsp2 = 1;
+#pragma data_seg()
+
+#endif

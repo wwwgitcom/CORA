@@ -14,8 +14,6 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 
   autoref htstf = create_block<b_dot11n_htstf_v2>();
   autoref htltf = create_block<b_dot11n_htltf_v2>();
-
-
   //////////////////////////////////////////////////////////////////////////
   // for L/HT-SIG
   autoref lsig  = create_block<b_dot11n_lsig_v1>();
@@ -29,8 +27,7 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 
   autoref add_sigpilot = create_block<b_dot11a_add_pilot_1v>();
 
-  autoref csd_sig = create_block<b_dot11n_csd_1v1>(
-    1, string("ncsd=2"));
+  autoref csd_sig = create_block<b_dot11n_csd_1v1>(1, string("ncsd=2"));
 
   autoref add_sigcp1 = create_block<b_dot11n_add_cp_1v1>();
   autoref add_sigcp2 = create_block<b_dot11n_add_cp_1v1>();
@@ -174,7 +171,7 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
     .to(dummy, 0);
 
   //////////////////////////////////////////////////////////////////////////
-
+  v_align(64)
   _global_(uint32, dot11_tx_frame_mcs);
   _global_(uint32, dot11_tx_frame_length);
   _global_(int,    scramble_length);

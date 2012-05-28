@@ -282,58 +282,24 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   Channel::Create(sizeof(uint8))
     .from(descramble, 0).to(crc32_checker, 0);
   //---------------------------------------------------------
+  // var used by 1st block
   v_align(64)
   _global_(bool, l_sig_ok);
   _global_(bool, ht_sig_ok);
   _global_(uint32, ht_frame_mcs);
   _global_(uint16, ht_frame_length);
+  int symbol_count;
+  int total_symbol_count;
+  tick_count t1, t2, t3;
 
+  // var used by 2nd block
   v_align(64)
   _global_(int, VitTotalSoftBits);
   _global_(int, VitTotalBits);  
   _global_(int, crc32_check_length);
   _global_(bool, crc32_check_result);
-  
+  int descramble_state = 0;
   //////////////////////////////////////////////////////////////////////////
-  //auto fk = make_thread([&]{    
-  //});
-  //fk.wait();
-
-  enum : unsigned int
-  {
-    CS = 0,
-    CFO,
-    OTHER
-  }branch1 = CS;
-
-
-  enum : unsigned int
-  {
-    SISO_CHANNEL_ESTIMATION = 0,
-    L_SIG,    
-    HT_SIG1,
-    HT_SIG2,
-    HT_STF,
-    HT_LTF,
-    HT_DATA,
-    HT_OTHER
-  }branch2 = SISO_CHANNEL_ESTIMATION;
-
-  bool frame_decode_done = false;  
-  int symbol_count;
-  int total_symbol_count;
-  int thread1_count = 0;
-  int thread2_count = 0;
-
-  v_align(64) int descramble_state = 0;
-
-  tick_count t1, t2, t3;
-
-  cpu_manager* cm = cpu_manager::Instance();
-
-#if 1
-
-
   auto frame_detection = [&]() -> bool
   {
     START(src, axorr, lstf_searcher, STOP(NOP));
@@ -349,8 +315,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       ONCE(siso_channel_est);
       return true;
     }), STOP(NOP));
-
-    printf("lltf_handler\n");
     return true;
   };
 
@@ -415,15 +379,11 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   {
     *crc32_check_length = *ht_frame_length;
 
-    frame_decode_done = false;
     descramble_state = 0;
 
     symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
     total_symbol_count = symbol_count;
   };
-
-  int nwork1 = 0;
-  int nwork2 = 0;
 
   auto rx_vit12_pipeline = [&]
   {
@@ -432,7 +392,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
       ELSE, descramble, crc32_checker, STOP(NOP)
       );
-    //printf("nworker2 : %d\n", ++nwork2);
   };
 
   auto rx_vit23_pipeline = [&]
@@ -442,7 +401,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
       ELSE, descramble, crc32_checker, STOP(NOP)
       );
-    //printf("nworker2 : %d\n", ++nwork2);
   };
 
   auto rx_vit34_pipeline = [&]
@@ -452,7 +410,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
       ELSE, descramble, crc32_checker, STOP(NOP)
       );
-    //printf("nworker2 : %d\n", ++nwork2);
   };
   //////////////////////////////////////////////////////////////////////////
 
@@ -466,8 +423,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       ONCE(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1,
         ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
     }));
-
-    //printf("nworker1 : %d\n", ++nwork1);
 
     symbol_count--;
     return symbol_count > 0;
@@ -484,8 +439,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
         ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2, ht_stream_joiner_1);
     }));
 
-    //printf("nworker1 : %d\n", ++nwork1);
-
     symbol_count--;
     return symbol_count > 0;
   };
@@ -501,8 +454,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
         ht_demap_16qam2, ht_deinterleave_4bpsc_iss2, ht_stream_joiner_2);
     }));
 
-    //printf("nworker1 : %d\n", ++nwork1);
-
     symbol_count--;
     return symbol_count > 0;
   };
@@ -517,8 +468,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1,
         ht_demap_64qam2, ht_deinterleave_6bpsc_iss2, ht_stream_joiner_3);
     }));
-
-    //printf("nworker1 : %d\n", ++nwork1);
 
     symbol_count--;
     return symbol_count > 0;
@@ -582,170 +531,4 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   START(
     WHILE(frame_detection), IF(lltf_handler), IF(lsig_handler), IF(htsig_handler), IF(htstf_handler), IF(htltf_handler), htdata_handler
     );
-
-
-
-#else
-
-  auto vit_task = make_task_obj([&]
-  {
-    //----------------
-    // start viterbi
-    //----------------
-    START(
-      IF( IsTrue( (*ht_frame_mcs == 8 || *ht_frame_mcs == 9 || *ht_frame_mcs == 11) ) ),
-      ht_data_vit_12,
-      ELSE_IF( IsTrue( (*ht_frame_mcs == 13) ) ),
-      ht_data_vit_23,
-      ELSE_IF( IsTrue( (*ht_frame_mcs == 10 || *ht_frame_mcs == 12 || *ht_frame_mcs == 14) ) ),
-      ht_data_vit_34,
-      ELSE, NOP
-      );
-
-    //printf("---symbol count = %d\n", symbol_count);
-    // descramble and crc32 checking
-    START(
-      IF(IsTrue(descramble_state == 0)), 
-      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-      ELSE, descramble, crc32_checker, STOP([&]
-    {
-      frame_decode_done = true; 
-    })
-      );
-  });
-
-
-  START(src,
-    // frame detection
-    IF(IsTrue(branch1 == CS)),[&]
-  {
-    START(axorr, IF(lstf_searcher), STOP([&]{branch1 = CFO;}));
-  },
-    ELSE_IF(IsTrue(branch1 == CFO)),
-    // carrier frequency offset estimation using L-LTF
-    IF(cfo_est), [&]{branch1 = OTHER; branch2 = SISO_CHANNEL_ESTIMATION;}, ELSE, NOP,
-    ELSE_IF(IsTrue(branch1 == OTHER)), [&]
-  {
-    START(
-      // carrier frequency offset compensation
-      cfo_comp,
-      // L-LTF branch: SISO channel estimation
-      IF(IsTrue(branch2 == SISO_CHANNEL_ESTIMATION)),[&]
-    {
-      START(fft_lltf1);
-      START(fft_lltf2, siso_channel_est, STOP([&]{branch2 = L_SIG; *VitTotalSoftBits = 48;}));
-    },
-      // L-SIG branch: legacy signal field decoding using MRC
-      ELSE_IF(IsTrue(branch2 == L_SIG)), [&]
-    {
-      START(IF(remove_gi1), fft_data1);
-      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit, l_sig_parser), STOP([&]{ if (*l_sig_ok) branch2 = HT_SIG1; else {branch1 = CS; branch2 = HT_OTHER;} }));
-    },
-      ELSE_IF(IsTrue(branch2 == HT_SIG1)), [&]
-    {
-      START(IF(remove_gi1), fft_data1);
-      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, STOP([&]{branch2 = HT_SIG2; *VitTotalSoftBits = 96;}));
-    },
-      ELSE_IF(IsTrue(branch2 == HT_SIG2)), [&]
-    {
-      START(IF(remove_gi1), fft_data1);
-      START(IF(remove_gi2), fft_data2, siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit, ht_sig_parser, STOP([&]{if (*ht_sig_ok) branch2 = HT_STF; else {branch1 = CS; branch2 = HT_OTHER;} }));
-    },
-      ELSE_IF(IsTrue(branch2 == HT_STF)), [&]
-    {
-      START(ht_stf, [&]{branch2 = HT_LTF;});
-    },
-      ELSE_IF(IsTrue(branch2 == HT_LTF)), [&]
-    {
-      START(remove_gi1, fft_data1);
-      START(remove_gi2, fft_data2, mimo_channel_estimator, 
-        STOP([&]{
-          branch2 = HT_DATA;
-
-          printf("HT_SIG: MCS=%d, Length=%d\n", *ht_frame_mcs, *ht_frame_length);
-
-          if (*ht_frame_mcs == 8 || *ht_frame_mcs == 9 || *ht_frame_mcs == 11) // 1/2
-          {
-            *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 2; // 1/2 coding
-          }
-          else if (*ht_frame_mcs == 13) // 2/3
-          {
-            *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 3 / 2;
-          }
-          else if (*ht_frame_mcs == 10 || *ht_frame_mcs == 12 || *ht_frame_mcs == 14)
-          {
-            *VitTotalSoftBits = (*ht_frame_length * 8 + 16 + 6) * 4 / 3 + 1;
-          }
-
-          *crc32_check_length = *ht_frame_length;
-
-          frame_decode_done = false;
-          descramble_state = 0;
-
-          symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length);
-          total_symbol_count = symbol_count;
-
-          t1 = tick_count::now();
-      })
-        );
-    },
-      ELSE_IF(IsTrue(branch2 == HT_DATA)), 
-      IF(IsTrue(symbol_count > 0)), [&]
-    {
-      START(IF(remove_gi1), [&]
-      {
-        START(fft_data1);
-        START(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking, [&]
-        {
-          START( IF(IsTrue(*ht_frame_mcs == 8)), [&]
-          {
-            START(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1);
-            START(ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2, ht_stream_joiner_1);
-          },
-            ELSE_IF(IsTrue( (*ht_frame_mcs == 9 || *ht_frame_mcs == 10) )), [&]
-          {
-            START(ht_demap_qpsk1, ht_deinterleave_2bpsc_iss1);
-            START(ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2, ht_stream_joiner_2);
-          },
-            ELSE_IF(IsTrue( (*ht_frame_mcs == 11 || *ht_frame_mcs == 12) )), [&]
-          {
-            START(ht_demap_16qam1, ht_deinterleave_4bpsc_iss1);
-            START(ht_demap_16qam2, ht_deinterleave_4bpsc_iss2, ht_stream_joiner_3);
-          },
-            ELSE_IF(IsTrue( (*ht_frame_mcs == 13 || *ht_frame_mcs == 14) )), [&]
-          {
-            START(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1);
-            START(ht_demap_64qam2, ht_deinterleave_6bpsc_iss2, ht_stream_joiner_4);
-          },
-            ELSE, NOP
-            );
-          symbol_count--;
-#if 0
-          vit_task.invoke();
-#else
-          vit_task.wait();
-          cm->run_task(&vit_task);
-#endif
-        });
-      });
-    },
-      ELSE, STOP([&]
-    {
-      vit_task.wait(); 
-
-      t2 = tick_count::now();
-      tick_count t = t2 - t1;
-      printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-
-      printf("frame decode done! %d\n", *crc32_check_result);
-
-      branch1 = CS; 
-      branch2 = SISO_CHANNEL_ESTIMATION;
-    }),
-      ELSE, NOP
-      );
-  },
-    ELSE, STOP(NOP)
-    );
-#endif
 };

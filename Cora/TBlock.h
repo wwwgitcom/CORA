@@ -85,6 +85,31 @@ class dsp_block
     }
   }
 
+  void init(int nArg = 0, ...)
+  {
+    std::map<string, string> arg_map;
+    arg_map.clear();
+
+    va_list args;
+    va_start(args, nArg);
+
+    for (int i = 0; i < nArg; i++)
+    {
+      string str = va_arg(args, string);
+      int pos = str.find("=");
+      if (pos < 0) continue;
+
+      arg_map.insert( make_pair(str.substr(0, pos), str.substr(pos + 1) ) );    
+    }
+
+    va_end(args);
+
+    __if_exists(T::_init_)
+    {
+      ((T*)(this))->_init_(arg_map);
+    }
+  }
+
   __forceinline void set_output(dsp_buffer_ptr buffer, int which)
   {
     m_outputs[which] = buffer;
@@ -119,7 +144,7 @@ class dsp_block
 
   __forceinline void consume (int which_input, int how_many_items)
   {
-    m_inputs[which_input]->update_read_pointer (how_many_items);    
+    m_inputs[which_input]->update_read_pointer (how_many_items);
   }
 
   __forceinline void consume_each (int how_many_items)
@@ -149,7 +174,7 @@ class dsp_block
 };
 
 #define DEFINE_BLOCK(block_name, number_of_input, number_of_output)\
-class _declspec(align(16)) block_name : public dsp_block<block_name, number_of_input, number_of_output>
+class _declspec(align(64)) block_name : public dsp_block<block_name, number_of_input, number_of_output>
 
 
 #define END_BLOCK };
@@ -169,7 +194,7 @@ public:
 
 #define BLOCK_INIT \
 public:\
-void init(std::map<string, string> & $)
+void _init_(std::map<string, string> & $)
 
 #define BLOCK_RESET \
 public:\
@@ -180,9 +205,9 @@ template<typename block_name>
 auto _create_block(std::map<string, string> & arg_map) -> block_name &
 {
   block_name & obj = CreateObject< block_name >();
-  __if_exists(block_name::init)
+  __if_exists(block_name::_init_)
   {
-    obj.init(arg_map);
+    obj._init_(arg_map);
   }
   return (block_name &)obj;
 }

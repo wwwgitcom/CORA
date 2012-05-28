@@ -92,7 +92,7 @@
 #include "b_dot11n_rx.h"
 #include "b_dot11n_tx.h"
 
-
+extern int idsp2;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -108,7 +108,8 @@ int _tmain(int argc, _TCHAR* argv[])
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
-  //dot11n_2x2_rx(argc, argv);
+  dot11n_2x2_rx(argc, argv);
+  
   
 #if 0
   if ( cmdline.get("rx").exist() )

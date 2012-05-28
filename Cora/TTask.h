@@ -140,14 +140,13 @@ task_obj make_task_obj(const dsp_task<_Function>& tsk)
 
 //////////////////////////////////////////////////////////////////////////
 
-
 class cpu_processor
 {
 public:
-  cpu_processor(DWORD affinity = 0xFFFFFFFF)
+  cpu_processor()
   {
     m_hThread      = INVALID_HANDLE_VALUE;
-    m_affinity     = affinity;
+    m_affinity     = 0xFFFFFFFF;
     m_active       = true;
     m_status       = idle;
     m_task_count   = 0;
@@ -157,9 +156,10 @@ public:
 
   static DWORD WINAPI processor_thread(LPVOID lpThreadParam);
 
-  void Create()
+  void Create(DWORD affinity = 0xFFFFFFFF)
   {
     m_active  = true;
+    m_affinity = affinity;
     m_hThread = CreateThread(NULL, 0, cpu_processor::processor_thread, this, 0, NULL);
     SetThreadAffinityMask(m_hThread, m_affinity);
     //SetThreadPriority(m_hThread, THREAD_PRIORITY_TIME_CRITICAL);
@@ -167,10 +167,13 @@ public:
 
   void Destroy()
   {
-    m_active = false;
-    WaitForSingleObject(m_hThread, INFINITE);
-    CloseHandle(m_hThread);
-    m_hThread = INVALID_HANDLE_VALUE;
+    if (m_hThread != INVALID_HANDLE_VALUE)
+    {
+      m_active = false;
+      WaitForSingleObject(m_hThread, INFINITE);
+      CloseHandle(m_hThread);
+      m_hThread = INVALID_HANDLE_VALUE;
+    }
   }
 
   __forceinline void Enqueue(task_obj* t)
@@ -235,7 +238,7 @@ private:
   volatile status m_status;
   dsp_spin_lock   m_spinlock;  
   volatile unsigned int* m_status_mask;
-
+  
   LIST_ENTRY      m_TaskList;
   HANDLE          m_hThread;
   HANDLE          m_event;
@@ -244,31 +247,34 @@ private:
 
 
 //////////////////////////////////////////////////////////////////////////
+class cpu_manager;
+
+extern cpu_manager g_cm;
+
 class cpu_manager
 {
 private:
-  sync_obj        m_sync_obj;
-  cpu_processor **m_cpu_array;
+  sync_obj        m_sync_obj;  
   ULONG          *m_cpu_index;
   ULONG           m_cpu_count;
   int             m_nCurrentIndex;
 
-  int             m_nTotalProcessor;  
+  int             m_nTotalProcessor;
   dsp_spin_lock   m_lock;
+  cpu_processor   m_cpus[16];
 
-  cpu_manager();
+  
   cpu_manager(const cpu_manager&) ;
   cpu_manager& operator=(const cpu_manager&) ;
   void setup();
   void destroy();
 public:
+  cpu_manager();
   ~cpu_manager();
 
   __forceinline static cpu_manager* Instance()
   {
-    static cpu_manager s_cpu_manager;
-
-    return &s_cpu_manager;
+    return &g_cm;
   }
 
   __forceinline void run_task(task_obj* t)
@@ -297,7 +303,7 @@ public:
       _InterlockedXor((volatile long*)&m_sync_obj.status, (1L << dwFreeCpu));
       //m_sync_obj.status ^= (1L << dwFreeCpu);
       
-      m_cpu_array[dwFreeCpu]->Enqueue(t);
+      m_cpus[dwFreeCpu].Enqueue(t);
       //if (m_cpu_array[dwFreeCpu]->processor_status() == cpu_processor::idle)
       //{
       //  m_cpu_array[dwFreeCpu]->wake_up();
@@ -309,7 +315,7 @@ public:
     {
       // all cpu are busy, use random cpu
       //printf("[cpu_man] random access status %p.\n", m_sync_obj.status);
-      m_cpu_array[m_cpu_index[m_nCurrentIndex]]->Enqueue(t);
+      m_cpus[m_cpu_index[m_nCurrentIndex]].Enqueue(t);
       //printf("[cpu_man] random enqueue task %p to processor %d.\n", t, m_cpu_index[m_nCurrentIndex]);
       m_nCurrentIndex++;
       m_nCurrentIndex %= m_cpu_count;

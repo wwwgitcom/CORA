@@ -10,3 +10,4 @@ void global_init()
   //_log.add_include_filter("perf");
   //_log.add_exclude_filter("file_source");
 }
+
