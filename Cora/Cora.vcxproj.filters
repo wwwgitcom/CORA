@@ -270,6 +270,9 @@
     <ClInclude Include="blocks\b_wait.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="TMain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

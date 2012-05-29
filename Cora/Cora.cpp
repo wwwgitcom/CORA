@@ -17,6 +17,7 @@
 #include "TObject.h"
 #include "TOP.h"
 #include "TTask.h"
+#include "TMain.h"
 #include "TParallel.h"
 #include "TPipeline.h"
 #include "TSchedule.h"
@@ -92,13 +93,30 @@
 #include "b_dot11n_rx.h"
 #include "b_dot11n_tx.h"
 
-extern int idsp2;
+BOOL WINAPI HandlerRoutine(__in  DWORD dwCtrlType)
+{
+  ConsoleEvent(dwCtrlType) << cout;
+
+  switch (dwCtrlType)
+  {
+  case CTRL_C_EVENT:
+  case CTRL_BREAK_EVENT:
+  case CTRL_CLOSE_EVENT:
+    exit(0);
+    return true;// we handle the msg
+  default:
+    return false;
+  }
+}
+
+
 
 int _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
-
   cmdline.parse(argc, argv);
+
+  SetConsoleCtrlHandler(HandlerRoutine, true);
 
   int nAffinity = 1;
 
@@ -108,17 +126,27 @@ int _tmain(int argc, _TCHAR* argv[])
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
-  dot11n_2x2_rx(argc, argv);
-  
-  
-#if 0
-  if ( cmdline.get("rx").exist() )
+  auto tx_main = [&]
+  {
+    dot11n_2x2_tx(argc, argv);
+  };
+
+  auto rx_main = [&]
   {
     dot11n_2x2_rx(argc, argv);
+  };
+
+  
+  dsp_main(rx_main);
+
+#if 1
+  if ( cmdline.get("rx").exist() )
+  {
+    dsp_main(rx_main);
   }
   else if ( cmdline.get("tx").exist() )
   {
-    dot11n_2x2_tx(argc, argv);
+    dsp_main(tx_main);
   }
   else
   {
@@ -126,6 +154,10 @@ int _tmain(int argc, _TCHAR* argv[])
   }
 #endif
 
+  
+  
+
+  ExitProcess(0);
 	return 0;
 }
 

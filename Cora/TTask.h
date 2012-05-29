@@ -170,7 +170,8 @@ public:
     if (m_hThread != INVALID_HANDLE_VALUE)
     {
       m_active = false;
-      WaitForSingleObject(m_hThread, INFINITE);
+      //WaitForSingleObject(m_hThread, INFINITE);
+      TerminateThread(m_hThread, 0);
       CloseHandle(m_hThread);
       m_hThread = INVALID_HANDLE_VALUE;
     }

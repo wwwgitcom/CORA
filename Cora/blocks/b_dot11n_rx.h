@@ -137,8 +137,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   autoref l_sig_parser = create_block<b_lsig_parser_1v>();
   autoref ht_sig_parser = create_block<b_htsig_parser_1v>();
-  autoref ht_stf = create_block<b_drop_2v>(
-    1, string("nDrop=20") );
+  autoref ht_stf = create_block<b_drop_2v>(1, string("nDrop=20") );
 
   autoref mimo_channel_estimator = create_block<b_dot11_mimo_channel_estimator_2v>();
 

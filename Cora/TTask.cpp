@@ -121,7 +121,7 @@ void cpu_manager::setup()
   else if (m_nTotalProcessor == 2)
   {
     int j = 0;
-    for (int i = 1; i < m_nTotalProcessor; i++)
+    for (int i = 0; i < m_nTotalProcessor; i++)
     {
       m_sync_obj.status |= (1L << i);
       m_cpus[i].set_status_mask(&m_sync_obj.status);

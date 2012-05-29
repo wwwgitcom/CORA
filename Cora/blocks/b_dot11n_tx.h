@@ -5,8 +5,7 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
   cmdline.parse(argc, argv);
-
-
+  
   autoref dummy = create_block<dummy_block>();
 
   autoref lstf = create_block<b_dot11n_lstf_v2>();
@@ -74,10 +73,8 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
   autoref ht_map_64qam_2  = create_block<b_dot11n_map_64qam_1v1>();
 
   // pilot
-  autoref ht_add_pilot_1 = create_block<b_dot11n_add_pilot_1v>(
-    1, string("iss=0"));
-  autoref ht_add_pilot_2 = create_block<b_dot11n_add_pilot_1v>(
-    1, string("iss=1"));
+  autoref ht_add_pilot_1 = create_block<b_dot11n_add_pilot_1v>(1, string("iss=0"));
+  autoref ht_add_pilot_2 = create_block<b_dot11n_add_pilot_1v>(1, string("iss=1"));
 
   // ifft
   autoref ht_ifft_1  = create_block<b_dot11n_tx_ifft_128_1v1>();

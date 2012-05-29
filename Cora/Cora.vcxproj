@@ -139,6 +139,7 @@
     <ClInclude Include="blocks\b_viterbi.h" />
     <ClInclude Include="blocks\b_wait.h" />
     <ClInclude Include="blocks\__b_viterbi.h" />
+    <ClInclude Include="TMain.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />
     <ClInclude Include="sys\dsp_cmd.h" />
