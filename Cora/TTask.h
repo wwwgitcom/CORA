@@ -1,5 +1,6 @@
 #pragma once
 #include "dsp_helper.h"
+#include "dsp_sysconfig.h"
 // already defined in ppl.h
 //typedef void (__cdecl * TaskProc)(void *);
 
@@ -158,11 +159,16 @@ public:
 
   void Create(DWORD affinity = 0xFFFFFFFF)
   {
+    dsp_sysconfig* config = dsp_sysconfig::Instance();
+    
     m_active  = true;
     m_affinity = affinity;
     m_hThread = CreateThread(NULL, 0, cpu_processor::processor_thread, this, 0, NULL);
     SetThreadAffinityMask(m_hThread, m_affinity);
-    //SetThreadPriority(m_hThread, THREAD_PRIORITY_TIME_CRITICAL);
+    if (config->GetCPUProcessorCount() > 2)
+    {
+      SetThreadPriority(m_hThread, THREAD_PRIORITY_HIGHEST);
+    }
   }
 
   void Destroy()

@@ -301,8 +301,9 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   //////////////////////////////////////////////////////////////////////////
   auto frame_detection = [&]() -> bool
   {
-    START(src, axorr, lstf_searcher, STOP(NOP));
-    return true;
+    bool bRet = false;
+    START(src, axorr, lstf_searcher, STOP([&]{bRet = true;}));
+    return bRet;
   };
 
   auto lltf_handler = [&]() -> bool
@@ -530,4 +531,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   START(
     WHILE(frame_detection), IF(lltf_handler), IF(lsig_handler), IF(htsig_handler), IF(htstf_handler), IF(htltf_handler), htdata_handler
     );
+
+  printf("rx main terminated...\n");
 };

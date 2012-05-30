@@ -11,6 +11,7 @@ DEFINE_BLOCK(b_file_source_v1, 1, 1)
   _local_(psignal_block, pSignalBlock, nullptr);
   _local_(int, nDecimate, 1);
   _local_(int, nOffset, 0);
+  _local_(int, nLoop, 1000);
 
 public:
   int report()
@@ -133,6 +134,7 @@ DEFINE_BLOCK(b_file_source_v2, 2, 2)
   _local_(psignal_block, pSignalBlock2, nullptr);
   _local_(int, nDecimate, 1);
   _local_(int, nOffset, 0);
+  _local_(int, nLoop, 1000);
 
 public:
   int report()
@@ -285,6 +287,11 @@ public:
           (*pSignalBlock1) = (psignal_block)(*pBufferStart1);
           (*pSignalBlock2) = (psignal_block)(*pBufferStart2);
           //std::cout << "source wrap once..." << endl;
+          (*nLoop)--;
+          if (*nLoop == 0)
+          {
+            return false;
+          }
         }
       }
     }

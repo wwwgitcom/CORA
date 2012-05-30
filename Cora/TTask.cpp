@@ -90,7 +90,7 @@ void cpu_manager::setup()
   {
     //m_nTotalProcessor = 4;
     int j = 0;
-    for (int i = 2; i < 8; i += 2)
+    for (int i = 1; i < 8; i += 2)
     {
       m_sync_obj.status |= (1L << i);
       m_cpus[i].set_status_mask(&m_sync_obj.status);
@@ -106,7 +106,7 @@ void cpu_manager::setup()
   {
     //m_nTotalProcessor = 6;
     int j = 0;
-    for (int i = 1; i < 6; i++)
+    for (int i = 6; i < 12; i++)
     {
       m_sync_obj.status |= (1L << i);
       m_cpus[i].set_status_mask(&m_sync_obj.status);

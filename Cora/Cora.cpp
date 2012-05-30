@@ -102,7 +102,7 @@ BOOL WINAPI HandlerRoutine(__in  DWORD dwCtrlType)
   case CTRL_C_EVENT:
   case CTRL_BREAK_EVENT:
   case CTRL_CLOSE_EVENT:
-    exit(0);
+    ExitProcess(0);
     return true;// we handle the msg
   default:
     return false;
@@ -117,12 +117,7 @@ int _tmain(int argc, _TCHAR* argv[])
   cmdline.parse(argc, argv);
 
   SetConsoleCtrlHandler(HandlerRoutine, true);
-
-  int nAffinity = 1;
-
-  nAffinity = cmdline.get("tx_affinity").as_int();
-  
-  SetThreadAffinityMask(GetCurrentThread(), 1 << nAffinity);
+  SetThreadAffinityMask(GetCurrentThread(), 1);
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
@@ -135,9 +130,6 @@ int _tmain(int argc, _TCHAR* argv[])
   {
     dot11n_2x2_rx(argc, argv);
   };
-
-  
-  dsp_main(rx_main);
 
 #if 1
   if ( cmdline.get("rx").exist() )
