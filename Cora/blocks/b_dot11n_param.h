@@ -82,3 +82,32 @@ __forceinline int ht_padding_bytes(int mcs, int length_bytes)
 
   return padding_bytes;
 }
+
+__forceinline int pht_padding_bytes(int mcs, int length_bytes)
+{
+  int padding_bytes   = 0;
+
+  switch (mcs)
+  {
+  case 8:
+  case 13:
+    padding_bytes = 26 - length_bytes % 26;
+    break;
+  case 9:
+  case 11:
+    padding_bytes = 13 - length_bytes % 13;
+    break;
+  case 10:
+  case 12:
+    padding_bytes = 39 - length_bytes % 39;
+    break;
+  case 14:
+    padding_bytes = 13 - length_bytes % 13;
+    break;
+  default:
+    padding_bytes = 0;
+    break;
+  }
+  
+  return padding_bytes;
+}
