@@ -2,12 +2,12 @@
 
 DEFINE_BLOCK(b_crc32_check_1v, 1, 0)
 {
-  _global_(int, crc32_check_length);
-  _global_(bool, crc32_check_result);
   _local_(int, checked_length, 0);
-
   crc::crc32 crc32_check;
-
+public:
+  _local_(int, crc32_check_length, 0);
+  _local_(bool, crc32_check_result, false);
+  
   BLOCK_INIT
   {
     crc32_check.reset();

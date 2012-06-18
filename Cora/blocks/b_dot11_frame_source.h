@@ -94,7 +94,7 @@ DEFINE_BLOCK(b_dot11_frame_source_v2, 0, 2)
       i ++;
     }
 
-    produce_each(0, *ntotal_bytes + *npadding_bytes + 2);
+    produce_each(*ntotal_bytes + *npadding_bytes + 2);
     return true;
   }
 };

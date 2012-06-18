@@ -1,11 +1,11 @@
 #pragma once
 
 
-void dot11n_2x2_tx(int argc, _TCHAR* argv[])
+inline void mumimo_2x2_tx(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
   cmdline.parse(argc, argv);
-  
+
   autoref dummy = create_block<dummy_block>();
 
   autoref lstf = create_block<b_dot11n_lstf_v2>();
@@ -33,22 +33,21 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
   //////////////////////////////////////////////////////////////////////////
 
   // for HT-DATA
-  autoref ht_data_source = create_block<b_dot11_frame_source_v1>();
+  autoref ht_data_source = create_block<b_dot11_frame_source_v2>();
 
-  autoref ht_scramble = create_block<b_dot11n_scramble_1v1>();
+  autoref ht_scramble_1 = create_block<b_dot11n_scramble_1v1>();
+  autoref ht_scramble_2 = create_block<b_dot11n_scramble_1v1>();
 
-  autoref ht_conv12 = create_block<b_conv_1o2_1v1>();
-  autoref ht_conv23 = create_block<b_conv_2o3_1v1>();
-  autoref ht_conv34 = create_block<b_conv_3o4_1v1>();
-
-  autoref ht_sp_bpsk  = create_block<b_stream_parser_bpsk_1v2>();
-  autoref ht_sp_qpsk  = create_block<b_stream_parser_qpsk_1v2>();
-  autoref ht_sp_16qam = create_block<b_stream_parser_16qam_1v2>();
-  autoref ht_sp_64qam = create_block<b_stream_parser_64qam_1v2>();
+  autoref ht_conv12_1 = create_block<b_conv_1o2_1v1>();
+  autoref ht_conv12_2 = create_block<b_conv_1o2_1v1>();
+  autoref ht_conv23_1 = create_block<b_conv_2o3_1v1>();
+  autoref ht_conv23_2 = create_block<b_conv_2o3_1v1>();
+  autoref ht_conv34_1 = create_block<b_conv_3o4_1v1>();
+  autoref ht_conv34_2 = create_block<b_conv_3o4_1v1>();
 
   // interleaver
-  autoref ht_itlv_1bpsc_1 = create_block<b_dot11n_interleaver_1bpsc_1v1>(1, string("iss=1"));
-  autoref ht_itlv_1bpsc_2 = create_block<b_dot11n_interleaver_1bpsc_1v1>(1, string("iss=2"));
+  autoref ht_itlv_1bpsc_1 = create_block<b_dot11n_interleaver_1bpsc_half_1v1>(1, string("iss=1"));
+  autoref ht_itlv_1bpsc_2 = create_block<b_dot11n_interleaver_1bpsc_half_1v1>(1, string("iss=2"));
 
   autoref ht_itlv_2bpsc_1 = create_block<b_dot11n_interleaver_2bpsc_1v1>(1, string("iss=1"));
   autoref ht_itlv_2bpsc_2 = create_block<b_dot11n_interleaver_2bpsc_1v1>(1, string("iss=2"));
@@ -126,20 +125,20 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
     .from(csd_sig, 0)
     .to(add_sigcp2, 0);
   //////////////////////////////////////////////////////////////////////////
-  Channel::Create(sizeof(uint8)).from(ht_data_source, 0).to(ht_scramble, 0);
-  Channel::Create(sizeof(uint8)).from(ht_scramble, 0).to(ht_conv12, 0).to(ht_conv23, 0).to(ht_conv34, 0);
-  Channel::Create(sizeof(uint8))
-    .from(ht_conv12, 0).from(ht_conv23, 0).from(ht_conv34, 0)
-    .to(ht_sp_bpsk, 0).to(ht_sp_qpsk, 0).to(ht_sp_16qam, 0).to(ht_sp_64qam, 0);
+  Channel::Create(sizeof(uint8)).from(ht_data_source, 0).to(ht_scramble_1, 0);
+  Channel::Create(sizeof(uint8)).from(ht_data_source, 1).to(ht_scramble_2, 0);
+  
+  Channel::Create(sizeof(uint8)).from(ht_scramble_1, 0).to(ht_conv12_1, 0).to(ht_conv23_1, 0).to(ht_conv34_1, 0);
+  Channel::Create(sizeof(uint8)).from(ht_scramble_2, 0).to(ht_conv12_2, 0).to(ht_conv23_2, 0).to(ht_conv34_2, 0);
 
   Channel::Create(sizeof(uint8))
-    .from(ht_sp_bpsk, 0).from(ht_sp_qpsk, 0).from(ht_sp_16qam, 0).from(ht_sp_64qam, 0)
+    .from(ht_conv12_1, 0).from(ht_conv23_1, 0).from(ht_conv34_1, 0)
     .to(ht_itlv_1bpsc_1, 0).to(ht_itlv_2bpsc_1, 0).to(ht_itlv_4bpsc_1, 0).to(ht_itlv_6bpsc_1, 0);
 
   Channel::Create(sizeof(uint8))
-    .from(ht_sp_bpsk, 1).from(ht_sp_qpsk, 1).from(ht_sp_16qam, 1).from(ht_sp_64qam, 1)
+    .from(ht_conv12_2, 0).from(ht_conv23_2, 0).from(ht_conv34_2, 0)
     .to(ht_itlv_1bpsc_2, 0).to(ht_itlv_2bpsc_2, 0).to(ht_itlv_4bpsc_2, 0).to(ht_itlv_6bpsc_2, 0);
-
+    
   Channel::Create(sizeof(v_ub))
     .from(ht_itlv_1bpsc_1, 0).from(ht_itlv_2bpsc_1, 0).from(ht_itlv_4bpsc_1, 0).from(ht_itlv_6bpsc_1, 0)
     .to(ht_map_bpsk_1, 0).to(ht_map_qpsk_1, 0).to(ht_map_16qam_1, 0).to(ht_map_64qam_1, 0);
@@ -169,12 +168,12 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 
   //////////////////////////////////////////////////////////////////////////
   v_align(64)
-  _global_(uint32, dot11_tx_frame_mcs);
+    _global_(uint32, dot11_tx_frame_mcs);
   _global_(uint32, dot11_tx_frame_length);
   _global_(int,    scramble_length);
 
   tick_count t1, t2, t3, tdiff;
-  
+
   auto get_time = [&](tick_count & t)
   {
     t = tick_count::now();
@@ -183,7 +182,7 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
   {
     tick_count t = t2 - t1;
 
-    printf("time is %f us, throughput is %f Mbps\n", t.us(), nbytes * 8.0f / t.us());
+    printf("time is %f us, throughput is %f Mbps\n", t.us(), 2.0f * nbytes * 8.0f / t.us());
   };
   //////////////////////////////////////////////////////////////////////////
 
@@ -210,72 +209,82 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 
   auto make_htdata_mcs8 = [&]
   {
-    RESET(ht_scramble, ht_conv12, ht_add_pilot_1, ht_add_pilot_2);
-    START(ht_scramble, ht_conv12, ht_sp_bpsk, [&]
-    {
-      START(ht_itlv_1bpsc_1, ht_map_bpsk_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
-      START(ht_itlv_1bpsc_2, ht_map_bpsk_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2, dma_join);
+    RESET(ht_scramble_1, ht_conv12_1, ht_add_pilot_1);
+    RESET(ht_scramble_2, ht_conv12_2, ht_add_pilot_2);
+
+    PARALLEL([&]{
+      START(ht_scramble_1, ht_conv12_1, ht_itlv_1bpsc_1, ht_map_bpsk_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
+    }, [&]{
+      START(ht_scramble_2, ht_conv12_2, ht_itlv_1bpsc_2, ht_map_bpsk_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);
     });
+    
+    START(dma_join);
   };
 
   auto make_htdata_mcs9 = [&]
   {
-    RESET(ht_scramble, ht_conv12, ht_add_pilot_1, ht_add_pilot_2);
-    START(ht_scramble, ht_conv12, ht_sp_qpsk, [&]
-    {
-      START(ht_itlv_2bpsc_1, ht_map_qpsk_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
-      START(ht_itlv_2bpsc_2, ht_map_qpsk_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2, dma_join);
-    });
+    RESET(ht_scramble_1, ht_conv12_1, ht_add_pilot_1);
+    RESET(ht_scramble_2, ht_conv12_2, ht_add_pilot_2);
+
+    START(ht_scramble_1, ht_conv12_1, ht_itlv_2bpsc_1, ht_map_qpsk_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
+    START(ht_scramble_2, ht_conv12_2, ht_itlv_2bpsc_2, ht_map_qpsk_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);
+
+    START(dma_join);
   };
 
   auto make_htdata_mcs10 = [&]
   {
-    RESET(ht_scramble, ht_conv34, ht_add_pilot_1, ht_add_pilot_2);
-    START(ht_scramble, ht_conv34, ht_sp_qpsk, [&]
-    {
-      START(ht_itlv_2bpsc_1, ht_map_qpsk_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
-      START(ht_itlv_2bpsc_2, ht_map_qpsk_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2, dma_join);
-    });
+    RESET(ht_scramble_1, ht_conv34_1, ht_add_pilot_1);
+    RESET(ht_scramble_2, ht_conv34_2, ht_add_pilot_2);
+
+    START(ht_scramble_1, ht_conv34_1, ht_itlv_2bpsc_1, ht_map_qpsk_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
+    START(ht_scramble_2, ht_conv34_2, ht_itlv_2bpsc_2, ht_map_qpsk_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);
+
+    START(dma_join);
   };
 
   auto make_htdata_mcs11 = [&]
   {
-    RESET(ht_scramble, ht_conv12, ht_add_pilot_1, ht_add_pilot_2);
-    START(ht_scramble, ht_conv12, ht_sp_16qam, [&]
-    {
-      START(ht_itlv_4bpsc_1, ht_map_16qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
-      START(ht_itlv_4bpsc_2, ht_map_16qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2, dma_join);
-    });
+    RESET(ht_scramble_1, ht_conv12_1, ht_add_pilot_1);
+    RESET(ht_scramble_1, ht_conv12_1, ht_add_pilot_2);
+
+    START(ht_scramble_1, ht_conv12_1, ht_itlv_4bpsc_1, ht_map_16qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
+    START(ht_scramble_2, ht_conv12_2, ht_itlv_4bpsc_2, ht_map_16qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);
+
+    START(dma_join);
   };
 
   auto make_htdata_mcs12 = [&]
   {
-    RESET(ht_scramble, ht_conv34, ht_add_pilot_1, ht_add_pilot_2);
-    START(ht_scramble, ht_conv34, ht_sp_16qam, [&]
-    {
-      START(ht_itlv_4bpsc_1, ht_map_16qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
-      START(ht_itlv_4bpsc_2, ht_map_16qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2, dma_join);
-    });
+    RESET(ht_scramble_1, ht_conv34_1, ht_add_pilot_1);
+    RESET(ht_scramble_2, ht_conv34_2, ht_add_pilot_2);
+
+    START(ht_scramble_1, ht_conv34_1, ht_itlv_4bpsc_1, ht_map_16qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
+    START(ht_scramble_2, ht_conv34_2, ht_itlv_4bpsc_2, ht_map_16qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);
+
+    START(dma_join);
   };
 
   auto make_htdata_mcs13 = [&]
   {
-    RESET(ht_scramble, ht_conv23, ht_add_pilot_1, ht_add_pilot_2);
-    START(ht_scramble, ht_conv23, ht_sp_64qam, [&]
-    {
-      START(ht_itlv_6bpsc_1, ht_map_64qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
-      START(ht_itlv_6bpsc_2, ht_map_64qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2, dma_join);
-    });
+    RESET(ht_scramble_1, ht_conv23_1, ht_add_pilot_1);
+    RESET(ht_scramble_2, ht_conv23_2, ht_add_pilot_2);
+
+    START(ht_scramble_1, ht_conv23_1, ht_itlv_6bpsc_1, ht_map_64qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
+    START(ht_scramble_2, ht_conv23_2, ht_itlv_6bpsc_2, ht_map_64qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);
+    START(dma_join);
   };
 
   auto make_htdata_mcs14 = [&]
   {
-    RESET(ht_scramble, ht_conv34, ht_add_pilot_1, ht_add_pilot_2);
-    START(ht_scramble, ht_conv34, ht_sp_64qam, [&]
-    {
-      START(ht_itlv_6bpsc_1, ht_map_64qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
-      START(ht_itlv_6bpsc_2, ht_map_64qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2, dma_join);
-    });
+    RESET(ht_scramble_1, ht_conv34_1, ht_add_pilot_1);
+    RESET(ht_scramble_2, ht_conv34_2, ht_add_pilot_2);
+
+
+    START(ht_scramble_1, ht_conv34_1, ht_itlv_6bpsc_1, ht_map_64qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
+    START(ht_scramble_2, ht_conv34_2, ht_itlv_6bpsc_2, ht_map_64qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);
+
+    START(dma_join);
   };
 
   auto mcs8_entry = [&]
@@ -321,7 +330,8 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
     *dot11_tx_frame_length = frame_length;
     *scramble_length       = *dot11_tx_frame_length + 2;
 
-    *ht_scramble.scramble_length = *dot11_tx_frame_length + 2;
+    *ht_scramble_1.scramble_length = *dot11_tx_frame_length + 2;
+    *ht_scramble_2.scramble_length = *dot11_tx_frame_length + 2;
   };
 
   int mcs = cmdline.get("mcs").as_int();
@@ -338,7 +348,7 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 
   _init_(mcs, frame_length);
 
-  int nloop = 10000;
+  int nloop = 1;
 
   START(
     WHILE(IsTrue(nloop-- > 0)), 
@@ -350,9 +360,7 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
     ELSE_IF(IsTrue(*dot11_tx_frame_mcs == 13)), mcs13_entry,
     ELSE_IF(IsTrue(*dot11_tx_frame_mcs == 14)), mcs14_entry,
     ELSE, NOP
-   );
-
-
+    );
 
   dma_join.toRxDumpFile20M("mimo");
   //dma_join.toTxtFile("mimo");

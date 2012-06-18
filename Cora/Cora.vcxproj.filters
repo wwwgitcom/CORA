@@ -273,6 +273,12 @@
     <ClInclude Include="TMain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_mumimo_tx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_mumimo_rx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

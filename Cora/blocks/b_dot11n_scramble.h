@@ -4,7 +4,8 @@
 
 DEFINE_BLOCK(b_dot11n_scramble_1v1, 1, 1)
 {
-  _global_(int, scramble_length);
+public:
+  _local_(int, scramble_length, 0);
   _local_(int, scrambled_length, 0);
 
   scrambler::dot11n_scrambler _scrambler;

@@ -17,7 +17,8 @@ DEFINE_BLOCK(b_viterbi64_3o4_1v1, 1, 1)
   vub *pTrellis;  
   vub vNormMask;
 
-  _global_(int, VitTotalBits);
+public:
+  _local_(int, VitTotalBits, 0);
 
   //////////////////////////////////////////////////////////////////////////
   BLOCK_INIT

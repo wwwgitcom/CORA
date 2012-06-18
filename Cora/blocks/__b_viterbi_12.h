@@ -14,10 +14,10 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
   int nDecodedBits;
   int nTotalSoftBits;
   vub *pTrellisBase;
-  vub *pTrellis;  
+  vub *pTrellis;
   vub vNormMask;
-
-  _global_(int, VitTotalBits);
+public:
+  _local_(int, VitTotalBits, 0);
 
   //////////////////////////////////////////////////////////////////////////
   BLOCK_INIT
