@@ -10,7 +10,7 @@ __forceinline void _PIPE_LINE(task_obj &_Func1, task_obj &_Func2)
 }
 
 template<typename _Function1, typename _Function2>
-__forceinline void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2)
+__forceinline void PIPE_LINE(const _Function1 &_Func1, const _Function2 &_Func2)
 {
   static cpu_manager* cm = cpu_manager::Instance();
   task_obj to = make_task_obj(_Func2);

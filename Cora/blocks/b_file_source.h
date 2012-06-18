@@ -134,7 +134,7 @@ DEFINE_BLOCK(b_file_source_v2, 2, 2)
   _local_(psignal_block, pSignalBlock2, nullptr);
   _local_(int, nDecimate, 1);
   _local_(int, nOffset, 0);
-  _local_(int, nLoop, 1000);
+  _local_(int, nLoop, 1000000);
 
 public:
   int report()

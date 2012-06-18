@@ -165,16 +165,10 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
   autoref ht_deinterleave_6bpsc_iss2 = create_block<b_dot11n_deinterleave_6bpsc_1v1>(
     1, string("iss=2"));
 
-  autoref ht_stream_joiner_1 = create_block<b_stream_joiner_1_2v1>();
-  autoref ht_stream_joiner_2 = create_block<b_stream_joiner_2_2v1>();
-  autoref ht_stream_joiner_3 = create_block<b_stream_joiner_3_2v1>();
-
-  autoref descramble_seed_1 = create_block<b_dot11_descramble_seed_1v>();
   autoref descramble_1      = create_block<b_dot11_descramble_1v1>();
-  autoref crc32_checker_1   = create_block<b_crc32_check_1v>();
-
-  autoref descramble_seed_2 = create_block<b_dot11_descramble_seed_1v>();
   autoref descramble_2      = create_block<b_dot11_descramble_1v1>();
+
+  autoref crc32_checker_1   = create_block<b_crc32_check_1v>();
   autoref crc32_checker_2   = create_block<b_crc32_check_1v>();
 
   autoref pilot_tracking  = create_block<b_dot11_pilot_tracking_2v>();
@@ -262,11 +256,11 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
   
   Channel::Create(sizeof(uint8))
     .from(ht_data_vit_12_1, 0).from(ht_data_vit_23_1, 0).from(ht_data_vit_34_1, 0)
-    .to(descramble_seed_1, 0).to(descramble_1, 0);
+    .to(descramble_1, 0);
 
   Channel::Create(sizeof(uint8))
     .from(ht_data_vit_12_2, 0).from(ht_data_vit_23_2, 0).from(ht_data_vit_34_2, 0)
-    .to(descramble_seed_2, 0).to(descramble_2, 0);
+    .to(descramble_2, 0);
 
   Channel::Create(sizeof(uint8))
     .from(descramble_1, 0).to(crc32_checker_1, 0);
@@ -372,69 +366,62 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
     *crc32_checker_1.crc32_check_length = *ht_frame_length;
     *crc32_checker_2.crc32_check_length = *ht_frame_length;
 
-    descramble_state_1 = 0;
-    descramble_state_2 = 0;
+    RESET(descramble_1, descramble_2);
 
-    symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
+    symbol_count = pht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
     total_symbol_count = symbol_count;
+
+    switch (*ht_frame_mcs)
+    {
+    case 8:
+    case 9:
+    case 11:
+      *ht_data_vit_12_1.VitTotalBits = VitTotalBits;
+      *ht_data_vit_12_2.VitTotalBits = VitTotalBits;
+      break;
+    case 10:
+    case 12:
+    case 14:
+      *ht_data_vit_34_1.VitTotalBits = VitTotalBits;
+      *ht_data_vit_34_2.VitTotalBits = VitTotalBits;
+      break;
+    case 13:
+      *ht_data_vit_23_1.VitTotalBits = VitTotalBits;
+      *ht_data_vit_23_2.VitTotalBits = VitTotalBits;
+      break;
+    default:
+      break;
+    }
   };
 
   auto rx_vit12_pipeline_1 = [&]
   {
-    *ht_data_vit_12_1.VitTotalBits = VitTotalBits;
-
-    START(ht_data_vit_12_1, 
-      IF(IsTrue(descramble_state_1 == 0)), 
-      IF(descramble_seed_1), [&]{descramble_state_1 = 1;}, ELSE, NOP,
-      ELSE, descramble_1, crc32_checker_1, STOP(NOP)
-      );
+    START(ht_data_vit_12_1, descramble_1, crc32_checker_1, STOP(NOP));
   };
 
   auto rx_vit12_pipeline_2 = [&]
   {
-    *ht_data_vit_12_2.VitTotalBits = VitTotalBits;
-
-    START(ht_data_vit_12_2, 
-      IF(IsTrue(descramble_state_2 == 0)), 
-      IF(descramble_seed_2), [&]{descramble_state_2 = 1;}, ELSE, NOP,
-      ELSE, descramble_2, crc32_checker_2, STOP(NOP)
-      );
+    START(ht_data_vit_12_2, descramble_2, crc32_checker_2, STOP(NOP));
   };
 
   auto rx_vit23_pipeline_1 = [&]
   {
-    START(ht_data_vit_23_1, 
-      IF(IsTrue(descramble_state_1 == 0)), 
-      IF(descramble_seed_1), [&]{descramble_state_1 = 1;}, ELSE, NOP,
-      ELSE, descramble_1, crc32_checker_1, STOP(NOP)
-      );
+    START(ht_data_vit_23_1, descramble_1, crc32_checker_1, STOP(NOP));
   };
 
   auto rx_vit23_pipeline_2 = [&]
   {
-    START(ht_data_vit_23_2, 
-      IF(IsTrue(descramble_state_2 == 0)), 
-      IF(descramble_seed_2), [&]{descramble_state_2 = 1;}, ELSE, NOP,
-      ELSE, descramble_2, crc32_checker_2, STOP(NOP)
-      );
+    START(ht_data_vit_23_2, descramble_2, crc32_checker_2, STOP(NOP));
   };
 
   auto rx_vit34_pipeline_1 = [&]
   {
-    START(ht_data_vit_34_1, 
-      IF(IsTrue(descramble_state_1 == 0)), 
-      IF(descramble_seed_1), [&]{descramble_state_1 = 1;}, ELSE, NOP,
-      ELSE, descramble_1, crc32_checker_1, STOP(NOP)
-      );
+    START(ht_data_vit_34_1, descramble_1, crc32_checker_1, STOP(NOP));
   };
 
   auto rx_vit34_pipeline_2 = [&]
   {
-    START(ht_data_vit_34_2, 
-      IF(IsTrue(descramble_state_2 == 0)), 
-      IF(descramble_seed_2), [&]{descramble_state_2 = 1;}, ELSE, NOP,
-      ELSE, descramble_2, crc32_checker_2, STOP(NOP)
-      );
+    START(ht_data_vit_34_2, descramble_2, crc32_checker_2, STOP(NOP));
   };
   //////////////////////////////////////////////////////////////////////////
 
@@ -489,9 +476,16 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
     {
       ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
-
+#if 0
+      PARALLEL([&]{
+        ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1);  
+      }, [&]{
+        ONCE(ht_demap_64qam2, ht_deinterleave_6bpsc_iss2);
+      });
+#else
       ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1,
         ht_demap_64qam2, ht_deinterleave_6bpsc_iss2);
+#endif
     }));
 
     symbol_count--;
@@ -501,49 +495,56 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
   auto rx_mcs8_pipeline = [&]
   {
     PIPE_LINE(rx_bpsk_pipeline_1, [&]{
-      ONCE(rx_vit12_pipeline_1, rx_vit12_pipeline_2);
+      PARALLEL(rx_vit12_pipeline_1, rx_vit12_pipeline_2);
+      //ONCE(rx_vit12_pipeline_1, rx_vit12_pipeline_2);
     });
   };
 
   auto rx_mcs9_pipeline = [&]
   {
     PIPE_LINE(rx_qpsk_pipeline_1, [&]{
-      ONCE(rx_vit12_pipeline_1, rx_vit12_pipeline_2);
+      PARALLEL(rx_vit12_pipeline_1, rx_vit12_pipeline_2);
+      //ONCE(rx_vit12_pipeline_1, rx_vit12_pipeline_2);
     });
   };
 
   auto rx_mcs10_pipeline = [&]
   {
     PIPE_LINE(rx_qpsk_pipeline_1, [&]{
-      ONCE(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
+      PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
     });
   };
 
   auto rx_mcs11_pipeline = [&]
   {
     PIPE_LINE(rx_16qam_pipeline_1, [&]{
-      ONCE(rx_vit12_pipeline_1, rx_vit12_pipeline_2);
+      PARALLEL(rx_vit12_pipeline_1, rx_vit12_pipeline_2);
     });
   };
 
   auto rx_mcs12_pipeline = [&]
   {
     PIPE_LINE(rx_16qam_pipeline_1, [&]{
-      ONCE(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
+      PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
     });
   };
 
   auto rx_mcs13_pipeline = [&]
   {
     PIPE_LINE(rx_64qam_pipeline_1, [&]{
-      ONCE(rx_vit23_pipeline_1, rx_vit23_pipeline_2);
+      PARALLEL(rx_vit23_pipeline_1, rx_vit23_pipeline_2);
     });
   };
 
   auto rx_mcs14_pipeline = [&]
   {
+    tick_count _t1, _t2, _tdiff;
     PIPE_LINE(rx_64qam_pipeline_1, [&]{
-      ONCE(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
+      _t1 = tick_count::now();
+      PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
+      _t2 = tick_count::now();
+      _tdiff = _t2 - _t1;
+      printf("parallel viterbi %f us\n", _tdiff.us());
     });
   };
 
@@ -564,7 +565,7 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
     t2 = tick_count::now();
     tick_count t = t2 - t1;
     printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-    printf("frame decode done! %d\n", *crc32_check_result);
+    printf("frame decode done! %d : %d\n", *crc32_checker_1.crc32_check_result, *crc32_checker_2.crc32_check_result);
   };
 
   START(

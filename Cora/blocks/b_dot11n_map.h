@@ -219,7 +219,9 @@ DEFINE_BLOCK(b_dot11n_map_64qam_1v1, 1, 1)
 
       lo = (p[i + 1] & 0xF0);
       hi = p[i + 2];
-      bt = hi | (lo >> 8);
+      bt = (hi << 4) | (lo >> 4);
+
+      mapper_type::output_type& out2 = (*mapper)[bt];
 
       for(int j = 0; j < 2; j++, sc_idx++)
       {
@@ -235,7 +237,7 @@ DEFINE_BLOCK(b_dot11n_map_64qam_1v1, 1, 1)
         {
           sc_idx = 1;
         }
-        op[0].subcarriers[sc_idx] = out.values[j];
+        op[0].subcarriers[sc_idx] = out2.values[j];
       }
     }
     consume(0, 3);

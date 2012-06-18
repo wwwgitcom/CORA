@@ -4,7 +4,7 @@
 
 DEFINE_BLOCK(b_dot11_descramble_seed_1v, 1, 0)
 {
-  _global_(descrambler::dot11n_descrambler, descrambler);
+  _global_(dsp_descrambler::dot11n_descrambler, descrambler);
 
   BLOCK_WORK
   {
@@ -23,8 +23,15 @@ DEFINE_BLOCK(b_dot11_descramble_seed_1v, 1, 0)
 
 DEFINE_BLOCK(b_dot11_descramble_1v1, 1, 1)
 {
-  _global_(descrambler::dot11n_descrambler, descrambler);
-  
+public:
+  dsp_descrambler::dot11n_descrambler descrambler;
+  _local_(int, nInputCount, 0);
+
+  BLOCK_RESET
+  {
+    *nInputCount = 0;
+  }
+
   BLOCK_WORK
   {
     auto n = ninput(0);
@@ -33,11 +40,18 @@ DEFINE_BLOCK(b_dot11_descramble_1v1, 1, 1)
     auto ip = _$<uint8>(0);
     auto op = $_<uint8>(0);
 
-    autoref ds = *descrambler;
+    if (*nInputCount < 2 && n >= 2)
+    {
+      descrambler.reset(ip[1]);
+      ip += 2;
+      n  -= 2;
+      consume(0, 2);
+      *nInputCount = 2;
+    }
 
     for (int i = 0; i < n; i++)
     {
-      op[i] = ds(ip[i]);
+      op[i] = descrambler(ip[i]);
       //printf("%02X ", op[i]);
     }
     //printf("\n\n");

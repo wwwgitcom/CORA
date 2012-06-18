@@ -226,13 +226,26 @@ struct dot11n_interleaver_1bpsc : dot11n_interleaver<1>
 
   __forceinline void second_half(unsigned char pInput[7], v_ub *Output)
   {
-    Output[0] = (v_ub&)lookuptable_padding[(pInput[0] & 0xF0) >> 4][0];
-    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[1][pInput[1]][0]);
-    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[2][pInput[2]][0]);
-    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[3][pInput[3]][0]);
-    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[4][pInput[4]][0]);
-    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[5][pInput[5]][0]);
-    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[6][pInput[6]][0]);
+    unsigned char c = ((pInput[0] & 0xF0) >> 4) | (pInput[1] << 4);
+    Output[0] = (v_ub&)lookuptable[0][c][0];
+
+    c = ((pInput[1] & 0xF0) >> 4) | (pInput[2] << 4);
+    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[1][c][0]);
+
+    c = ((pInput[2] & 0xF0) >> 4) | (pInput[3] << 4);
+    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[2][c][0]);
+
+    c = ((pInput[3] & 0xF0) >> 4) | (pInput[4] << 4);
+    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[3][c][0]);
+
+    c = ((pInput[4] & 0xF0) >> 4) | (pInput[5] << 4);
+    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[4][c][0]);
+
+    c = ((pInput[5] & 0xF0) >> 4) | (pInput[6] << 4);
+    Output[0] = v_xor(Output[0], (v_ub&)lookuptable[5][c][0]);
+
+    c = ((pInput[6] & 0xF0) >> 4);
+    Output[0] = v_xor(Output[0], (v_ub&)lookuptable_padding[c][0]);
   }
 
 protected:

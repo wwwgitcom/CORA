@@ -153,13 +153,13 @@ inline void mumimo_2x2_tx(int argc, _TCHAR* argv[])
     .from(ht_map_bpsk_2, 0).from(ht_map_qpsk_2, 0).from(ht_map_16qam_2, 0).from(ht_map_64qam_2, 0)
     .to(ht_add_pilot_2, 0).to(ht_ifft_2, 0);
 
-  Channel::Create(sizeof(dot11n_tx_symbol))
+  Channel::Create(sizeof(dot11n_tx_symbol), 1024)
     .from(ht_ifft_1, 0).to(ht_add_cp1, 0);
 
   Channel::Create(sizeof(dot11n_tx_symbol))
     .from(ht_ifft_2, 0).to(ht_csd, 0);
 
-  Channel::Create(sizeof(dot11n_tx_symbol))
+  Channel::Create(sizeof(dot11n_tx_symbol), 1024)
     .from(ht_csd, 0).to(ht_add_cp2, 0);
   //////////////////////////////////////////////////////////////////////////
   Channel::Create(sizeof(v_cs), 1024 * 1024)
@@ -212,7 +212,7 @@ inline void mumimo_2x2_tx(int argc, _TCHAR* argv[])
     RESET(ht_scramble_1, ht_conv12_1, ht_add_pilot_1);
     RESET(ht_scramble_2, ht_conv12_2, ht_add_pilot_2);
 
-    PARALLEL([&]{
+    ONCE([&]{
       START(ht_scramble_1, ht_conv12_1, ht_itlv_1bpsc_1, ht_map_bpsk_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
     }, [&]{
       START(ht_scramble_2, ht_conv12_2, ht_itlv_1bpsc_2, ht_map_bpsk_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);
@@ -280,7 +280,6 @@ inline void mumimo_2x2_tx(int argc, _TCHAR* argv[])
     RESET(ht_scramble_1, ht_conv34_1, ht_add_pilot_1);
     RESET(ht_scramble_2, ht_conv34_2, ht_add_pilot_2);
 
-
     START(ht_scramble_1, ht_conv34_1, ht_itlv_6bpsc_1, ht_map_64qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
     START(ht_scramble_2, ht_conv34_2, ht_itlv_6bpsc_2, ht_map_64qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);
 
@@ -337,7 +336,7 @@ inline void mumimo_2x2_tx(int argc, _TCHAR* argv[])
   int mcs = cmdline.get("mcs").as_int();
   if (mcs == 0)
   {
-    mcs = 8;
+    mcs = 14;
   }
 
   int frame_length = cmdline.get("frame_length").as_int();

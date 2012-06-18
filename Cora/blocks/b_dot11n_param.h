@@ -102,7 +102,7 @@ __forceinline int pht_padding_bytes(int mcs, int length_bytes)
     padding_bytes = 39 - length_bytes % 39;
     break;
   case 14:
-    padding_bytes = 13 - length_bytes % 13;
+    padding_bytes = 117 - length_bytes % 117;
     break;
   default:
     padding_bytes = 0;
@@ -110,4 +110,15 @@ __forceinline int pht_padding_bytes(int mcs, int length_bytes)
   }
   
   return padding_bytes;
+}
+
+__forceinline int pht_symbol_count(int mcs, int length_bytes, int* total_bits)
+{
+  int total_bytes = length_bytes + 2 + pht_padding_bytes(mcs, length_bytes + 2);
+
+  int ntotalbits   = total_bytes << 3;
+
+  int nsymbolcount = (ntotalbits << 1) / DOT11N_RATE_PARAMS[mcs].ndbps;
+  *total_bits = ntotalbits;
+  return nsymbolcount;
 }

@@ -129,7 +129,7 @@ __forceinline void ViterbiAdvance(vub *&pTrellis, vub pVITMA[], int i_ma, vub pV
   rub1 = add ( rub1, pVITMB[i_mb+7] );
   rub1 = or  ( rub1, ALLONE );
 
-  // store the shortest path, state:[48-63]        
+  // store the shortest path, state:[48-63]
   pTrellis[7] = smin (rub0, rub1); 
   v_print(shift_right(pTrellis[7], 1));
 

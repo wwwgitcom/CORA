@@ -29,7 +29,6 @@ DEFINE_BLOCK(b_dot11n_interleaver_1bpsc_1v1, 1, 1)
 
     interleaver(ip, op);
 
-
 #if 0
     for (int i = 0; i < interleaver.total_bytes; i++)
     {
@@ -165,13 +164,14 @@ DEFINE_BLOCK(b_dot11n_interleaver_4bpsc_1v1, 1, 1)
 DEFINE_BLOCK(b_dot11n_interleaver_6bpsc_1v1, 1, 1)
 {
   dot11n_interleaver_6bpsc interleaver;
-
+  int iss;
   BLOCK_INIT
   {
     auto v = $["iss"];
     if (!v.empty())
     {
-      interleaver.init(atoi(v.c_str()));
+      iss = atoi(v.c_str());
+      interleaver.init(iss);
     }
     else
     {
@@ -188,6 +188,16 @@ DEFINE_BLOCK(b_dot11n_interleaver_6bpsc_1v1, 1, 1)
     auto op = $_<v_ub>(0);
 
     interleaver(ip, op);
+
+    printf("iss=%d\n", iss);
+    for (int i = 0; i < interleaver.voutbuffer_size; i++)
+    {
+      for (int j = 0; j < 16; j++)
+      {
+        printf("%02X ", op[i][j]);
+      }
+    }
+    printf("\n\n");
 
     consume(0, interleaver.total_bytes);
     produce(0, interleaver.voutbuffer_size);

@@ -138,7 +138,13 @@ int _tmain(int argc, _TCHAR* argv[])
     mumimo_2x2_tx(argc, argv);
   };
 
-  mumimo_tx_main();
+  auto mumimo_rx_main = [&]
+  {
+    mumimo_2x2_rx(argc, argv);
+  };
+
+  //dsp_main(mumimo_tx_main);
+  dsp_main(mumimo_rx_main);
 
 #if 0
   if ( cmdline.get("rx").exist() )

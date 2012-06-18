@@ -65,7 +65,7 @@ DEFINE_BLOCK(b_dot11_frame_source_v2, 0, 2)
     _crc32_2.reset();
 
     auto op1 = $_<uint8>(0);
-    auto op2 = $_<uint8>(0);
+    auto op2 = $_<uint8>(1);
 
     op1[0] = 0;
     op1[1] = 0;

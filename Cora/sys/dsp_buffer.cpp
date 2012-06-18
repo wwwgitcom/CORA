@@ -258,7 +258,7 @@ bool dsp_buffer::allocate_buffer (int nitems, size_t sizeof_item)
   m_bufsize = nitems;
   m_vmcircbuf = dsp_vmcircbuf::create(m_bufsize * m_sizeof_item);
   if (m_vmcircbuf == 0){
-    cerr << "gr_buffer::allocate_buffer: failed to allocate buffer of size "
+    cerr << "dsp_buffer::allocate_buffer: failed to allocate buffer of size "
       << m_bufsize * m_sizeof_item / 1024 << " KB\n";
     return false;
   }

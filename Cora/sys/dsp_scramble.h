@@ -1,7 +1,7 @@
 #pragma once
 
 
-namespace scrambler
+namespace dsp_scrambler
 {
   struct dot11a_scrambler
   {
@@ -75,16 +75,16 @@ namespace scrambler
   };
 }
 
-namespace descrambler
+namespace dsp_descrambler
 {
-  struct dot11a_descrambler : scrambler::dot11a_scrambler
+  struct dot11a_descrambler : dsp_scrambler::dot11a_scrambler
   {
-    dot11a_descrambler(unsigned __int8 scrambler_register) : scrambler::dot11a_scrambler(scrambler_register){}
+    dot11a_descrambler(unsigned __int8 scrambler_register = 0) : dsp_scrambler::dot11a_scrambler(scrambler_register){}
   };
 
   struct dot11n_descrambler : dot11a_descrambler
   {
-    dot11n_descrambler(unsigned __int8 scrambler_register) : dot11a_descrambler(scrambler_register){}
+    dot11n_descrambler(unsigned __int8 scrambler_register = 0) : dot11a_descrambler(scrambler_register){}
   };
 
   struct dot11b_descrambler
@@ -94,7 +94,7 @@ namespace descrambler
 
     unsigned __int8 _descrambler_register;
 
-    dot11b_descrambler(unsigned __int8 descrambler_register) : _descrambler_register(descrambler_register){}
+    dot11b_descrambler(unsigned __int8 descrambler_register = 0) : _descrambler_register(descrambler_register){}
 
     __forceinline unsigned __int8 operator()(unsigned __int8 &ubInput)
     {

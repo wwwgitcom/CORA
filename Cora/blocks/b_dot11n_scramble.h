@@ -8,7 +8,7 @@ public:
   _local_(int, scramble_length, 0);
   _local_(int, scrambled_length, 0);
 
-  scrambler::dot11n_scrambler _scrambler;
+  dsp_scrambler::dot11n_scrambler _scrambler;
 
   BLOCK_INIT
   {

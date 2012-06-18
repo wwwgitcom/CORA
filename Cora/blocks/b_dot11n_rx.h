@@ -288,15 +288,12 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   _global_(uint32, ht_frame_mcs);
   _global_(uint16, ht_frame_length);
   int symbol_count;
+  int VitTotalBits;
   int total_symbol_count;
   tick_count t1, t2, t3;
 
   // var used by 2nd block
   v_align(64)
-  _global_(int, VitTotalSoftBits);
-  _global_(int, VitTotalBits);  
-  _global_(int, crc32_check_length);
-  _global_(bool, crc32_check_result);
   int descramble_state = 0;
   //////////////////////////////////////////////////////////////////////////
   auto frame_detection = [&]() -> bool
@@ -320,7 +317,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   auto lsig_handler = [&]() -> bool
   {
-    *VitTotalBits = 24;
+    *l_sig_vit.VitTotalBits = 24;
     *l_sig_ok = false;
     //l-sig
     START(src, wait_ofdm, STOP([&]
@@ -335,7 +332,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   auto htsig_handler = [&]() -> bool
   {
-    *VitTotalBits = 48;
+    *ht_sig_vit.VitTotalBits = 48;
     *ht_sig_ok = false;
     //ht-sig
     START(src, wait_ofdm, IF([&]
@@ -377,39 +374,46 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   auto pipeline_init = [&]
   {
-    *crc32_check_length = *ht_frame_length;
-
-    descramble_state = 0;
+    *crc32_checker.crc32_check_length = *ht_frame_length;
+    
+    RESET(descramble);
 
     symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
     total_symbol_count = symbol_count;
+
+    switch (*ht_frame_mcs)
+    {
+    case 8:
+    case 9:
+    case 11:
+      *ht_data_vit_12.VitTotalBits = VitTotalBits;
+      break;
+    case 10:
+    case 12:
+    case 14:
+      *ht_data_vit_34.VitTotalBits = VitTotalBits;
+      break;
+    case 13:
+      *ht_data_vit_23.VitTotalBits = VitTotalBits;
+      break;
+    default:
+      break;
+    }
   };
 
   auto rx_vit12_pipeline = [&]
   {
-    START(ht_data_vit_12, 
-      IF(IsTrue(descramble_state == 0)), 
-      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-      ELSE, descramble, crc32_checker, STOP(NOP)
-      );
+    START(ht_data_vit_12, descramble, crc32_checker, STOP(NOP));
   };
 
   auto rx_vit23_pipeline = [&]
   {
-    START(ht_data_vit_23, 
-      IF(IsTrue(descramble_state == 0)), 
-      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-      ELSE, descramble, crc32_checker, STOP(NOP)
-      );
+    START(ht_data_vit_23, descramble, crc32_checker, STOP(NOP));
   };
 
   auto rx_vit34_pipeline = [&]
   {
-    START(ht_data_vit_34, 
-      IF(IsTrue(descramble_state == 0)), 
-      IF(descramble_seed), [&]{descramble_state = 1;}, ELSE, NOP,
-      ELSE, descramble, crc32_checker, STOP(NOP)
-      );
+    START(ht_data_vit_34, descramble, crc32_checker, STOP(NOP));
   };
   //////////////////////////////////////////////////////////////////////////
 
@@ -525,7 +529,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     t2 = tick_count::now();
     tick_count t = t2 - t1;
     printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
-    printf("frame decode done! %d\n", *crc32_check_result);
+    printf("frame decode done! %d\n", *crc32_checker.crc32_check_result);
   };
 
   START(
