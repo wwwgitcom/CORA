@@ -14,14 +14,21 @@ __forceinline void PIPE_LINE(const _Function1 &_Func1, const _Function2 &_Func2)
 {
   static cpu_manager* cm = cpu_manager::Instance();
   task_obj to = make_task_obj(_Func2);
+  to.set_as_cachable();
+  cm->run_task(&to);
 
-  while(_Func1())
+  while(const_cast<_Function1&>(_Func1)())
   {
     to.wait();
-    cm->run_task(&to);
+    /*while (to.status)
+    {
+      printf(".");
+    }*/
+    cm->fast_run_task(&to);
   }
   to.wait();
-  cm->run_task(&to);
+  to.set_as_not_cachable();
+  cm->fast_run_task(&to);
   to.wait();
 }
 

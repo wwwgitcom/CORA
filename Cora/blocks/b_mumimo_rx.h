@@ -111,13 +111,17 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
 
   autoref ht_data_vit_34_1 = create_block<b_viterbi64_3o4_1v1>(
     2,
-    string("TraceBackLength=144"),
-    string("TraceBackOutput=384")
+    //string("TraceBackLength=144"),
+    //string("TraceBackOutput=384")
+    string("TraceBackLength=36"),
+    string("TraceBackOutput=192")
     );
   autoref ht_data_vit_34_2 = create_block<b_viterbi64_3o4_1v1>(
     2,
-    string("TraceBackLength=144"),
-    string("TraceBackOutput=384")
+    //string("TraceBackLength=144"),
+    //string("TraceBackOutput=384")
+    string("TraceBackLength=36"),
+    string("TraceBackOutput=192")
     );
 
   autoref l_sig_parser = create_block<b_lsig_parser_1v>();
@@ -172,7 +176,8 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
   autoref crc32_checker_2   = create_block<b_crc32_check_1v>();
 
   autoref pilot_tracking  = create_block<b_dot11_pilot_tracking_2v>();
-
+  // for profiling
+  autoref producer = create_block<b_producer_v2>(2, string("nItemsEach=640"), string("nItemsTotal=640000"));
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
     .from(src, 0)
@@ -249,9 +254,11 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
 
   Channel::Create(sizeof(unsigned __int8))
     .from(ht_deinterleave_1bpsc_iss1, 0).from(ht_deinterleave_2bpsc_iss1, 0).from(ht_deinterleave_4bpsc_iss1, 0).from(ht_deinterleave_6bpsc_iss1, 0)
+    .from(producer, 0)
     .to(ht_data_vit_12_1, 0).to(ht_data_vit_23_1, 0).to(ht_data_vit_34_1, 0);
   Channel::Create(sizeof(unsigned __int8))
     .from(ht_deinterleave_1bpsc_iss2, 0).from(ht_deinterleave_2bpsc_iss2, 0).from(ht_deinterleave_4bpsc_iss2, 0).from(ht_deinterleave_6bpsc_iss2, 0)
+    .from(producer, 1)
     .to(ht_data_vit_12_2, 0).to(ht_data_vit_23_2, 0).to(ht_data_vit_34_2, 0);
   
   Channel::Create(sizeof(uint8))
@@ -331,8 +338,7 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
 
       START(IF(ht_sig_parser), [&]{bRet = true;});
       return bRet;
-    }), STOP(NOP), ELSE, NOP);
-    printf("HT_SIG: MCS=%d, Length=%d\n", *ht_frame_mcs, *ht_frame_length);
+    }), STOP(NOP), ELSE, NOP);    
     return *ht_sig_ok;
   };
 
@@ -362,11 +368,10 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
 
   auto pipeline_init = [&]
   {
+    RESET(descramble_1, descramble_2);
 
     *crc32_checker_1.crc32_check_length = *ht_frame_length;
     *crc32_checker_2.crc32_check_length = *ht_frame_length;
-
-    RESET(descramble_1, descramble_2);
 
     symbol_count = pht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
     total_symbol_count = symbol_count;
@@ -392,6 +397,8 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
     default:
       break;
     }
+
+    printf("HT: MCS=%d, Length=%d, SymbolCount=%d\n", *ht_frame_mcs, *ht_frame_length, total_symbol_count);
   };
 
   auto rx_vit12_pipeline_1 = [&]
@@ -474,15 +481,23 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
   {
     START(src, wait_ofdm, STOP([&]
     {
-      ONCE(cfo_comp, remove_gi1, fft_data1);
-      ONCE(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
 #if 0
+      ONCE(cfo_comp);
       PARALLEL([&]{
-        ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1);  
+        ONCE(remove_gi1, fft_data1);
+      }, [&]{
+        ONCE(remove_gi2, fft_data2);
+      });
+      
+      ONCE(mimo_channel_compensator, pilot_tracking);
+      PARALLEL([&]{
+        ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1);
       }, [&]{
         ONCE(ht_demap_64qam2, ht_deinterleave_6bpsc_iss2);
       });
 #else
+      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi2, fft_data2, mimo_channel_compensator, pilot_tracking);
       ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1,
         ht_demap_64qam2, ht_deinterleave_6bpsc_iss2);
 #endif
@@ -538,14 +553,32 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
 
   auto rx_mcs14_pipeline = [&]
   {
-    tick_count _t1, _t2, _tdiff;
     PIPE_LINE(rx_64qam_pipeline_1, [&]{
-      _t1 = tick_count::now();
+      //rx_vit34_pipeline_1();
       PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
-      _t2 = tick_count::now();
-      _tdiff = _t2 - _t1;
-      printf("parallel viterbi %f us\n", _tdiff.us());
     });
+  };
+
+  auto profile_viterbi34 = [&]
+  {
+    tick_count _t1, _t2, _tdiff;
+    //*ht_data_vit_34_1.VitTotalBits = *producer.nItemsTotal;
+    *crc32_checker_1.crc32_check_length = *producer.nItemsTotal * 3 / 4 / 8;
+    *crc32_checker_2.crc32_check_length = *producer.nItemsTotal * 3 / 4 / 8;
+    _t1 = tick_count::now();
+#if 0
+    START(producer, [&]{      
+      PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
+    });
+#else
+    PIPE_LINE(producer, [&]{
+      //START(ht_data_vit_34_1, descramble_1, crc32_checker_1);
+      PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
+    });
+#endif
+    _t2 = tick_count::now();
+    _tdiff = _t2 - _t1;
+    printf("profile viterbi %f us, put %f Mbps\n", _tdiff.us(), *producer.nItemsTotal * 0.75 / _tdiff.us());
   };
 
   auto htdata_handler = [&]
@@ -568,9 +601,14 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
     printf("frame decode done! %d : %d\n", *crc32_checker_1.crc32_check_result, *crc32_checker_2.crc32_check_result);
   };
 
+#if 0
   START(
     WHILE(frame_detection), IF(lltf_handler), IF(lsig_handler), IF(htsig_handler), IF(htstf_handler), IF(htltf_handler), htdata_handler
     );
+#else
+  profile_viterbi34();
+#endif
+
 
   printf("rx main terminated...\n");
 };

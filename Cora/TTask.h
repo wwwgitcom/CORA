@@ -33,10 +33,18 @@ class sync_obj : public _sync_obj
 
 //////////////////////////////////////////////////////////////////////////
 
+enum task_obj_status
+{
+  task_done,
+  task_run,
+  task_cachable
+};
+
 class __declspec(align(64)) _task_obj
 {
 public:
   volatile unsigned __int32 status;
+  volatile unsigned __int32 cachable;
   LIST_ENTRY                entry;
   TaskProc                  proc;
   void *                    obj;
@@ -49,6 +57,16 @@ public:
   __forceinline void invoke()
   {
     proc(obj);
+  }
+
+  __forceinline void set_as_cachable()
+  {
+    cachable = true;
+  }
+
+  __forceinline void set_as_not_cachable()
+  {
+    cachable = false;
   }
 
   __forceinline void done()
@@ -124,6 +142,7 @@ task_obj make_task_obj(const _Function& _Func)
 {
   task_obj to;
   to.status = 0;
+  to.cachable = false;
   to.proc   = reinterpret_cast <TaskProc> (&::_UnrealizedChore::_InvokeBridgeRef<_Function>);
   to.obj    = &const_cast<_Function&>(_Func);
   return to;
@@ -261,7 +280,7 @@ extern cpu_manager g_cm;
 class cpu_manager
 {
 private:
-  sync_obj        m_sync_obj;  
+  sync_obj        m_sync_obj;
   ULONG          *m_cpu_index;
   ULONG           m_cpu_count;
   int             m_nCurrentIndex;
@@ -282,6 +301,11 @@ public:
   __forceinline static cpu_manager* Instance()
   {
     return &g_cm;
+  }
+
+  __forceinline void fast_run_task(task_obj* t)
+  {
+    t->status = 1;
   }
 
   __forceinline void run_task(task_obj* t)

@@ -33,6 +33,14 @@ void cpu_processor::Run()
       {
         t->invoke();
         t->done();
+        if (t->cachable)
+        {
+          while (!t->status)
+          {
+            __asm pause;
+          }
+          continue;
+        }
         t = Dequeue();
       } while (t);
       
@@ -122,6 +130,20 @@ void cpu_manager::setup()
   {
     int j = 0;
     for (int i = 0; i < m_nTotalProcessor; i++)
+    {
+      m_sync_obj.status |= (1L << i);
+      m_cpus[i].set_status_mask(&m_sync_obj.status);
+      m_cpus[i].Create((1L << i));
+      m_cpu_index[j] = i;
+      m_cpu_count++;
+      j++;
+      log("create virtual processor %d, %X\n", i, m_sync_obj.status);
+    }
+  }
+  else
+  {
+    int j = 0;
+    for (int i = 1; i < m_nTotalProcessor; i++)
     {
       m_sync_obj.status |= (1L << i);
       m_cpus[i].set_status_mask(&m_sync_obj.status);

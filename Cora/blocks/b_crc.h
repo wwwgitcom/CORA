@@ -15,6 +15,8 @@ public:
 
   BLOCK_WORK
   {
+    trace();
+
     auto n = ninput(0);
     if (n < 1) {return false;}
 
