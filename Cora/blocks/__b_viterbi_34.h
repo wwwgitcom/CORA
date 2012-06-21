@@ -110,7 +110,7 @@ public:
       ViterbiAdvance(pTrellis, (vub*)VIT_MB, ip[nSoftBits + 3]);
       i_trellis += 3;
 
-      if (pTrellis[0][0] > 192)
+      if (pTrellis[0][0] > 208)
       {
         pTrellis[0] = sub ( pTrellis[0], vNormMask);
         pTrellis[1] = sub ( pTrellis[1], vNormMask);

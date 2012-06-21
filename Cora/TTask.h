@@ -312,7 +312,7 @@ public:
   {
     DWORD dwFreeCpu = 0;
 
-#if 0
+#if 1
     if (!m_sync_obj.status)
     {
       //printf("[cpu_man] random access status %p.\n", m_sync_obj.status);
@@ -341,7 +341,7 @@ public:
       //}
       //printf("[cpu_man] enqueue task %p to processor %d.\n", t, (1L << dwFreeCpu));
     }
-#if 1
+#if 0
     else
     {
       // all cpu are busy, use random cpu

@@ -172,9 +172,9 @@ int _tmain(int argc, _TCHAR* argv[])
   };
 
   //dsp_main(mumimo_tx_main);
-  dsp_main(mumimo_rx_main); 
+  dsp_main(mumimo_rx_main);
   //dsp_main(pipeline_profiling);
-
+  //dsp_main(rx_main);
 #if 0
   if ( cmdline.get("rx").exist() )
   {

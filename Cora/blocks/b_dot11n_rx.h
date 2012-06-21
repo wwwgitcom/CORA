@@ -403,17 +403,20 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   auto rx_vit12_pipeline = [&]
   {
-    START(ht_data_vit_12, descramble, crc32_checker, STOP(NOP));
+    bool bFinish = false;
+    START(WHILE(IsTrue(!bFinish)), ht_data_vit_12, descramble, crc32_checker, STOP([&]{bFinish = true;}));
   };
 
   auto rx_vit23_pipeline = [&]
   {
-    START(ht_data_vit_23, descramble, crc32_checker, STOP(NOP));
+    bool bFinish = false;
+    START(WHILE(IsTrue(!bFinish)), ht_data_vit_23, descramble, crc32_checker, STOP([&]{bFinish = true;}));
   };
 
   auto rx_vit34_pipeline = [&]
   {
-    START(ht_data_vit_34, descramble, crc32_checker, STOP(NOP));
+    bool bFinish = false;
+    START(WHILE(IsTrue(!bFinish)), ht_data_vit_34, descramble, crc32_checker, STOP([&]{bFinish = true;}));
   };
   //////////////////////////////////////////////////////////////////////////
 

@@ -109,12 +109,26 @@ public:
       ViterbiAdvance(pTrellis, (vub*)VIT_MA, ip[nSoftBits + 2]);
       i_trellis += 2;
 
-      if (pTrellis[0][0] > 192)
+      //uint8 *c = (uint8 *)pTrellis;
+      //for (int i = 0; i < 64; i++)
+      //{
+      //  printf("%d ", c[i]);
+      //}
+      //printf("\n");
+
+      if (pTrellis[0][0] > 208)
       {
+        //printf("...trace back...\n");
         pTrellis[0] = sub ( pTrellis[0], vNormMask);
         pTrellis[1] = sub ( pTrellis[1], vNormMask);
         pTrellis[2] = sub ( pTrellis[2], vNormMask);
         pTrellis[3] = sub ( pTrellis[3], vNormMask);
+
+        //for (int i = 0; i < 64; i++)
+        //{
+        //  printf("%d ", c[i]);
+        //}
+        //printf("\n\n");
       }
 
       // Traceback 
