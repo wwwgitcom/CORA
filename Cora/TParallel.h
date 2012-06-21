@@ -4,10 +4,13 @@ template<typename _Function1, typename _Function2>
 __forceinline void PARALLEL(const _Function1 &_Func1, const _Function2 &_Func2)
 {
   static cpu_manager* cm = cpu_manager::Instance();
+  
   //tick_count t1, t2, t3, t;
   //t1 = tick_count::now();
+  
   task_obj to2 = make_task_obj(_Func2);
   cm->run_task(&to2);
+  
   //t2 = tick_count::now();
   //t = t2 - t1;
   //printf("async run task...%f us\n", t.us());
@@ -16,7 +19,9 @@ __forceinline void PARALLEL(const _Function1 &_Func1, const _Function2 &_Func2)
   _Func1();
   
   //t1 = tick_count::now();
+  
   to2.wait();
+  
   //t2 = tick_count::now();
   //t = t2 - t1;
   //printf("parallel waiting...%f us\n", t.us());

@@ -188,7 +188,7 @@ DEFINE_BLOCK(b_dot11n_interleaver_6bpsc_1v1, 1, 1)
     auto op = $_<v_ub>(0);
 
     interleaver(ip, op);
-
+#if 0
     printf("iss=%d\n", iss);
     for (int i = 0; i < interleaver.voutbuffer_size; i++)
     {
@@ -198,7 +198,7 @@ DEFINE_BLOCK(b_dot11n_interleaver_6bpsc_1v1, 1, 1)
       }
     }
     printf("\n\n");
-
+#endif
     consume(0, interleaver.total_bytes);
     produce(0, interleaver.voutbuffer_size);
 

@@ -32,15 +32,21 @@ void cpu_processor::Run()
       do 
       {
         t->invoke();
+        
+        //printf("work %p status %d cache %d\n", t, t->status, t->cachable);
+
+        //if (t->cachable)
+        //{
+        //  //while (!t->status)
+        //  //{
+        //  //  __asm pause;
+        //  //}
+        //  continue;
+        //}
+
+        //printf("work done %p status %d cache %d\n", t, t->status, t->cachable);
+        
         t->done();
-        if (t->cachable)
-        {
-          while (!t->status)
-          {
-            __asm pause;
-          }
-          continue;
-        }
         t = Dequeue();
       } while (t);
       

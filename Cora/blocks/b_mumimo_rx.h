@@ -100,12 +100,12 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
 
   autoref ht_data_vit_23_1 = create_block<b_viterbi64_2o3_1v1>(
     2,
-    string("TraceBackLength=96"),
+    string("TraceBackLength=36"),
     string("TraceBackOutput=192")
     );
   autoref ht_data_vit_23_2 = create_block<b_viterbi64_2o3_1v1>(
     2,
-    string("TraceBackLength=96"),
+    string("TraceBackLength=36"),
     string("TraceBackOutput=192")
     );
 
@@ -177,7 +177,7 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
 
   autoref pilot_tracking  = create_block<b_dot11_pilot_tracking_2v>();
   // for profiling
-  autoref producer = create_block<b_producer_v2>(2, string("nItemsEach=640"), string("nItemsTotal=640000"));
+  autoref producer = create_block<b_producer_v2>(2, string("nItemsEach=64"), string("nItemsTotal=6400"));
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
     .from(src, 0)
@@ -229,34 +229,34 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
     .from(siso_mrc_combine, 0)
     .to(siso_lsig_demap_bpsk_i, 0).to(htsig_demap_bpsk_q, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(siso_lsig_demap_bpsk_i, 0).from(htsig_demap_bpsk_q, 0)
     .to(siso_lsig_deinterleave, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(siso_lsig_deinterleave, 0).to(l_sig_vit, 0).to(ht_sig_vit, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(l_sig_vit, 0)
     .to(l_sig_parser, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_sig_vit, 0)
     .to(ht_sig_parser, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_demap_bpsk1, 0).from(ht_demap_qpsk1, 0).from(ht_demap_16qam1, 0).from(ht_demap_64qam1, 0)
     .to(ht_deinterleave_1bpsc_iss1, 0).to(ht_deinterleave_2bpsc_iss1, 0).to(ht_deinterleave_4bpsc_iss1, 0).to(ht_deinterleave_6bpsc_iss1, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_demap_bpsk2, 0).from(ht_demap_qpsk2, 0).from(ht_demap_16qam2, 0).from(ht_demap_64qam2, 0)
     .to(ht_deinterleave_1bpsc_iss2, 0).to(ht_deinterleave_2bpsc_iss2, 0).to(ht_deinterleave_4bpsc_iss2, 0).to(ht_deinterleave_6bpsc_iss2, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_deinterleave_1bpsc_iss1, 0).from(ht_deinterleave_2bpsc_iss1, 0).from(ht_deinterleave_4bpsc_iss1, 0).from(ht_deinterleave_6bpsc_iss1, 0)
     .from(producer, 0)
     .to(ht_data_vit_12_1, 0).to(ht_data_vit_23_1, 0).to(ht_data_vit_34_1, 0);
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_deinterleave_1bpsc_iss2, 0).from(ht_deinterleave_2bpsc_iss2, 0).from(ht_deinterleave_4bpsc_iss2, 0).from(ht_deinterleave_6bpsc_iss2, 0)
     .from(producer, 1)
     .to(ht_data_vit_12_2, 0).to(ht_data_vit_23_2, 0).to(ht_data_vit_34_2, 0);
@@ -287,9 +287,7 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
   tick_count t1, t2, t3;
 
   // var used by 2nd block
-  v_align(64)
-  int descramble_state_1 = 0;
-  int descramble_state_2 = 0;
+  //v_align(64)
   //////////////////////////////////////////////////////////////////////////
   auto frame_detection = [&]() -> bool
   {
@@ -403,32 +401,38 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
 
   auto rx_vit12_pipeline_1 = [&]
   {
-    START(ht_data_vit_12_1, descramble_1, crc32_checker_1, STOP(NOP));
+    bool bFinish = false;
+    START(WHILE(IsTrue(!bFinish)), ht_data_vit_12_1, descramble_1, crc32_checker_1, STOP([&]{bFinish = true;}));
   };
 
   auto rx_vit12_pipeline_2 = [&]
   {
-    START(ht_data_vit_12_2, descramble_2, crc32_checker_2, STOP(NOP));
+    bool bFinish = false;
+    START(WHILE(IsTrue(!bFinish)), ht_data_vit_12_2, descramble_2, crc32_checker_2, STOP([&]{bFinish = true;}));
   };
 
   auto rx_vit23_pipeline_1 = [&]
   {
-    START(ht_data_vit_23_1, descramble_1, crc32_checker_1, STOP(NOP));
+    bool bFinish = false;
+    START(WHILE(IsTrue(!bFinish)), ht_data_vit_23_1, descramble_1, crc32_checker_1, STOP([&]{bFinish = true;}));
   };
 
   auto rx_vit23_pipeline_2 = [&]
   {
-    START(ht_data_vit_23_2, descramble_2, crc32_checker_2, STOP(NOP));
+    bool bFinish = false;
+    START(WHILE(IsTrue(!bFinish)), ht_data_vit_23_2, descramble_2, crc32_checker_2, STOP([&]{bFinish = true;}));
   };
 
   auto rx_vit34_pipeline_1 = [&]
   {
-    START(ht_data_vit_34_1, descramble_1, crc32_checker_1, STOP(NOP));
+    bool bFinish = false;
+    START(WHILE(IsTrue(!bFinish)), ht_data_vit_34_1, descramble_1, crc32_checker_1, STOP([&]{bFinish = true;}));
   };
 
   auto rx_vit34_pipeline_2 = [&]
   {
-    START(ht_data_vit_34_2, descramble_2, crc32_checker_2, STOP(NOP));
+    bool bFinish = false;
+    START(WHILE(IsTrue(!bFinish)), ht_data_vit_34_2, descramble_2, crc32_checker_2, STOP([&]{bFinish = true;}));
   };
   //////////////////////////////////////////////////////////////////////////
 
@@ -554,7 +558,7 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
   auto rx_mcs14_pipeline = [&]
   {
     PIPE_LINE(rx_64qam_pipeline_1, [&]{
-      //rx_vit34_pipeline_1();
+      //rx_vit34_pipeline_2();
       PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
     });
   };
@@ -567,13 +571,13 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
     *crc32_checker_2.crc32_check_length = *producer.nItemsTotal * 3 / 4 / 8;
     _t1 = tick_count::now();
 #if 0
-    START(producer, [&]{      
+    START(producer, [&]{
       PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
     });
 #else
     PIPE_LINE(producer, [&]{
-      //START(ht_data_vit_34_1, descramble_1, crc32_checker_1);
-      PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
+      START(ht_data_vit_34_1, descramble_1, crc32_checker_1);
+      //PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2);
     });
 #endif
     _t2 = tick_count::now();
@@ -601,7 +605,7 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
     printf("frame decode done! %d : %d\n", *crc32_checker_1.crc32_check_result, *crc32_checker_2.crc32_check_result);
   };
 
-#if 0
+#if 1
   START(
     WHILE(frame_detection), IF(lltf_handler), IF(lsig_handler), IF(htsig_handler), IF(htstf_handler), IF(htltf_handler), htdata_handler
     );

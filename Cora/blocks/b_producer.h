@@ -4,9 +4,8 @@
 DEFINE_BLOCK(b_producer_v1, 0, 1)
 {
 public:
+  _local_(int, nItemsEach, 1);
   _local_(int, nItemsTotal, 10000);
-private:
-  _local_(int, nItemsEach, 1);  
   _local_(int, nItemsLeft, 10000);
 
   BLOCK_INIT
@@ -24,16 +23,24 @@ private:
       *nItemsLeft  = *nItemsTotal;
     }
   }
-
+  
   BLOCK_WORK
   {
     if (*nItemsLeft <= 0)
     {
       return false;
     }
+
+    auto op = $_<uint8>(0);
+
+    for (int i = 0; i < *nItemsEach; i++)
+    {
+      op[i] = 7;
+    }
+
     produce(0, *nItemsEach);
     //printf("producer: %d items\n", *nItemsEach);
-    *nItemsLeft  = *nItemsTotal;
+    *nItemsLeft  -= *nItemsEach;
     return true;
   }
 };
@@ -43,9 +50,8 @@ private:
 DEFINE_BLOCK(b_producer_v2, 0, 2)
 {
 public:
+  _local_(int, nItemsEach, 1);
   _local_(int, nItemsTotal, 10000);
-private:
-  _local_(int, nItemsEach, 1);  
   _local_(int, nItemsLeft, 10000);
 
 
@@ -83,8 +89,10 @@ private:
     }
 
     produce_each(*nItemsEach);
-    //printf("producer: %d items\n", *nItemsEach);
+    
     *nItemsLeft -= *nItemsEach;
+
+    //printf("producer: %d items, left %d, total %d\n", *nItemsEach, *nItemsLeft, *nItemsTotal);
     return true;
   }
 };

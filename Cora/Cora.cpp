@@ -31,6 +31,7 @@
 //--------------------------------------------------
 #include "b_plot.h"
 #include "b_producer.h"
+#include "b_consumer.h"
 #include "b_wait.h"
 #include "b_dot11n_param.h"
 
@@ -114,6 +115,32 @@ BOOL WINAPI HandlerRoutine(__in  DWORD dwCtrlType)
 
 
 
+void pipeline_profiling()
+{
+  tick_count t1, t2, t;
+  autoref producer = create_block<b_producer_v1>(2, string("nItemsEach=4"), string("nItemsTotal=6400000"));
+  autoref consumer = create_block<b_consumer_v1>();
+
+  Channel::Create(sizeof(uint8)).from(producer, 0).to(consumer, 0);
+
+  int nItemsTotal = 6400000;
+  for (int nItemsEach = 4; nItemsEach < 4096; nItemsEach += 4)
+  {
+    *producer.nItemsEach  = nItemsEach;
+    *producer.nItemsTotal = nItemsTotal;
+    *producer.nItemsLeft  = nItemsTotal;
+
+    t1 = tick_count::now();
+    PIPE_LINE(producer, consumer);
+    t2 = tick_count::now();
+    t = t2 - t1;
+    printf("Pipeline producer & consumer: %f us, %d bytes, %f Mbps\n", t.us(), nItemsEach, nItemsTotal * 8.0 / t.us());
+  }
+}
+
+
+
+
 int _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
@@ -145,7 +172,8 @@ int _tmain(int argc, _TCHAR* argv[])
   };
 
   //dsp_main(mumimo_tx_main);
-  dsp_main(mumimo_rx_main);
+  dsp_main(mumimo_rx_main); 
+  //dsp_main(pipeline_profiling);
 
 #if 0
   if ( cmdline.get("rx").exist() )
@@ -162,10 +190,10 @@ int _tmain(int argc, _TCHAR* argv[])
   }
 #endif
 
-  
-  
+  printf(".....\n");
 
   ExitProcess(0);
+  exit(0);
 	return 0;
 }
 
