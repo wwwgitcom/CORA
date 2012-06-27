@@ -100,6 +100,19 @@ struct __declspec(align(16)) ofdm_symbol
     }
   }
 
+  __forceinline void c_csd(_Myt& output, int ncs) const
+  {
+    int i = 0;
+    for (; i < nsubcarrier - ncs; i++)
+    {
+      output.subcarriers[i + vncs] = subcarriers[i];
+    }
+    for (int j = 0; i < nsubcarrier; i++, j++)
+    {
+      output.subcarriers[j] = subcarriers[i];
+    }
+  }
+
   __forceinline void assign_with_cp(_Myt& output)
   {
     for (int i = 0; i < vncp; i++)

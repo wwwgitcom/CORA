@@ -45,3 +45,32 @@ DEFINE_BLOCK(b_dot11n_csd_1v1, 1, 0)
     return true;
   }
 };
+
+
+DEFINE_BLOCK(b_dot11n_complex16_csd_1v1, 1, 0)
+{
+  _local_(int, ncsd, 0);
+
+  BLOCK_INIT
+  {
+    auto v = $["ncsd"];
+    if (!v.empty()) *ncsd = atoi(v.c_str());
+  }
+
+  BLOCK_WORK
+  {
+    auto n = ninput(0);
+    if (n < 1) return false;
+
+    auto ip = _$<dot11n_tx_symbol>(0);
+    auto op = $_<dot11n_tx_symbol>(0);
+
+    // produce a new symbol
+    ip->c_csd(*op, *ncsd);
+
+    consume(0, 1);
+    produce(0, 1);
+
+    return true;
+  }
+};

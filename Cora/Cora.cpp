@@ -94,7 +94,7 @@
 
 #include "b_dot11n_rx.h"
 #include "b_dot11n_tx.h"
-#include "b_mumimo_tx.h"
+#include "b_mumimo_2x2_tx.h"
 #include "b_mumimo_rx.h"
 
 BOOL WINAPI HandlerRoutine(__in  DWORD dwCtrlType)
