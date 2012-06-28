@@ -105,7 +105,7 @@ struct __declspec(align(16)) ofdm_symbol
     int i = 0;
     for (; i < nsubcarrier - ncs; i++)
     {
-      output.subcarriers[i + vncs] = subcarriers[i];
+      output.subcarriers[i + ncs] = subcarriers[i];
     }
     for (int j = 0; i < nsubcarrier; i++, j++)
     {

@@ -98,3 +98,77 @@ DEFINE_BLOCK(b_dot11_frame_source_v2, 0, 2)
     return true;
   }
 };
+//////////////////////////////////////////////////////////////////////////
+DEFINE_BLOCK(b_dot11_frame_source_v4, 0, 4)
+{
+  _global_(uint32, dot11_tx_frame_mcs);
+  _global_(uint32, dot11_tx_frame_length);
+
+  _local_(int, ntotal_bytes, 1000);
+  _local_(int, npadding_bytes, 0);
+
+  crc::crc32 _crc32_1;
+  crc::crc32 _crc32_2;
+  crc::crc32 _crc32_3;
+  crc::crc32 _crc32_4;
+
+  BLOCK_WORK
+  {
+    *ntotal_bytes = *dot11_tx_frame_length;
+    *npadding_bytes = pht_padding_bytes(*dot11_tx_frame_mcs, *dot11_tx_frame_length + 2);
+
+    _crc32_1.reset();
+    _crc32_2.reset();
+    _crc32_3.reset();
+    _crc32_4.reset();
+
+    auto op1 = $_<uint8>(0);
+    auto op2 = $_<uint8>(1);
+    auto op3 = $_<uint8>(2);
+    auto op4 = $_<uint8>(3);
+
+    op1[0] = 0;
+    op1[1] = 0;
+
+    op2[0] = 0;
+    op2[1] = 0;
+
+    op3[0] = 0;
+    op3[1] = 0;
+
+    op4[0] = 0;
+    op4[1] = 0;
+
+    int i;
+    for (i = 2; i < *ntotal_bytes + 2 - 4; i++)
+    {
+      uint8 c = 0x3;
+      _crc32_1(c);
+      _crc32_2(c);
+      _crc32_3(c);
+      _crc32_4(c);
+      op1[i] = c;
+      op2[i] = c;
+      op3[i] = c;
+      op4[i] = c;
+    }
+
+    *(uint32*)&op1[i] = _crc32_1.value();
+    *(uint32*)&op2[i] = _crc32_2.value();
+    *(uint32*)&op3[i] = _crc32_3.value();
+    *(uint32*)&op4[i] = _crc32_4.value();
+    i += 4;
+
+    for (int j = 0; j < *npadding_bytes; j++)
+    {
+      op1[i] = 0x0;
+      op2[i] = 0x0;
+      op3[i] = 0x0;
+      op4[i] = 0x0;
+      i ++;
+    }
+
+    produce_each(*ntotal_bytes + *npadding_bytes + 2);
+    return true;
+  }
+};

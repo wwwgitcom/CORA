@@ -246,7 +246,7 @@ inline void mumimo_2x2_tx(int argc, _TCHAR* argv[])
   auto make_htdata_mcs11 = [&]
   {
     RESET(ht_scramble_1, ht_conv12_1, ht_add_pilot_1);
-    RESET(ht_scramble_1, ht_conv12_1, ht_add_pilot_2);
+    RESET(ht_scramble_2, ht_conv12_2, ht_add_pilot_2);
 
     START(ht_scramble_1, ht_conv12_1, ht_itlv_4bpsc_1, ht_map_16qam_1, ht_add_pilot_1, ht_ifft_1, ht_add_cp1);
     START(ht_scramble_2, ht_conv12_2, ht_itlv_4bpsc_2, ht_map_16qam_2, ht_add_pilot_2, ht_ifft_2, ht_csd, ht_add_cp2);

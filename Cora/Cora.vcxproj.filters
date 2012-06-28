@@ -273,9 +273,6 @@
     <ClInclude Include="TMain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="blocks\b_mumimo_tx.h">
-      <Filter>Header Files\blocks</Filter>
-    </ClInclude>
     <ClInclude Include="blocks\b_mumimo_rx.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
@@ -283,6 +280,12 @@
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
     <ClInclude Include="blocks\b_consumer.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_mumimo_2x2_tx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_mumimo_4x4_tx.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
   </ItemGroup>

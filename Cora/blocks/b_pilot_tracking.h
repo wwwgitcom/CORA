@@ -67,3 +67,40 @@ DEFINE_BLOCK(b_dot11_pilot_tracking_2v, 2, 0)
     return true;
   }
 };
+
+DEFINE_BLOCK(b_dot11_pilot_tracking_4v, 4, 0)
+{
+  _global_(v_s, vfo_theta_i);
+
+  BLOCK_WORK
+  {
+    auto n = ninput(0);
+
+    if (n < 16) return false;
+
+    auto ip1 = _$<v_cs>(0);
+    complex16* ipc1 = (complex16*)ip1;
+    auto ip2 = _$<v_cs>(1);
+    complex16* ipc2 = (complex16*)ip2;
+    auto ip3 = _$<v_cs>(2);
+    complex16* ipc3 = (complex16*)ip3;
+    auto ip4 = _$<v_cs>(3);
+    complex16* ipc4 = (complex16*)ip4;
+
+    short theta1 = dot11_pilot_tracking(ipc1);
+    short theta2 = dot11_pilot_tracking(ipc2);
+    short theta3 = dot11_pilot_tracking(ipc1);
+    short theta4 = dot11_pilot_tracking(ipc2);
+    short theta  = ( (theta1 + theta2 + theta3 + theta4) >> 2 );
+
+    v_s v_theta;
+    v_theta.v_setall(theta);
+
+#if 0
+    v_theta.v_zero();
+#endif
+    (*vfo_theta_i) = v_add((*vfo_theta_i), v_theta);
+
+    return true;
+  }
+};

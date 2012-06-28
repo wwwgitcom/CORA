@@ -56,7 +56,7 @@ struct L_STF
     {
       pvout[i + _csd] = pvin[i];
     }
-    for (int j = 0; i < VCOUNT; i++, j++)
+    for (int j = 0; i < COUNT; i++, j++)
     {
       pvout[j] = pvin[i];
     }
@@ -69,9 +69,9 @@ struct L_STF
     static int const _csd = 1; // 1 v_cs, 4 complex16, 40MHz, 100ns
 
     int i = 0;
-    for (; i < COUNT - csd; i++)
+    for (; i < VCOUNT - _csd; i++)
     {
-      pvout[i + csd] = pvin[i];
+      pvout[i + _csd] = pvin[i];
     }
     for (int j = 0; i < VCOUNT; i++, j++)
     {
@@ -86,11 +86,11 @@ struct L_STF
     static int const _csd = 6;
 
     int i = 0;
-    for (; i < VCOUNT - csd; i++)
+    for (; i < COUNT - _csd; i++)
     {
-      pvout[i + csd] = pvin[i];
+      pvout[i + _csd] = pvin[i];
     }
-    for (int j = 0; i < VCOUNT; i++, j++)
+    for (int j = 0; i < COUNT; i++, j++)
     {
       pvout[j] = pvin[i];
     }
