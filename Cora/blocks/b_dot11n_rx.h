@@ -42,10 +42,10 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     );
 #endif
 
-  autoref wait_lltf = create_block<b_wait_2v2>(
+  autoref wait_lltf = create_block<b_wait_2v>(
     1, string("nwait=32"));
 
-  autoref wait_ofdm = create_block<b_wait_2v2>(
+  autoref wait_ofdm = create_block<b_wait_2v>(
     1, string("nwait=20"));
 
   autoref axorr = create_block<b_auto_corr_2v2>(

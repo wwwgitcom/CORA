@@ -266,19 +266,21 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
 
 
 //////////////////////////////////////////////////////////////////////////
+#define enable_4x4_H_draw 1
+
 typedef complex16 MIMO_4x4_H[4][256];
 DEFINE_BLOCK(b_dot11_mimo_channel_estimator_4v, 4, 0)
 {
   _global_(MIMO_4x4_H, dot11n_4x4_channel_inv);
   v_align(16) MIMO_4x4_H dot11n_4x4_channel;
-#if enable_draw
+#if enable_4x4_H_draw
   dsp_draw_window* m_draw;
 #endif
 
   BLOCK_INIT
   {
-#if enable_draw
-    m_draw = new dsp_draw_window("dot11 2x2 mimo channel estimator", 800, 0, 400, 400);
+#if enable_4x4_H_draw
+    m_draw = new dsp_draw_window("dot11 4x4 mimo channel estimator", 800, 0, 400, 400);
 #endif
   }
 
@@ -471,6 +473,7 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_4v, 4, 0)
       vh44   = v_sub(vtemph, vhtmsk);
     }
 
+#if 0
     // Get the inverse of H
     for (i = 0; i < 64; i += 4)
     {
@@ -628,51 +631,95 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_4v, 4, 0)
       vout22       = v_convert2cs((v_ci&)vres1, (v_ci&)vres3);
       vinvh22      = vout22;
     }
+#else
+    for (i = 0; i < 64; i += 4)
+    {
+      v_cs &vinvh11 = (v_cs&)mimo_channel_4x4_inv[0][i];
+      v_cs &vinvh12 = (v_cs&)mimo_channel_4x4_inv[0][i + 64];
+      v_cs &vinvh13 = (v_cs&)mimo_channel_4x4_inv[0][i + 128];
+      v_cs &vinvh14 = (v_cs&)mimo_channel_4x4_inv[0][i + 192];
+
+      v_cs &vinvh21 = (v_cs&)mimo_channel_4x4_inv[1][i];
+      v_cs &vinvh22 = (v_cs&)mimo_channel_4x4_inv[1][i + 64];
+      v_cs &vinvh23 = (v_cs&)mimo_channel_4x4_inv[1][i + 128];
+      v_cs &vinvh24 = (v_cs&)mimo_channel_4x4_inv[1][i + 192];
+
+      v_cs &vinvh31 = (v_cs&)mimo_channel_4x4_inv[2][i];
+      v_cs &vinvh32 = (v_cs&)mimo_channel_4x4_inv[2][i + 64];
+      v_cs &vinvh33 = (v_cs&)mimo_channel_4x4_inv[2][i + 128];
+      v_cs &vinvh34 = (v_cs&)mimo_channel_4x4_inv[2][i + 192];
+
+      v_cs &vinvh41 = (v_cs&)mimo_channel_4x4_inv[3][i];
+      v_cs &vinvh42 = (v_cs&)mimo_channel_4x4_inv[3][i + 64];
+      v_cs &vinvh43 = (v_cs&)mimo_channel_4x4_inv[3][i + 128];
+      v_cs &vinvh44 = (v_cs&)mimo_channel_4x4_inv[3][i + 192];
+
+      vinvh11.v_setall(complex16(256, 0));
+      vinvh12.v_setall(complex16(0, 0));
+      vinvh13.v_setall(complex16(0, 0));
+      vinvh14.v_setall(complex16(0, 0));
+
+      vinvh21.v_setall(complex16(0, 0));
+      vinvh22.v_setall(complex16(256, 0));
+      vinvh23.v_setall(complex16(0, 0));
+      vinvh24.v_setall(complex16(0, 0));
+
+      vinvh31.v_setall(complex16(0, 0));
+      vinvh32.v_setall(complex16(0, 0));
+      vinvh33.v_setall(complex16(256, 0));
+      vinvh34.v_setall(complex16(0, 0));
+
+      vinvh41.v_setall(complex16(0, 0));
+      vinvh42.v_setall(complex16(0, 0));
+      vinvh43.v_setall(complex16(0, 0));
+      vinvh44.v_setall(complex16(256, 0));
+    }
+#endif
 
     //m_draw->DrawSqrt(ipc1, 128);
     //getchar();
     //m_draw->DrawSqrt(ipc2, 128);
-#if enable_draw
-    mimo_channel_4x4_inv[0][0] = 0;
-    mimo_channel_4x4_inv[0][64] = 0;
-    mimo_channel_4x4_inv[0][128] = 0;
-    mimo_channel_4x4_inv[0][192] = 0;
-    mimo_channel_4x4_inv[1][0] = 0;
-    mimo_channel_4x4_inv[1][64] = 0;
-    mimo_channel_4x4_inv[1][128] = 0;
-    mimo_channel_4x4_inv[1][192] = 0;
+#if enable_4x4_H_draw
+    dot11n_4x4_channel[0][0]   = 0;
+    dot11n_4x4_channel[0][64]  = 0;
+    dot11n_4x4_channel[0][128] = 0;
+    dot11n_4x4_channel[0][192] = 0;
+    dot11n_4x4_channel[1][0]   = 0;
+    dot11n_4x4_channel[1][64]  = 0;
+    dot11n_4x4_channel[1][128] = 0;
+    dot11n_4x4_channel[1][192] = 0;
 
-    mimo_channel_4x4_inv[2][0] = 0;
-    mimo_channel_4x4_inv[2][64] = 0;
-    mimo_channel_4x4_inv[2][128] = 0;
-    mimo_channel_4x4_inv[2][192] = 0;
-    mimo_channel_4x4_inv[3][0] = 0;
-    mimo_channel_4x4_inv[3][64] = 0;
-    mimo_channel_4x4_inv[3][128] = 0;
-    mimo_channel_4x4_inv[3][192] = 0;
+    dot11n_4x4_channel[2][0]   = 0;
+    dot11n_4x4_channel[2][64]  = 0;
+    dot11n_4x4_channel[2][128] = 0;
+    dot11n_4x4_channel[2][192] = 0;
+    dot11n_4x4_channel[3][0]   = 0;
+    dot11n_4x4_channel[3][64]  = 0;
+    dot11n_4x4_channel[3][128] = 0;
+    dot11n_4x4_channel[3][192] = 0;
 
     for (int i = 29; i < 64 - 28; i++)
     {
-      mimo_channel_4x4_inv[0][i] = 0;
-      mimo_channel_4x4_inv[0][i + 64] = 0;
-      mimo_channel_4x4_inv[0][i + 128] = 0;
-      mimo_channel_4x4_inv[0][i + 192] = 0;
-      mimo_channel_4x4_inv[1][i] = 0;
-      mimo_channel_4x4_inv[1][i + 64] = 0;
-      mimo_channel_4x4_inv[1][i + 128] = 0;
-      mimo_channel_4x4_inv[1][i + 192] = 0;
+      dot11n_4x4_channel[0][i]       = 0;
+      dot11n_4x4_channel[0][i + 64]  = 0;
+      dot11n_4x4_channel[0][i + 128] = 0;
+      dot11n_4x4_channel[0][i + 192] = 0;
+      dot11n_4x4_channel[1][i]       = 0;
+      dot11n_4x4_channel[1][i + 64]  = 0;
+      dot11n_4x4_channel[1][i + 128] = 0;
+      dot11n_4x4_channel[1][i + 192] = 0;
 
-      mimo_channel_4x4_inv[2][i] = 0;
-      mimo_channel_4x4_inv[2][i + 64] = 0;
-      mimo_channel_4x4_inv[2][i + 128] = 0;
-      mimo_channel_4x4_inv[2][i + 192] = 0;
-      mimo_channel_4x4_inv[3][i] = 0;
-      mimo_channel_4x4_inv[3][i + 64] = 0;
-      mimo_channel_4x4_inv[3][i + 128] = 0;
-      mimo_channel_4x4_inv[3][i + 192] = 0;
+      dot11n_4x4_channel[2][i]       = 0;
+      dot11n_4x4_channel[2][i + 64]  = 0;
+      dot11n_4x4_channel[2][i + 128] = 0;
+      dot11n_4x4_channel[2][i + 192] = 0;
+      dot11n_4x4_channel[3][i]       = 0;
+      dot11n_4x4_channel[3][i + 64]  = 0;
+      dot11n_4x4_channel[3][i + 128] = 0;
+      dot11n_4x4_channel[3][i + 192] = 0;
     }
 
-    m_draw->DrawSqrt(&mimo_channel_4x4_inv[0][0], 64 * 4 * 4);
+    m_draw->DrawSqrt(&dot11n_4x4_channel[0][0], 64 * 4 * 4);
 #endif
     consume_each(64);
 

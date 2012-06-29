@@ -132,9 +132,10 @@
     <ClInclude Include="blocks\b_mimo_channel_estimator.h" />
     <ClInclude Include="blocks\b_moving_energy.h" />
     <ClInclude Include="blocks\b_mrc_combine.h" />
+    <ClInclude Include="blocks\b_mumimo_2x2_rx.h" />
     <ClInclude Include="blocks\b_mumimo_2x2_tx.h" />
+    <ClInclude Include="blocks\b_mumimo_4x4_rx.h" />
     <ClInclude Include="blocks\b_mumimo_4x4_tx.h" />
-    <ClInclude Include="blocks\b_mumimo_rx.h" />
     <ClInclude Include="blocks\b_pilot_tracking.h" />
     <ClInclude Include="blocks\b_plot.h" />
     <ClInclude Include="blocks\b_producer.h" />

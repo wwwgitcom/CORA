@@ -96,7 +96,7 @@
 #include "b_dot11n_tx.h"
 //#include "b_mumimo_2x2_tx.h"
 #include "b_mumimo_4x4_tx.h"
-#include "b_mumimo_rx.h"
+#include "b_mumimo_4x4_rx.h"
 
 BOOL WINAPI HandlerRoutine(__in  DWORD dwCtrlType)
 {
@@ -152,6 +152,7 @@ int _tmain(int argc, _TCHAR* argv[])
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
+#if 0
   auto tx_main = [&]
   {
     dot11n_2x2_tx(argc, argv);
@@ -161,6 +162,7 @@ int _tmain(int argc, _TCHAR* argv[])
   {
     dot11n_2x2_rx(argc, argv);
   };
+#endif
 
   auto mumimo_tx_main = [&]
   {
@@ -169,11 +171,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
   auto mumimo_rx_main = [&]
   {
-    mumimo_2x2_rx(argc, argv);
+    mumimo_4x4_rx(argc, argv);
   };
 
-  dsp_main(mumimo_tx_main);
-  //dsp_main(mumimo_rx_main);
+  //dsp_main(mumimo_tx_main);
+  dsp_main(mumimo_rx_main);
   //dsp_main(pipeline_profiling);
   //dsp_main(rx_main);
 #if 0

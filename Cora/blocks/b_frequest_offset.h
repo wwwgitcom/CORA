@@ -124,7 +124,7 @@ DEFINE_BLOCK(b_frequest_offset_estimator_2v, 2, 0)
     if (n < *vEstimateLength + *vEstimateDistance) return false;
     
     auto ip1 = _$<v_cs>(0);
-    auto ip2 = _$<v_cs>(0);
+    auto ip2 = _$<v_cs>(1);
 
     short delta1 = v_estimate_i(ip1, *vEstimateLength, *vEstimateDistance);
     short delta2 = v_estimate_i(ip2, *vEstimateLength, *vEstimateDistance);
@@ -154,6 +154,72 @@ DEFINE_BLOCK(b_frequest_offset_estimator_2v, 2, 0)
   }
 };
 
+//////////////////////////////////////////////////////////////////////////
+
+DEFINE_BLOCK(b_frequest_offset_estimator_4v, 4, 0)
+{
+  _local_(int, vEstimateLength, 16);// 16 v_cs => 64 complex16
+  _local_(int, vEstimateDistance, 16);// 16 v_cs => 64 complex16
+
+  _global_(v_s, vfo_delta_i);
+  _global_(v_s, vfo_step_i);
+  _global_(v_s, vfo_theta_i);
+
+  BLOCK_INIT
+  {
+    auto v = $["vEstimateLength"];
+    if (!v.empty())
+    {
+      *vEstimateLength = atoi(v.c_str());
+    }
+    v = $["vEstimateDistance"];
+    if (!v.empty())
+    {
+      *vEstimateDistance = atoi(v.c_str());
+    }
+  }
+
+  BLOCK_WORK
+  {
+    trace();
+
+    auto n = ninput(0);
+    if (n < *vEstimateLength + *vEstimateDistance) return false;
+
+    auto ip1 = _$<v_cs>(0);
+    auto ip2 = _$<v_cs>(1);
+    auto ip3 = _$<v_cs>(2);
+    auto ip4 = _$<v_cs>(3);
+
+    short delta1 = v_estimate_i(ip1, *vEstimateLength, *vEstimateDistance);
+    short delta2 = v_estimate_i(ip2, *vEstimateLength, *vEstimateDistance);
+    short delta3 = v_estimate_i(ip3, *vEstimateLength, *vEstimateDistance);
+    short delta4 = v_estimate_i(ip4, *vEstimateLength, *vEstimateDistance);
+    short delta  = (delta1 >> 2) + (delta2 >> 2) + (delta3 >> 2) + (delta4 >> 2);
+
+    v_s vcfodelta;
+    (*vfo_theta_i).v_zero();
+
+    vcfodelta.v_setall(delta);
+
+    (*vfo_step_i)    = vcfodelta.v_shift_left(3);
+
+    vcfodelta         = v_add(vcfodelta, (v_s&)vcfodelta.v_shift_bytes_left<2>());
+    vcfodelta         = v_add(vcfodelta, (v_s&)vcfodelta.v_shift_bytes_left<4>());
+    vcfodelta         = v_add(vcfodelta, (v_s&)vcfodelta.v_shift_bytes_left<8>());
+    vcfodelta         = vcfodelta.v_shift_bytes_left<2>();
+
+    log("%s: cfo=%d\n", name(), (*vfo_delta_i)[1]);
+
+    (*vfo_delta_i)    = vcfodelta;
+
+    (*vfo_theta_i).v_zero();
+
+    // I don't consume any input items
+    log("%s: cfo=%d\n", name(), (*vfo_delta_i)[1]);
+    return true;
+  }
+};
 //////////////////////////////////////////////////////////////////////////
 
 // vdeltaf = 7*deltaf, 6*deltaf, 5*deltaf, 4*deltaf 3*deltaf, 2*deltaf, 1*deltaf, 0*deltaf
@@ -303,8 +369,73 @@ DEFINE_BLOCK(b_frequest_offset_compensator_2v2, 2, 2)
     consume(0, iOut);
     consume(1, iOut);
 
-    produce(0, iOut);    
+    produce(0, iOut);
     produce(1, iOut);
+
+    return true;
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////
+DEFINE_BLOCK(b_frequest_offset_compensator_4v4, 4, 4)
+{
+  _global_(v_s, vfo_delta_i);
+  _global_(v_s, vfo_step_i);
+  _global_(v_s, vfo_theta_i);
+
+  v_cs vfo_coeff[2];
+
+  BLOCK_INIT
+  {
+    for (int i = 0; i < 2; i++)
+    {
+      vfo_coeff[i].v_zero();
+    }
+  }
+
+  BLOCK_WORK
+  {
+    trace();
+
+    auto n = ninput(0);
+    if (n < 2) return false;
+
+    auto ip1 = _$<v_cs>(0);
+    auto op1 = $_<v_cs>(0);
+    
+    auto ip2 = _$<v_cs>(1);
+    auto op2 = $_<v_cs>(1);
+
+    auto ip3 = _$<v_cs>(2);
+    auto op3 = $_<v_cs>(2);
+
+    auto ip4 = _$<v_cs>(3);
+    auto op4 = $_<v_cs>(3);
+
+#if 0
+    for (int i = 0; i < *vCompensateLength; i++)
+    {
+      op1[i] = ip1[i];
+      op2[i] = ip2[i];
+    }
+#else
+    log("%s: n=%d,cfo=%d", name(), n, (*vfo_delta_i)[1]);
+#endif
+
+    int iOut = 0;
+    //int i = 0;
+    for ( int i = 0; i < n; i += 2 )
+    {
+      v_make_coeff_i(vfo_coeff, 2, *vfo_delta_i, *vfo_step_i, *vfo_theta_i);
+      v_compensate_i(&ip1[i], vfo_coeff, &op1[i], 2);
+      v_compensate_i(&ip2[i], vfo_coeff, &op2[i], 2);
+      v_compensate_i(&ip3[i], vfo_coeff, &op3[i], 2);
+      v_compensate_i(&ip4[i], vfo_coeff, &op4[i], 2);
+      iOut += 2; // produce 2 each time
+    }
+
+    consume_each(iOut);
+    produce_each(iOut);
 
     return true;
   }

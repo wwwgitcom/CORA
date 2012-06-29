@@ -206,6 +206,78 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_2v, 2, 0)
     m_draw->DrawSqrtShift((complex16*)ip1, 32 * 4);
 #endif
     autoref ch1  = *dot11a_siso_channel_1;
+
+    v_siso_channel_estimation_64(ip1, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip1 + 16, (v_cs*)&siso_channel_2[0]);
+
+#if 1
+    for (int i = 0; i < 16; i++)
+    {
+      v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
+      ch1[i]  = r.v_shift_right_arithmetic(1);
+    }
+#else
+    for (int i = 0; i < 16; i++)
+    {
+      ch1[i]  = siso_channel_1[i];
+    }
+#endif
+
+    autoref ch2  = *dot11a_siso_channel_2;
+
+    v_siso_channel_estimation_64(ip2, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip2 + 16, (v_cs*)&siso_channel_2[0]);
+#if 1
+    for (int i = 0; i < 16; i++)
+    {
+      v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
+      ch2[i]  = r.v_shift_right_arithmetic(1);
+    }
+#else
+    for (int i = 0; i < 16; i++)
+    {
+      ch2[i]  = siso_channel_1[i];
+    }
+#endif
+
+    consume_each(32);
+    return true;
+  }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+
+DEFINE_BLOCK(b_dot11_siso_channel_estimator_4v, 4, 0)
+{
+  _global_(Dot11aChannelCoefficient, dot11a_siso_channel_1);
+  _global_(Dot11aChannelCoefficient, dot11a_siso_channel_2);
+  _global_(Dot11aChannelCoefficient, dot11a_siso_channel_3);
+  _global_(Dot11aChannelCoefficient, dot11a_siso_channel_4);
+  Dot11aChannelCoefficient siso_channel_1;
+  Dot11aChannelCoefficient siso_channel_2;
+#if enable_draw
+  dsp_draw_window* m_draw;
+
+  BLOCK_INIT
+  {
+    m_draw = new dsp_draw_window("dot11 siso channel estimator", 0, 0, 400, 400);
+  }
+#endif
+  BLOCK_WORK
+  {
+    trace();
+    auto n = ninput(0);
+    if (n < 32) return false;
+
+    auto ip1 = _$<v_cs>(0);
+    auto ip2 = _$<v_cs>(1);
+    auto ip3 = _$<v_cs>(2);
+    auto ip4 = _$<v_cs>(3);
+#if enable_draw
+    m_draw->DrawSqrtShift((complex16*)ip1, 32 * 4);
+#endif
+    autoref ch1  = *dot11a_siso_channel_1;
     
     v_siso_channel_estimation_64(ip1, (v_cs*)&siso_channel_1[0]);
     v_siso_channel_estimation_64(ip1 + 16, (v_cs*)&siso_channel_2[0]);
@@ -240,8 +312,41 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_2v, 2, 0)
     }
 #endif
 
-    consume(0, 32);
-    consume(1, 32);
+    autoref ch3  = *dot11a_siso_channel_3;
+
+    v_siso_channel_estimation_64(ip3, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip3 + 16, (v_cs*)&siso_channel_2[0]);
+#if 1
+    for (int i = 0; i < 16; i++)
+    {
+      v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
+      ch3[i]  = r.v_shift_right_arithmetic(1);
+    }
+#else
+    for (int i = 0; i < 16; i++)
+    {
+      ch3[i]  = siso_channel_1[i];
+    }
+#endif
+
+    autoref ch4  = *dot11a_siso_channel_4;
+
+    v_siso_channel_estimation_64(ip4, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip4 + 16, (v_cs*)&siso_channel_2[0]);
+#if 1
+    for (int i = 0; i < 16; i++)
+    {
+      v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
+      ch4[i]  = r.v_shift_right_arithmetic(1);
+    }
+#else
+    for (int i = 0; i < 16; i++)
+    {
+      ch4[i]  = siso_channel_1[i];
+    }
+#endif
+
+    consume_each(32);
     return true;
   }
 };

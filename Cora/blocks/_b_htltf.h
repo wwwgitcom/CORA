@@ -82,8 +82,7 @@ struct HT_LTF
 
     for (i = 0; i < 8; i++)
     {
-      temp = v_xor(msk, pvin[VCOUNT - 8 + i]);
-      pvout[i] = v_sub(temp, msk);
+      pvout[i] = pvout[VCOUNT - 8 + i];
     }
   }
   __forceinline void get_ltf_24(complex16* pout)
@@ -133,8 +132,7 @@ struct HT_LTF
 
     for (i = 0; i < 8; i++)
     {
-      temp = v_xor(msk, pvin[VCOUNT - 8 + i]);
-      pvout[i] = v_sub(temp, msk);
+      pvout[i] = pvout[VCOUNT - 8 + i];
     }    
   }
   //////////////////////////////////////////////////////////////////////////
@@ -156,8 +154,7 @@ struct HT_LTF
 
     for (i = 0; i < 8; i++)
     {
-      temp = v_xor(msk, pvin[VCOUNT - 8 + i]);
-      pvout[i] = v_sub(temp, msk);
+      pvout[i] = pvout[VCOUNT - 8 + i];
     }    
   }
   __forceinline void get_ltf_42(complex16* pout)
