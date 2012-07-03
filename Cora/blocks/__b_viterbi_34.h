@@ -58,7 +58,7 @@ public:
     i_trellis = 0;
     for (int i = 0; i < 16; i++)
     {
-      vNormMask[i] = 128;
+      vNormMask[i] = 64;
     }
   }
 
@@ -91,6 +91,7 @@ public:
     int i_tpos   = 0;
     int nVitTotalBits = *VitTotalBits;
 
+    const vub ALLINVONE (ALL_INVERSE_ONE);
     // temporal variables
     vub rub0, rub1, rub2, rub3;
     vus rus0, rus1, rus2, rus3;
@@ -110,12 +111,30 @@ public:
       ViterbiAdvance(pTrellis, (vub*)VIT_MB, ip[nSoftBits + 3]);
       i_trellis += 3;
 
-      if (pTrellis[0][0] > 208)
+      if (pTrellis[0][0] > 190)
       {
+#if 0
         pTrellis[0] = sub ( pTrellis[0], vNormMask);
         pTrellis[1] = sub ( pTrellis[1], vNormMask);
         pTrellis[2] = sub ( pTrellis[2], vNormMask);
         pTrellis[3] = sub ( pTrellis[3], vNormMask);
+#else
+        // normalization
+        // find the smallest component and extract it from all states
+        rub0 = smin (pTrellis[0], pTrellis[1] );
+        rub1 = smin (pTrellis[2], pTrellis[3] );
+        rub2 = smin (rub0, rub1);
+        rub3 = hmin (rub2);
+
+        // make sure to clear the marker bit
+        rub3 = and  (rub3, ALLINVONE );
+
+        // normalize
+        pTrellis[0] = sub ( pTrellis[0], rub3);
+        pTrellis[1] = sub ( pTrellis[1], rub3);
+        pTrellis[2] = sub ( pTrellis[2], rub3);
+        pTrellis[3] = sub ( pTrellis[3], rub3);
+#endif
       }
 
       // Traceback 
@@ -262,12 +281,30 @@ public:
           //i_trellis += 3;
           i_trellis++;
 
-          if (pTrellis[0][0] > 192)
+          if (pTrellis[0][0] > 190)
           {
+#if 0
             pTrellis[0] = sub ( pTrellis[0], vNormMask);
             pTrellis[1] = sub ( pTrellis[1], vNormMask);
             pTrellis[2] = sub ( pTrellis[2], vNormMask);
             pTrellis[3] = sub ( pTrellis[3], vNormMask);
+#else
+            // normalization
+            // find the smallest component and extract it from all states
+            rub0 = smin (pTrellis[0], pTrellis[1] );
+            rub1 = smin (pTrellis[2], pTrellis[3] );
+            rub2 = smin (rub0, rub1);
+            rub3 = hmin (rub2);
+
+            // make sure to clear the marker bit
+            rub3 = and  (rub3, ALLINVONE );
+
+            // normalize
+            pTrellis[0] = sub ( pTrellis[0], rub3);
+            pTrellis[1] = sub ( pTrellis[1], rub3);
+            pTrellis[2] = sub ( pTrellis[2], rub3);
+            pTrellis[3] = sub ( pTrellis[3], rub3);
+#endif
           }
         }
 

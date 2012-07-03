@@ -2,6 +2,11 @@
 
 void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 {
+  dsp_cmd cmdline;
+  cmdline.parse(argc, argv);
+
+  int bUseZF = cmdline.get("zf").as_int();
+
   autoref dummy = create_block<dummy_block>();
 
   autoref src = create_block<b_file_source_v4>(
@@ -12,6 +17,17 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
     string("FileName4=c:\\MiMo_3.dmp"), 
     string("Decimate=1")
     );
+
+  int NoiseVar = cmdline.get("nv").as_int();
+  string strNoiseVar("NoiseVar=600");
+  if (NoiseVar != 0)
+  {
+    char buf[1024];
+    memset(buf, 0, 1024);
+    sprintf(buf, "NoiseVar=%d", NoiseVar);
+    strNoiseVar = string(buf);
+  }
+  autoref awgn                       = create_block<b_awgn_4v4>( 1, strNoiseVar );
 
   autoref wait_lltf                  = create_block<b_wait_4v>( 1, string("nwait=32") );
   autoref wait_ofdm                  = create_block<b_wait_4v>( 1, string("nwait=20") );
@@ -95,7 +111,10 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref ht_sig_parser              = create_block<b_htsig_parser_1v>();
   autoref ht_stf                     = create_block<b_drop_4v>(1, string("nDrop=20") );
 
-  autoref mimo_channel_estimator     = create_block<b_dot11_mimo_channel_estimator_4v>();
+  autoref noise_estimator            = create_block<b_noise_estimator_4v>();
+  autoref mimo_channel_estimator_zf  = create_block<b_dot11_mimo_channel_estimator_4v>();
+  autoref mimo_channel_estimator_mmse= create_block<b_dot11_mimo_channel_estimator_mmse_4v>();
+  
   autoref mimo_channel_compensator   = create_block<b_dot11_mimo_channel_compensator_4v4>();
 
   autoref ht_demap_bpsk1             = create_block<b_dot11_demap_bpsk_i_1v1>( 2, string("low=-28"), string("high=28") );
@@ -154,19 +173,28 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref producer                   = create_block<b_producer_v4>(2, string("nItemsEach=64"), string("nItemsTotal=6400"));
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
-    .from(src, 0)
+    .from(src, 0).to(awgn, 0);
+  Channel::Create(sizeof(v_cs))
+    .from(src, 1).to(awgn, 1);
+  Channel::Create(sizeof(v_cs))
+    .from(src, 2).to(awgn, 2);
+  Channel::Create(sizeof(v_cs))
+    .from(src, 3).to(awgn, 3);
+  
+  Channel::Create(sizeof(v_cs))
+    .from(awgn, 0)
     .to(wait_lltf, 0).to(wait_ofdm, 0).to(axorr, 0).to(cfo_est, 0).to(cfo_comp, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(src, 1)
+    .from(awgn, 1)
     .to(wait_lltf, 1).to(wait_ofdm, 1).to(axorr, 1).to(cfo_est, 1).to(cfo_comp, 1);
 
   Channel::Create(sizeof(v_cs))
-    .from(src, 2)
+    .from(awgn, 2)
     .to(wait_lltf, 2).to(wait_ofdm, 2).to(axorr, 2).to(cfo_est, 2).to(cfo_comp, 2);
 
   Channel::Create(sizeof(v_cs))
-    .from(src, 3)
+    .from(awgn, 3)
     .to(wait_lltf, 3).to(wait_ofdm, 3).to(axorr, 3).to(cfo_est, 3).to(cfo_comp, 3);
 
   Channel::Create(sizeof(v_q))
@@ -214,29 +242,29 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   //
   Channel::Create(sizeof(v_cs))
     .from(fft_data1, 0)
-    .to(siso_channel_comp, 0).to(mimo_channel_estimator, 0).to(mimo_channel_compensator, 0);
+    .to(siso_channel_comp, 0).to(mimo_channel_estimator_zf, 0).to(mimo_channel_estimator_mmse, 0).to(mimo_channel_compensator, 0);
   Channel::Create(sizeof(v_cs))
     .from(fft_data2, 0)
-    .to(siso_channel_comp, 1).to(mimo_channel_estimator, 1).to(mimo_channel_compensator, 1);
+    .to(siso_channel_comp, 1).to(mimo_channel_estimator_zf, 1).to(mimo_channel_estimator_mmse, 1).to(mimo_channel_compensator, 1);
   Channel::Create(sizeof(v_cs))
     .from(fft_data3, 0)
-    .to(siso_channel_comp, 2).to(mimo_channel_estimator, 2).to(mimo_channel_compensator, 2);
+    .to(siso_channel_comp, 2).to(mimo_channel_estimator_zf, 2).to(mimo_channel_estimator_mmse, 2).to(mimo_channel_compensator, 2);
   Channel::Create(sizeof(v_cs))
     .from(fft_data4, 0)
-    .to(siso_channel_comp, 3).to(mimo_channel_estimator, 3).to(mimo_channel_compensator, 3);
+    .to(siso_channel_comp, 3).to(mimo_channel_estimator_zf, 3).to(mimo_channel_estimator_mmse, 3).to(mimo_channel_compensator, 3);
 
   //
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 0).to(siso_mrc_combine, 0)
+    .from(siso_channel_comp, 0).to(noise_estimator, 0).to(siso_mrc_combine, 0)
     .from(mimo_channel_compensator, 0).to(ht_demap_bpsk1, 0).to(ht_demap_qpsk1, 0).to(ht_demap_16qam1, 0).to(ht_demap_64qam1, 0).to(pilot_tracking, 0);
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 1).to(siso_mrc_combine, 1)
+    .from(siso_channel_comp, 1).to(noise_estimator, 1).to(siso_mrc_combine, 1)
     .from(mimo_channel_compensator, 1).to(ht_demap_bpsk2, 0).to(ht_demap_qpsk2, 0).to(ht_demap_16qam2, 0).to(ht_demap_64qam2, 0).to(pilot_tracking, 1);
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 2).to(siso_mrc_combine, 2)
+    .from(siso_channel_comp, 2).to(noise_estimator, 2).to(siso_mrc_combine, 2)
     .from(mimo_channel_compensator, 2).to(ht_demap_bpsk3, 0).to(ht_demap_qpsk3, 0).to(ht_demap_16qam3, 0).to(ht_demap_64qam3, 0).to(pilot_tracking, 2);
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 3).to(siso_mrc_combine, 3)
+    .from(siso_channel_comp, 3).to(noise_estimator, 3).to(siso_mrc_combine, 3)
     .from(mimo_channel_compensator, 3).to(ht_demap_bpsk4, 0).to(ht_demap_qpsk4, 0).to(ht_demap_16qam4, 0).to(ht_demap_64qam4, 0).to(pilot_tracking, 3);
 
   //
@@ -335,13 +363,13 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   auto frame_detection = [&]() -> bool
   {
     bool bRet = false;
-    START(src, axorr, lstf_searcher, STOP([&]{bRet = true;}));
+    START(src, awgn, axorr, lstf_searcher, STOP([&]{bRet = true;}));
     return bRet;
   };
 
   auto lltf_handler = [&]() -> bool
   {
-    START(src, wait_lltf, IF([&]
+    START(src, awgn, wait_lltf, IF([&]
     {
       ONCE(cfo_est, cfo_comp);
       START(fft_lltf1, fft_lltf2, fft_lltf3, fft_lltf4);
@@ -356,13 +384,13 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
     *l_sig_vit.VitTotalBits = 24;
     *l_sig_ok = false;
     //l-sig
-    START(src, wait_ofdm, STOP([&]
+    START(src, awgn, wait_ofdm, STOP([&]
     {
       ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
-      ONCE(siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit);
+      ONCE(siso_channel_comp, noise_estimator, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit);
 
       ONCE(l_sig_parser);
     }));
@@ -374,7 +402,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
     *ht_sig_vit.VitTotalBits = 48;
     *ht_sig_ok = false;
     //ht-sig
-    START(src, wait_ofdm, IF([&]
+    START(src, awgn, wait_ofdm, IF([&]
     {
       bool bRet = false;
       ONCE(cfo_comp, remove_gi1,fft_data1);
@@ -392,14 +420,14 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   auto htstf_handler = [&]() -> bool
   {
     // ht-stf
-    START(src, wait_ofdm, cfo_comp, ht_stf, STOP(NOP));
+    START(src, awgn, wait_ofdm, cfo_comp, ht_stf, STOP(NOP));
     return true;
   };
 
   auto htltf_handler = [&]() -> bool
   {
     // ht-ltf
-    START(src, wait_ofdm, IF([&]
+    START(src, awgn, wait_ofdm, IF([&]
     {
       bool bRet = false;
 
@@ -408,7 +436,14 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
 
-      START(IF(mimo_channel_estimator), [&]{bRet = true;});
+      if (bUseZF)
+      {
+        START(IF(mimo_channel_estimator_zf), [&]{bRet = true;});
+      }
+      else
+      {
+        START(IF(mimo_channel_estimator_mmse), [&]{bRet = true;});
+      }
 
       return bRet;
     }), STOP(NOP), ELSE, NOP);
@@ -533,7 +568,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_bpsk_pipeline_1 = [&]() -> bool
   {
-    START(src, wait_ofdm, STOP([&]
+    START(src, awgn, wait_ofdm, STOP([&]
     {
       ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
@@ -553,7 +588,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_qpsk_pipeline_1 = [&]() -> bool
   {
-    START(src, wait_ofdm, STOP([&]
+    START(src, awgn, wait_ofdm, STOP([&]
     {
       ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
@@ -573,7 +608,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_16qam_pipeline_1 = [&]() -> bool
   {
-    START(src, wait_ofdm, STOP([&]
+    START(src, awgn, wait_ofdm, STOP([&]
     {
       ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
@@ -593,7 +628,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_64qam_pipeline_1 = [&]() -> bool
   {
-    START(src, wait_ofdm, STOP([&]
+    START(src, awgn, wait_ofdm, STOP([&]
     {
 #if 0
       ONCE(cfo_comp, remove_gi1, fft_data1);

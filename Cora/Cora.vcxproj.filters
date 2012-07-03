@@ -291,6 +291,12 @@
     <ClInclude Include="blocks\b_mumimo_2x2_rx.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_noise_estimator.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_awgn.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

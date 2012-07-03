@@ -35,11 +35,14 @@
 #include "b_wait.h"
 #include "b_dot11n_param.h"
 
+#include "b_awgn.h"
+
 #include "b_drop.h"
 #include "b_file_source.h"
 #include "b_moving_energy.h"
 #include "b_auto_corr.h"
 
+#include "b_noise_estimator.h"
 #include "b_lstf_searcher.h"
 #include "b_frequest_offset.h"
 #include "b_fft.h"
