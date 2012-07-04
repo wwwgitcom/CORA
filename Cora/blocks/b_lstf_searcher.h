@@ -35,7 +35,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     auto    _nin  = nin0 << 1;
     
 
-#if 1
+#if 0
     if (nin0 < 96)
     {
       return false;

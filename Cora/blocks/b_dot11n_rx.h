@@ -318,6 +318,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   auto lsig_handler = [&]() -> bool
   {
     *l_sig_vit.VitTotalBits = 24;
+    *l_sig_vit.VitTotalSoftBits = 48;
     *l_sig_ok = false;
     //l-sig
     START(src, wait_ofdm, STOP([&]
@@ -333,6 +334,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   auto htsig_handler = [&]() -> bool
   {
     *ht_sig_vit.VitTotalBits = 48;
+    *ht_sig_vit.VitTotalSoftBits = 96;
     *ht_sig_ok = false;
     //ht-sig
     START(src, wait_ofdm, IF([&]
@@ -386,15 +388,18 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     case 8:
     case 9:
     case 11:
-      *ht_data_vit_12.VitTotalBits = VitTotalBits;
+      *ht_data_vit_12.VitTotalBits     = VitTotalBits;
+      *ht_data_vit_12.VitTotalSoftBits = VitTotalBits << 1;
       break;
     case 10:
     case 12:
     case 14:
-      *ht_data_vit_34.VitTotalBits = VitTotalBits;
+      *ht_data_vit_34.VitTotalBits     = VitTotalBits;
+      *ht_data_vit_34.VitTotalSoftBits = VitTotalBits << 1;
       break;
     case 13:
-      *ht_data_vit_23.VitTotalBits = VitTotalBits;
+      *ht_data_vit_23.VitTotalBits     = VitTotalBits;
+      *ht_data_vit_23.VitTotalSoftBits = VitTotalBits << 1;
       break;
     default:
       break;

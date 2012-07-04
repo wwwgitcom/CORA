@@ -19,7 +19,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
     );
 
   int NoiseVar = cmdline.get("nv").as_int();
-  string strNoiseVar("NoiseVar=600");
+  string strNoiseVar("NoiseVar=10");
   if (NoiseVar != 0)
   {
     char buf[1024];
@@ -169,8 +169,6 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref crc32_checker_4            = create_block<b_crc32_check_1v>();
 
   autoref pilot_tracking             = create_block<b_dot11_pilot_tracking_4v>();
-  // for profiling
-  autoref producer                   = create_block<b_producer_v4>(2, string("nItemsEach=64"), string("nItemsTotal=6400"));
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
     .from(src, 0).to(awgn, 0);
@@ -307,19 +305,15 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   //deinterleave
   Channel::Create(sizeof(uint8))
     .from(ht_deinterleave_1bpsc_iss1, 0).from(ht_deinterleave_2bpsc_iss1, 0).from(ht_deinterleave_4bpsc_iss1, 0).from(ht_deinterleave_6bpsc_iss1, 0)
-    .from(producer, 0)
     .to(ht_data_vit_12_1, 0).to(ht_data_vit_23_1, 0).to(ht_data_vit_34_1, 0);
   Channel::Create(sizeof(uint8))
     .from(ht_deinterleave_1bpsc_iss2, 0).from(ht_deinterleave_2bpsc_iss2, 0).from(ht_deinterleave_4bpsc_iss2, 0).from(ht_deinterleave_6bpsc_iss2, 0)
-    .from(producer, 1)
     .to(ht_data_vit_12_2, 0).to(ht_data_vit_23_2, 0).to(ht_data_vit_34_2, 0);
   Channel::Create(sizeof(uint8))
     .from(ht_deinterleave_1bpsc_iss3, 0).from(ht_deinterleave_2bpsc_iss3, 0).from(ht_deinterleave_4bpsc_iss3, 0).from(ht_deinterleave_6bpsc_iss3, 0)
-    .from(producer, 2)
     .to(ht_data_vit_12_3, 0).to(ht_data_vit_23_3, 0).to(ht_data_vit_34_3, 0);
   Channel::Create(sizeof(uint8))
     .from(ht_deinterleave_1bpsc_iss4, 0).from(ht_deinterleave_2bpsc_iss4, 0).from(ht_deinterleave_4bpsc_iss4, 0).from(ht_deinterleave_6bpsc_iss4, 0)
-    .from(producer, 3)
     .to(ht_data_vit_12_4, 0).to(ht_data_vit_23_4, 0).to(ht_data_vit_34_4, 0);
 
   // descramble  
@@ -363,6 +357,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   auto frame_detection = [&]() -> bool
   {
     bool bRet = false;
+    RESET(axorr);
     START(src, awgn, axorr, lstf_searcher, STOP([&]{bRet = true;}));
     return bRet;
   };
@@ -382,6 +377,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   auto lsig_handler = [&]() -> bool
   {
     *l_sig_vit.VitTotalBits = 24;
+    *l_sig_vit.VitTotalSoftBits = 48;
     *l_sig_ok = false;
     //l-sig
     START(src, awgn, wait_ofdm, STOP([&]
@@ -400,6 +396,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   auto htsig_handler = [&]() -> bool
   {
     *ht_sig_vit.VitTotalBits = 48;
+    *ht_sig_vit.VitTotalSoftBits = 96;
     *ht_sig_ok = false;
     //ht-sig
     START(src, awgn, wait_ofdm, IF([&]
@@ -453,7 +450,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   auto pipeline_init = [&]
   {
     RESET(descramble_1, descramble_2, descramble_3, descramble_4);
-
+    
     *crc32_checker_1.crc32_check_length = *ht_frame_length;
     *crc32_checker_2.crc32_check_length = *ht_frame_length;
     *crc32_checker_3.crc32_check_length = *ht_frame_length;
@@ -468,23 +465,35 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
     case 9:
     case 11:
       *ht_data_vit_12_1.VitTotalBits = VitTotalBits;
+      *ht_data_vit_12_1.VitTotalSoftBits = VitTotalBits << 1;
       *ht_data_vit_12_2.VitTotalBits = VitTotalBits;
+      *ht_data_vit_12_2.VitTotalSoftBits = VitTotalBits << 1;
       *ht_data_vit_12_3.VitTotalBits = VitTotalBits;
+      *ht_data_vit_12_3.VitTotalSoftBits = VitTotalBits << 1;
       *ht_data_vit_12_4.VitTotalBits = VitTotalBits;
+      *ht_data_vit_12_4.VitTotalSoftBits = VitTotalBits << 1;
       break;
     case 10:
     case 12:
     case 14:
       *ht_data_vit_34_1.VitTotalBits = VitTotalBits;
+      *ht_data_vit_34_1.VitTotalSoftBits = VitTotalBits * 4 / 3;
       *ht_data_vit_34_2.VitTotalBits = VitTotalBits;
+      *ht_data_vit_34_2.VitTotalSoftBits = VitTotalBits * 4 / 3;
       *ht_data_vit_34_3.VitTotalBits = VitTotalBits;
+      *ht_data_vit_34_3.VitTotalSoftBits = VitTotalBits * 4 / 3;
       *ht_data_vit_34_4.VitTotalBits = VitTotalBits;
+      *ht_data_vit_34_4.VitTotalSoftBits = VitTotalBits * 4 / 3;
       break;
     case 13:
       *ht_data_vit_23_1.VitTotalBits = VitTotalBits;
+      *ht_data_vit_23_1.VitTotalSoftBits = VitTotalBits * 3 / 2;
       *ht_data_vit_23_2.VitTotalBits = VitTotalBits;
+      *ht_data_vit_23_2.VitTotalSoftBits = VitTotalBits * 3 / 2;
       *ht_data_vit_23_3.VitTotalBits = VitTotalBits;
+      *ht_data_vit_23_3.VitTotalSoftBits = VitTotalBits * 3 / 2;
       *ht_data_vit_23_4.VitTotalBits = VitTotalBits;
+      *ht_data_vit_23_4.VitTotalSoftBits = VitTotalBits * 3 / 2;
       break;
     default:
       break;
@@ -567,7 +576,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   //////////////////////////////////////////////////////////////////////////
 
   auto rx_bpsk_pipeline_1 = [&]() -> bool
-  {
+  {    
     START(src, awgn, wait_ofdm, STOP([&]
     {
       ONCE(cfo_comp, remove_gi1, fft_data1);
@@ -588,6 +597,8 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_qpsk_pipeline_1 = [&]() -> bool
   {
+    //printf("symbol - %d\n", symbol_count);
+
     START(src, awgn, wait_ofdm, STOP([&]
     {
       ONCE(cfo_comp, remove_gi1, fft_data1);
@@ -686,9 +697,14 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_mcs10_pipeline = [&]
   {
+    //while( rx_qpsk_pipeline_1());
+    //ONCE(rx_vit34_pipeline_1, rx_vit34_pipeline_2, rx_vit34_pipeline_3, rx_vit34_pipeline_4);
+
     PIPE_LINE(rx_qpsk_pipeline_1, [&]{
       PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2, rx_vit34_pipeline_3, rx_vit34_pipeline_4);
     });
+
+    //PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2, rx_vit34_pipeline_3, rx_vit34_pipeline_4);
   };
 
   auto rx_mcs11_pipeline = [&]

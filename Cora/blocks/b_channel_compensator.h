@@ -238,6 +238,12 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_4v4, 4, 4)
       vout        = v_convert2cs(vciout1, vciout2);
     }
 #endif
+
+#if enable_draw
+    op1[0][0] = 0;
+    m_draw->DrawSqrtShift((complex16*)op1, 64);
+#endif
+
     consume_each(16);
     produce_each(16);
 

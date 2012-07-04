@@ -110,10 +110,10 @@ DEFINE_BLOCK(b_dot11_mimo_channel_compensator_4v4, 4, 4)
   BLOCK_INIT
   {
 #if enable_4x4_channel_compensate_draw
-    m_draw1 = new dsp_draw_window("dot11 4x4 mimo channel compensator: 1", 0, 400, 400, 400);
-    m_draw2 = new dsp_draw_window("dot11 4x4 mimo channel compensator: 2", 400, 400, 400, 400);
-    m_draw3 = new dsp_draw_window("dot11 4x4 mimo channel compensator: 3", 800, 400, 400, 400);
-    m_draw4 = new dsp_draw_window("dot11 4x4 mimo channel compensator: 4", 1200, 400, 400, 400);
+    m_draw1 = new dsp_draw_window("y1", 0, 400, 400, 400);
+    m_draw2 = new dsp_draw_window("y2", 400, 400, 400, 400);
+    m_draw3 = new dsp_draw_window("y3", 800, 400, 400, 400);
+    m_draw4 = new dsp_draw_window("y4", 1200, 400, 400, 400);
 #endif
   }
 

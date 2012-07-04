@@ -18,7 +18,7 @@ DEFINE_BLOCK(b_viterbi64_1o2_1v1, 1, 1)
   vub vNormMask;
 public:
   _local_(int, VitTotalBits, 0);
-
+  _local_(int, VitTotalSoftBits, 0);
   //////////////////////////////////////////////////////////////////////////
   BLOCK_INIT
   {
@@ -97,13 +97,14 @@ public:
 
     unsigned char * pVTOutput;
     unsigned char outchar = 0;    // the output(decoded) char
-    bool bFlush = false;
 
     __int32 nSoftBits;
     for (nSoftBits = 0; nSoftBits < nInputSoftBits; nSoftBits += 2)
     {
       ViterbiAdvance(pTrellis, (vub*)VIT_MA, ip[nSoftBits], (vub*)VIT_MB, ip[nSoftBits + 1]);
       i_trellis += 1;
+
+      *VitTotalSoftBits = *VitTotalSoftBits - 2;
 
       if (pTrellis[0][0] > 190)
       {
@@ -222,29 +223,17 @@ public:
         }
 
         nDecodedBits += nTraceBackOutput;
-        i_trellis -= nTraceBackOutput;
+        i_trellis    -= nTraceBackOutput;
 
         produce(0, nTraceBackOutputByte);
-
-        if (nVitTotalBits - nDecodedBits - i_trellis <= nTraceBackOutput)
-        {
-          bFlush = true;
-          if (nInputSoftBits - nSoftBits - 2 > 0)
-          {
-            continue;
-          }
-        }
-        nTotalSoftBits += nSoftBits + 2;
         consume(0, nSoftBits + 2);
         return true;
       }
     }
-
-    nTotalSoftBits += nSoftBits;
-
+    
     consume(0, nSoftBits);
 
-    if (bFlush || (nInputSoftBits >> 1) == nVitTotalBits || (nTotalSoftBits >> 1) == nVitTotalBits)
+    if (*VitTotalSoftBits <= 0)
     {
       while ( nDecodedBits < nVitTotalBits)
       {
@@ -256,7 +245,7 @@ public:
           ViterbiAdvance(pTrellis, (vub*)VIT_MA, opad, (vub*)VIT_MB, opad);
           i_trellis++;
 
-          if (pTrellis[0][0] > 192)
+          if (pTrellis[0][0] > 190)
           {
 #if 0
             pTrellis[0] = sub ( pTrellis[0], vNormMask);
@@ -371,9 +360,9 @@ public:
         }
       }
       reset();
-      bFlush = true;
+      return true;
     }
-    return bFlush;
+    return false;
   }
 };
 

@@ -15,7 +15,7 @@ __forceinline void PIPE_LINE(const _Function1 &_Func1, const _Function2 &_Func2)
   static cpu_manager* cm = cpu_manager::Instance();
   task_obj to = make_task_obj(_Func2);
   //to.set_as_cachable();
-  cm->run_task(&to);
+  cm->run_task(&to);  
 
   while(const_cast<_Function1&>(_Func1)())
   {
@@ -30,6 +30,7 @@ __forceinline void PIPE_LINE(const _Function1 &_Func1, const _Function2 &_Func2)
   //to.set_as_not_cachable();
   //printf("wait %p for done, cache=%d\n", &to, to.cachable);
   //cm->fast_run_task(&to);
+  
   to.wait();
 }
 

@@ -311,6 +311,7 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
   auto lsig_handler = [&]() -> bool
   {
     *l_sig_vit.VitTotalBits = 24;
+    *l_sig_vit.VitTotalSoftBits = 48;
     *l_sig_ok = false;
     //l-sig
     START(src, wait_ofdm, STOP([&]
@@ -326,6 +327,7 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
   auto htsig_handler = [&]() -> bool
   {
     *ht_sig_vit.VitTotalBits = 48;
+    *ht_sig_vit.VitTotalSoftBits = 96;
     *ht_sig_ok = false;
     //ht-sig
     START(src, wait_ofdm, IF([&]
@@ -380,17 +382,23 @@ void mumimo_2x2_rx(int argc, _TCHAR* argv[])
     case 9:
     case 11:
       *ht_data_vit_12_1.VitTotalBits = VitTotalBits;
+      *ht_data_vit_12_1.VitTotalSoftBits = VitTotalBits << 1;
       *ht_data_vit_12_2.VitTotalBits = VitTotalBits;
+      *ht_data_vit_12_2.VitTotalSoftBits = VitTotalBits << 1;
       break;
     case 10:
     case 12:
     case 14:
       *ht_data_vit_34_1.VitTotalBits = VitTotalBits;
+      *ht_data_vit_34_1.VitTotalSoftBits = VitTotalBits * 4 / 3;
       *ht_data_vit_34_2.VitTotalBits = VitTotalBits;
+      *ht_data_vit_34_2.VitTotalSoftBits = VitTotalBits * 4 / 3;
       break;
     case 13:
       *ht_data_vit_23_1.VitTotalBits = VitTotalBits;
+      *ht_data_vit_23_1.VitTotalSoftBits = VitTotalBits * 3 / 2;
       *ht_data_vit_23_2.VitTotalBits = VitTotalBits;
+      *ht_data_vit_23_2.VitTotalSoftBits = VitTotalBits * 3 / 2;
       break;
     default:
       break;

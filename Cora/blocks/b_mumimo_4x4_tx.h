@@ -461,7 +461,7 @@ inline void mumimo_4x4_tx(int argc, _TCHAR* argv[])
   int mcs = cmdline.get("mcs").as_int();
   if (mcs == 0)
   {
-    mcs = 14;
+    mcs = 10;
   }
 
   int frame_length = cmdline.get("frame_length").as_int();

@@ -19,7 +19,7 @@ DEFINE_BLOCK(b_viterbi64_2o3_1v1, 1, 1)
   
 public:
   _local_(int, VitTotalBits, 0);
-
+  _local_(int, VitTotalSoftBits, 0);
   //////////////////////////////////////////////////////////////////////////
   BLOCK_INIT
   {
@@ -99,7 +99,6 @@ public:
  
     unsigned char * pVTOutput;
     unsigned char outchar = 0;    // the output(decoded) char
-    bool bFlush = false;
 
     //printf("vit in: %d\n", nInputSoftBits);
     
@@ -109,6 +108,8 @@ public:
       ViterbiAdvance(pTrellis, (vub*)VIT_MA, ip[nSoftBits], (vub*)VIT_MB, ip[nSoftBits + 1]);
       ViterbiAdvance(pTrellis, (vub*)VIT_MA, ip[nSoftBits + 2]);
       i_trellis += 2;
+
+      *VitTotalSoftBits = *VitTotalSoftBits - 3;
 
       //uint8 *c = (uint8 *)pTrellis;
       //for (int i = 0; i < 64; i++)
@@ -250,29 +251,8 @@ public:
         //printf("\n");
 
         i_trellis -= nTraceBackOutput;//?????????
-        //printf("nTotalBits=%d\nSoftBits", nTotalBits);
-        //printf("nDecodedBits=%d, nTotalBits=%d, i_trellis=%d, trellisoffset=%d\n",
-        //  nDecodedBits, nVitTotalBits, i_trellis, pTrellis - pTrellisBase);
-        //if (nDecodedBits == 4096)
-        //{
-        //  printf("***");
-        //}
-
+        
         produce(0, nTraceBackOutputByte);
-
-
-
-        //printf("in2: %d, total=%d, this left=%d\n", m_IncomeSoftBits, nTotalSoftBits, nInputSoftBits - nSoftBits - 8);
-
-        if (nVitTotalBits - nDecodedBits - i_trellis <= nTraceBackOutput)
-        {
-          bFlush = true;
-          if (nInputSoftBits - nSoftBits - 3 > 0)
-          {
-            continue;
-          }
-        }
-
         consume(0, nSoftBits + 3);
         return true;
       }
@@ -280,7 +260,7 @@ public:
 
     consume(0, nSoftBits);
 
-    if (bFlush)
+    if (*VitTotalSoftBits <= 0)
     {
       while ( nDecodedBits < nVitTotalBits)
       {
@@ -419,8 +399,9 @@ public:
         }
       }
       reset();
+      return true;
     }
-    return bFlush;
+    return false;
   }
 };
 
