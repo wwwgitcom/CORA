@@ -49,46 +49,8 @@ colorlinks=true
 
 \maketitle
 
-
-\section{4x4 MIMO 信道估计}
-
-802.11n中4x4 Preamble正交序列
-\begin{table}[tbh]
-\centering
-\begin{tabular}{c|c|c|c|c}
-\hline
- & t1 & t2 & t3 & t4 \\
-\hline
-P1 & 1  & -1 & 1 & 1 \\
-P2 & 1  & 1 & -1 & 1 \\
-P3 & 1  & 1 & 1 & -1 \\
-P4 & -1  & 1 & 1 & 1 \\
-\hline
-\end{tabular}
-\caption{802.11n HTLTF 正交化序列}
-\label{tab:dot11nHTLTFOtho}
-\end{table}
-
-接收端第一根天线在各时刻接收到的信号为（X为HTLTF序列）
-\begin{eqnarray}
-y_{1, t1} & = & h_{11}X + h_{12}X + h_{13}X - h_{14}X \\
-y_{1, t2} & = & -h_{11}X + h_{12}X + h_{13}X + h_{14}X \\
-y_{1, t3} & = & h_{11}X - h_{12}X + h_{13}X + h_{14}X \\
-y_{1, t4} & = & h_{11}X + h_{12}X - h_{13}X + h_{14}X
-\end{eqnarray}
-解方程
-\begin{eqnarray}
-y_{1} & = & y_{1, t1} + y_{1, t4} = 2h_{11}X  + 2h_{12}X  \\
-y_{2} & = & y_{1, t2} -  y_{1, t3} = -2h_{11}X  + 2h_{12}X   \\
-y_{3} & = & y_{1, t1} - y_{1, t4} = 2h_{13}X  - 2h_{14}X  \\
-y_{4} & = & y_{1, t2} + y_{1, t3} = 2h_{13}X  + 2h_{14}X  \\
-h_{11} & = & (y_{1} - y_{2}) / 4X \\
-h_{12} & = & (y_{1} + y_{2}) / 4X \\
-h_{13} & = & (y_{3} + y_{4}) / 4X  \\
-h_{14} & = & (y_{4} - y_{3}) / 4X
-\end{eqnarray}
-其余信道可由上述方法解出。
-各天线$i$可并行计算各自的信道$h_{i, j}, j \in \{1, 2, 3, 4\}$
+\input{mimo_channel}
+\input{frequency_offset}
 
 
 \end{document}
