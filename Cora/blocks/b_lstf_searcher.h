@@ -6,6 +6,9 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
   _local_(bool, peak_found, false);
   _local_(int, peak_count, 0);
 
+  int energy_buffer[4];
+  int axorr_buffer[4];
+
   BLOCK_INIT
   {
     auto v = $["peak_up_shift"];
@@ -47,7 +50,15 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     }
 #endif
 
-
+#if enable_4x4_channel_compensate_dbgplot
+    for (int i = 0; i < 4; i++)
+    {
+      axorr_buffer[i] = (int)(_ip0[i] >> 16);
+      energy_buffer[i] = (int)(_ip1[i] >> 16);
+    }
+    PlotLine("moving average energy", energy_buffer, 4);
+    PlotLine("moving average axorr^2", axorr_buffer, 4);    
+#endif
 
     bool ret = false;
 

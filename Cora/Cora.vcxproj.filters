@@ -25,6 +25,9 @@
     <Filter Include="Source Files\blocks">
       <UniqueIdentifier>{3aa0245e-76f1-4dbe-a88c-0c8a8efe996a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\dbgplot">
+      <UniqueIdentifier>{98038135-88bd-4be2-b157-1dcab2e4cd29}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -296,6 +299,9 @@
     </ClInclude>
     <ClInclude Include="blocks\b_awgn.h">
       <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="dbgplot\inc\DebugPlotU.h">
+      <Filter>Header Files\dbgplot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

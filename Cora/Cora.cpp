@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+
 //--------------------------------------------------
 #include "dsp_types.h"
 #include "dsp_tickcount.h"
@@ -12,6 +13,8 @@
 #include "dsp_crc.h"
 #include "dsp_processor.h"
 #include "dsp_cmd.h"
+
+#include "DebugPlotU.h"
 //--------------------------------------------------
 #include "TBlock.h"
 #include "TObject.h"
@@ -28,6 +31,7 @@
 #include "TReset.h"
 
 #define enable_draw 0
+#define enable_4x4_channel_compensate_dbgplot 1
 //--------------------------------------------------
 #include "b_plot.h"
 #include "b_producer.h"
@@ -149,11 +153,15 @@ int _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
   cmdline.parse(argc, argv);
-
+  
   SetConsoleCtrlHandler(HandlerRoutine, true);
   SetThreadAffinityMask(GetCurrentThread(), 1);
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+
+#if enable_4x4_channel_compensate_dbgplot
+  ::DebugPlotInit();
+#endif
 
 #if 0
   auto tx_main = [&]
@@ -195,8 +203,9 @@ int _tmain(int argc, _TCHAR* argv[])
     printf("invalid arguments....\n");
   }
 #endif
-
-  printf(".....\n");
+#if enable_4x4_channel_compensate_dbgplot
+  ::DebugPlotDeinit();
+#endif
 
   ExitProcess(0);
   exit(0);

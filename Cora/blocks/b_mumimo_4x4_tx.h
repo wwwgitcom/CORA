@@ -101,10 +101,10 @@ inline void mumimo_4x4_tx(int argc, _TCHAR* argv[])
   autoref ht_map_64qam_3  = create_block<b_dot11n_map_64qam_1v1>();
   autoref ht_map_64qam_4  = create_block<b_dot11n_map_64qam_1v1>();
   // pilot
-  autoref ht_add_pilot_1 = create_block<b_dot11n_add_pilot_1v>(1, string("iss=0"));
-  autoref ht_add_pilot_2 = create_block<b_dot11n_add_pilot_1v>(1, string("iss=1"));
-  autoref ht_add_pilot_3 = create_block<b_dot11n_add_pilot_1v>(1, string("iss=2"));
-  autoref ht_add_pilot_4 = create_block<b_dot11n_add_pilot_1v>(1, string("iss=3"));
+  autoref ht_add_pilot_1 = create_block<b_dot11n_4x4_add_pilot_1v>(1, string("iss=0"));
+  autoref ht_add_pilot_2 = create_block<b_dot11n_4x4_add_pilot_1v>(1, string("iss=1"));
+  autoref ht_add_pilot_3 = create_block<b_dot11n_4x4_add_pilot_1v>(1, string("iss=2"));
+  autoref ht_add_pilot_4 = create_block<b_dot11n_4x4_add_pilot_1v>(1, string("iss=3"));
 
   // ifft
   autoref ht_ifft_1  = create_block<b_dot11n_tx_ifft_128_1v1>();
@@ -222,9 +222,8 @@ inline void mumimo_4x4_tx(int argc, _TCHAR* argv[])
     .to(ht_add_pilot_4, 0).to(ht_ifft_4, 0);
 
 
-  Channel::Create(sizeof(dot11n_tx_symbol), 1024)
+  Channel::Create(sizeof(dot11n_tx_symbol))
     .from(ht_ifft_1, 0).to(ht_add_cp1, 0);
-
   Channel::Create(sizeof(dot11n_tx_symbol))
     .from(ht_ifft_2, 0).to(ht_csd_2, 0);
   Channel::Create(sizeof(dot11n_tx_symbol))
@@ -240,8 +239,7 @@ inline void mumimo_4x4_tx(int argc, _TCHAR* argv[])
     .from(ht_csd_4, 0).to(ht_add_cp4, 0);
   //////////////////////////////////////////////////////////////////////////
   Channel::Create(sizeof(v_cs), 1024 * 1024)
-    .from(dma_join, 0)
-    .to(dummy, 0);
+    .from(dma_join, 0).to(dummy, 0);
 
   //////////////////////////////////////////////////////////////////////////
   v_align(64)

@@ -561,6 +561,8 @@ public:
 
   static const int nproduce = 1;
 
+  int RxBuffer[4][4];
+
   BLOCK_WORK
   {
     //log("%s\n", name());
@@ -580,6 +582,20 @@ public:
       op2[i] = (*pSignalBlock2)->operator[](*nOffset);
       op3[i] = (*pSignalBlock3)->operator[](*nOffset);
       op4[i] = (*pSignalBlock4)->operator[](*nOffset);
+
+#if enable_4x4_channel_compensate_dbgplot
+      for (int i = 0; i < 4; i++)
+      {
+        RxBuffer[0][i] = op1[0][i].re * op1[0][i].re + op1[0][i].im * op1[0][i].im;
+        RxBuffer[1][i] = op2[0][i].re * op2[0][i].re + op2[0][i].im * op2[0][i].im;
+        RxBuffer[2][i] = op3[0][i].re * op3[0][i].re + op3[0][i].im * op3[0][i].im;
+        RxBuffer[3][i] = op4[0][i].re * op4[0][i].re + op4[0][i].im * op4[0][i].im;
+      }
+      PlotLine("RX Raw 1", &RxBuffer[0][0], 4);
+      PlotLine("RX Raw 2", &RxBuffer[1][0], 4);
+      PlotLine("RX Raw 3", &RxBuffer[2][0], 4);
+      PlotLine("RX Raw 4", &RxBuffer[3][0], 4);
+#endif
 
       (*nOffset)++;
       if (*nOffset == 7)
