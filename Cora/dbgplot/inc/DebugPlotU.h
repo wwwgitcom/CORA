@@ -9,8 +9,10 @@
 #define E_END_OF_BUF            0x80050028L
 #define E_SPECTRUM_SIZE_INVALID 0x80050029L	
 
+#if enable_dbgplot
 #pragma comment(lib, "DebugPlotU.lib")
 #pragma comment(lib, "usora.lib")
+#endif
 
 
 #ifdef __cplusplus

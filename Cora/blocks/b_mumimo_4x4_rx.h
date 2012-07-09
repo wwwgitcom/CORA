@@ -9,24 +9,45 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   autoref dummy = create_block<dummy_block>();
 
-  autoref src = create_block<b_file_source_v4>(
-    5, 
-    string("FileName1=c:\\MiMo_0.dmp"), 
-    string("FileName2=c:\\MiMo_1.dmp"), 
-    string("FileName3=c:\\MiMo_2.dmp"), 
-    string("FileName4=c:\\MiMo_3.dmp"), 
-    string("Decimate=1")
-    );
+  string strFileName1 = string("FileName1=c:\\MiMo_0.dmp");
+  string strFileName2 = string("FileName2=c:\\MiMo_1.dmp");
+  string strFileName3 = string("FileName3=c:\\MiMo_2.dmp");
+  string strFileName4 = string("FileName4=c:\\MiMo_3.dmp");
 
-  int NoiseVar = cmdline.get("nv").as_int();
-  string strNoiseVar("NoiseVar=10");
-  if (NoiseVar != 0)
+  auto CmdArg = cmdline.get("FileName1");
+  if ( CmdArg.exist() )
   {
+    strFileName1 = CmdArg.as_string();
+  }
+  CmdArg = cmdline.get("FileName2");
+  if ( CmdArg.exist() )
+  {
+    strFileName2 = CmdArg.as_string();
+  }
+  CmdArg = cmdline.get("FileName3");
+  if ( CmdArg.exist() )
+  {
+    strFileName3 = CmdArg.as_string();
+  }
+  CmdArg = cmdline.get("FileName4");
+  if ( CmdArg.exist() )
+  {
+    strFileName4 = CmdArg.as_string();
+  }
+
+  autoref src = create_block<b_file_source_v4>(
+    5, strFileName1, strFileName2, strFileName3, strFileName4, string("Decimate=1"));
+
+  string strNoiseVar("NoiseVar=10");
+  CmdArg = cmdline.get("nv");
+  if (CmdArg.exist())
+  {
+    int NoiseVar = CmdArg.as_int();
     char buf[1024];
     memset(buf, 0, 1024);
-    sprintf(buf, "NoiseVar=%d", NoiseVar);
+    sprintf_s(buf, 1024, "NoiseVar=%d", NoiseVar);
     strNoiseVar = string(buf);
-  }
+  }  
   autoref awgn                       = create_block<b_awgn_4v4>( 1, strNoiseVar );
 
   autoref wait_lltf                  = create_block<b_wait_4v>( 1, string("nwait=32") );

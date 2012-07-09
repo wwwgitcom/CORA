@@ -197,7 +197,7 @@ DEFINE_BLOCK(b_frequest_offset_estimator_4v, 4, 0)
     short delta4 = v_estimate_i(ip4, *vEstimateLength, *vEstimateDistance);
     short delta  = (delta1 >> 2) + (delta2 >> 2) + (delta3 >> 2) + (delta4 >> 2);
 
-#if enable_4x4_channel_compensate_dbgplot
+#if enable_dbgplot
     PlotText("CFO", "cfo1=%d, cfo2=%d, cfo3=%d, cfo4=%d, avgcfo=%d", 
       delta1, delta2, delta3, delta4, delta);
 #endif

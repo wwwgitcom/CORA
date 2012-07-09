@@ -14,6 +14,8 @@
 #include "dsp_processor.h"
 #include "dsp_cmd.h"
 
+#define enable_draw 0
+#define enable_dbgplot 0
 #include "DebugPlotU.h"
 //--------------------------------------------------
 #include "TBlock.h"
@@ -30,8 +32,6 @@
 #include "TThread.h"
 #include "TReset.h"
 
-#define enable_draw 0
-#define enable_4x4_channel_compensate_dbgplot 1
 //--------------------------------------------------
 #include "b_plot.h"
 #include "b_producer.h"
@@ -147,6 +147,19 @@ void pipeline_profiling()
 }
 
 
+void test()
+{
+  const int arr_size = 1023;
+  int *pA = new int[arr_size];
+  int *pB = new int[arr_size];
+  int *pC = new int[arr_size];
+#pragma parallelize 
+  for (int i = 0; i < arr_size; i++)
+  {
+    pC[i] = pA[i] + pB[i];
+  }
+}
+
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -159,7 +172,7 @@ int _tmain(int argc, _TCHAR* argv[])
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
-#if enable_4x4_channel_compensate_dbgplot
+#if enable_dbgplot
   ::DebugPlotInit();
 #endif
 
@@ -185,8 +198,10 @@ int _tmain(int argc, _TCHAR* argv[])
     mumimo_4x4_rx(argc, argv);
   };
 
+  test();
+
   //dsp_main(mumimo_tx_main);
-  dsp_main(mumimo_rx_main);
+  //dsp_main(mumimo_rx_main);
   //dsp_main(pipeline_profiling);
   //dsp_main(rx_main);
 #if 0
@@ -203,7 +218,7 @@ int _tmain(int argc, _TCHAR* argv[])
     printf("invalid arguments....\n");
   }
 #endif
-#if enable_4x4_channel_compensate_dbgplot
+#if enable_dbgplot
   ::DebugPlotDeinit();
 #endif
 

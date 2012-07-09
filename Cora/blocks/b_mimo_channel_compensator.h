@@ -96,8 +96,6 @@ DEFINE_BLOCK(b_dot11_mimo_channel_compensator_2v2, 2, 2)
 //////////////////////////////////////////////////////////////////////////
 #define enable_4x4_channel_compensate_draw 0
 
-#define enable_4x4_channel_compensate_dbgplot 1
-
 typedef complex16 MIMO_4x4_H[4][256];
 
 DEFINE_BLOCK(b_dot11_mimo_channel_compensator_4v4, 4, 4)
@@ -254,7 +252,7 @@ DEFINE_BLOCK(b_dot11_mimo_channel_compensator_4v4, 4, 4)
     m_draw4->DrawSqrtShift(opc4, 64);
 #endif
 
-#if enable_4x4_channel_compensate_dbgplot
+#if enable_dbgplot
     PlotDots("RX 1", opc1, 64);
     PlotDots("RX 2", opc2, 64);
     PlotDots("RX 3", opc3, 64);

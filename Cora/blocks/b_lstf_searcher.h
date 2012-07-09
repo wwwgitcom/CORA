@@ -50,7 +50,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     }
 #endif
 
-#if enable_4x4_channel_compensate_dbgplot
+#if enable_dbgplot
     for (int i = 0; i < 4; i++)
     {
       axorr_buffer[i] = (int)(_ip0[i] >> 16);

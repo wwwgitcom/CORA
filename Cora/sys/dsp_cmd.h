@@ -12,6 +12,11 @@ public:
     return !str_obj.empty();
   }
 
+  string as_string()
+  {
+    return str_obj;
+  }
+
   int as_int()
   {
     return atoi(str_obj.c_str());
@@ -50,13 +55,14 @@ public:
 
       m_cmd_map.insert( make_pair(str_arg.substr(0, pos), str_arg.substr(pos + 1) ) );    
     }
-
+#if 0
     cout << "----------------------------------" << endl;
     for (auto i = m_cmd_map.begin(); i != m_cmd_map.end(); i++)
     {
       cout << " Arg: " << i->first << ", Value: " << i->second << endl;
     }
     cout << "----------------------------------" << endl;
+#endif
   }
 
   arg_obj get(char* arg)
