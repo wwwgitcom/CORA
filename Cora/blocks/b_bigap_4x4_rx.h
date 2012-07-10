@@ -1,6 +1,6 @@
 #pragma once
 
-void mumimo_4x4_rx(int argc, _TCHAR* argv[])
+void bigap_4x4_rx(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
   cmdline.parse(argc, argv);
@@ -38,19 +38,31 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref src = create_block<b_file_source_v4>(
     5, strFileName1, strFileName2, strFileName3, strFileName4, string("Decimate=1"));
 
+  string strNoiseVar("NoiseVar=10");
+  CmdArg = cmdline.get("nv");
+  if (CmdArg.exist())
+  {
+    int NoiseVar = CmdArg.as_int();
+    char buf[1024];
+    memset(buf, 0, 1024);
+    sprintf_s(buf, 1024, "NoiseVar=%d", NoiseVar);
+    strNoiseVar = string(buf);
+  }  
+  autoref awgn                       = create_block<b_awgn_4v4>( 1, strNoiseVar );
+
   autoref wait_lltf                  = create_block<b_wait_4v>( 1, string("nwait=32") );
   autoref wait_ofdm                  = create_block<b_wait_4v>( 1, string("nwait=20") );
   autoref axorr                      = create_block<b_auto_corr_4v2>( 1,  string("vHisLength=8") );
 
-  autoref lstf_searcher              = create_block<b_lstf_searcher_2v1>();
-  autoref cfo_est                    = create_block<b_frequest_offset_estimator_4v>( 2, string("vEstimateLength=16"), string("vEstimateDistance=16") );
-  autoref cfo_comp                   = create_block<b_frequest_offset_compensator_4v4>( 1, string("vCompensateLength=2") );
+  autoref lstf_searcher              = create_block<b_lstf_searcher_2v1>();  
+  autoref lltf                       = create_block<b_bigap_lltf_rx_4v>( );
+  //autoref cfo_est                    = create_block<b_frequest_offset_estimator_4v>( );
+  //autoref cfo_comp                   = create_block<b_frequest_offset_compensator_4v4>( 1, string("vCompensateLength=2") );
 
   autoref fft_lltf1                  = create_block<b_fft_64_1v1>();
   autoref fft_lltf2                  = create_block<b_fft_64_1v1>();
   autoref fft_lltf3                  = create_block<b_fft_64_1v1>();
   autoref fft_lltf4                  = create_block<b_fft_64_1v1>();
-
 
   autoref remove_gi1                 = create_block<b_remove_gi_1v>( 2, string("GILength=4"), string("SymbolLength=16") );
   autoref remove_gi2                 = create_block<b_remove_gi_1v>( 2, string("GILength=4"), string("SymbolLength=16") );
@@ -66,15 +78,8 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref siso_channel_comp          = create_block<b_dot11_siso_channel_compensator_4v4>();
 
   autoref siso_mrc_combine           = create_block<b_mrc_combine_4v1>();
-
-  autoref siso_lsig_demap_bpsk_i     = create_block<b_dot11_demap_bpsk_i_1v1>( 2, string("low=-26"), string("high=26") );
-
-  autoref siso_lsig_deinterleave     = create_block<b_dot11a_deinterleave_1bpsc_1v1>();
-
-  autoref l_sig_vit                  = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=24"), string("TraceBackOutput=24") );
-
   autoref htsig_demap_bpsk_q         = create_block<b_dot11_demap_bpsk_q_1v1>( 2, string("low=-26"), string("high=26") );
-
+  autoref siso_sig_deinterleave      = create_block<b_dot11a_deinterleave_1bpsc_1v1>();
   autoref ht_sig_vit                 = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=48"), string("TraceBackOutput=48") );
 
   autoref ht_data_vit_12_1           = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=48"), string("TraceBackOutput=96") );
@@ -116,10 +121,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
     string("TraceBackOutput          =192")
     );
 
-  autoref l_sig_parser               = create_block<b_lsig_parser_1v>();
-  autoref ht_sig_parser              = create_block<b_htsig_parser_1v>();
-  autoref ht_stf                     = create_block<b_drop_4v>(1, string("nDrop=20") );
-
+  autoref ht_sig_parser              = create_block<b_htsig_parser_1v>();  
   autoref noise_estimator            = create_block<b_noise_estimator_4v>();
   autoref mimo_channel_estimator_zf  = create_block<b_dot11_mimo_channel_estimator_4v>();
   autoref mimo_channel_estimator_mmse= create_block<b_dot11_mimo_channel_estimator_mmse_4v>();
@@ -180,20 +182,33 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref pilot_tracking             = create_block<b_dot11_pilot_tracking_4v>();
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
-    .from(src, 0)
-    .to(wait_lltf, 0).to(wait_ofdm, 0).to(axorr, 0).to(cfo_est, 0).to(cfo_comp, 0);
+    .from(src, 0).to(awgn, 0);
+  Channel::Create(sizeof(v_cs))
+    .from(src, 1).to(awgn, 1);
+  Channel::Create(sizeof(v_cs))
+    .from(src, 2).to(awgn, 2);
+  Channel::Create(sizeof(v_cs))
+    .from(src, 3).to(awgn, 3);
+  
+  Channel::Create(sizeof(v_cs))
+    .from(awgn, 0)
+    .to(wait_lltf, 0).to(wait_ofdm, 0).to(axorr, 0).to(lltf, 0)
+    .to(fft_lltf1, 0).to(remove_gi1, 0).to(fft_data1, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(src, 1)
-    .to(wait_lltf, 1).to(wait_ofdm, 1).to(axorr, 1).to(cfo_est, 1).to(cfo_comp, 1);
+    .from(awgn, 1)
+    .to(wait_lltf, 1).to(wait_ofdm, 1).to(axorr, 1).to(lltf, 1)
+    .to(fft_lltf2, 0).to(remove_gi2, 0).to(fft_data2, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(src, 2)
-    .to(wait_lltf, 2).to(wait_ofdm, 2).to(axorr, 2).to(cfo_est, 2).to(cfo_comp, 2);
+    .from(awgn, 2)
+    .to(wait_lltf, 2).to(wait_ofdm, 2).to(axorr, 2).to(lltf, 2)
+    .to(fft_lltf3, 0).to(remove_gi3, 0).to(fft_data3, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(src, 3)
-    .to(wait_lltf, 3).to(wait_ofdm, 3).to(axorr, 3).to(cfo_est, 3).to(cfo_comp, 3);
+    .from(awgn, 3)
+    .to(wait_lltf, 3).to(wait_ofdm, 3).to(axorr, 3).to(lltf, 3)
+    .to(fft_lltf4, 0).to(remove_gi4, 0).to(fft_data4, 0);
 
   Channel::Create(sizeof(v_q))
     .from(axorr, 0)
@@ -203,22 +218,6 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
     .from(axorr, 1)
     .to(lstf_searcher, 1);
 
-  //
-  Channel::Create(sizeof(v_cs))
-    .from(cfo_comp, 0)
-    .to(fft_lltf1, 0).to(remove_gi1, 0).to(fft_data1, 0).to(ht_stf, 0);
-
-  Channel::Create(sizeof(v_cs))
-    .from(cfo_comp, 1)
-    .to(fft_lltf2, 0).to(remove_gi2, 0).to(fft_data2, 0).to(ht_stf, 1);
-
-  Channel::Create(sizeof(v_cs))
-    .from(cfo_comp, 2)
-    .to(fft_lltf3, 0).to(remove_gi3, 0).to(fft_data3, 0).to(ht_stf, 2);
-
-  Channel::Create(sizeof(v_cs))
-    .from(cfo_comp, 3)
-    .to(fft_lltf4, 0).to(remove_gi4, 0).to(fft_data4, 0).to(ht_stf, 3);
 
   // 
   Channel::Create(sizeof(v_cs))
@@ -268,18 +267,14 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   //
   Channel::Create(sizeof(v_cs))
     .from(siso_mrc_combine, 0)
-    .to(siso_lsig_demap_bpsk_i, 0).to(htsig_demap_bpsk_q, 0);
+    .to(htsig_demap_bpsk_q, 0);
 
   Channel::Create(sizeof(uint8))
-    .from(siso_lsig_demap_bpsk_i, 0).from(htsig_demap_bpsk_q, 0)
-    .to(siso_lsig_deinterleave, 0);
+    .from(htsig_demap_bpsk_q, 0)
+    .to(siso_sig_deinterleave, 0);
 
   Channel::Create(sizeof(uint8))
-    .from(siso_lsig_deinterleave, 0).to(l_sig_vit, 0).to(ht_sig_vit, 0);
-
-  Channel::Create(sizeof(uint8))
-    .from(l_sig_vit, 0)
-    .to(l_sig_parser, 0);
+    .from(siso_sig_deinterleave, 0).to(ht_sig_vit, 0);
 
   Channel::Create(sizeof(uint8))
     .from(ht_sig_vit, 0)
@@ -358,39 +353,20 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   {
     bool bRet = false;
     RESET(axorr);
-    START(src, axorr, lstf_searcher, STOP([&]{bRet = true;}));
+    START(src, awgn, axorr, lstf_searcher, STOP([&]{bRet = true;}));
     return bRet;
   };
 
   auto lltf_handler = [&]() -> bool
   {
-    START(src, wait_lltf, IF([&]
+    START(src, awgn, wait_lltf, IF([&]
     {
-      ONCE(cfo_est, cfo_comp);
+      ONCE(lltf);
       START(fft_lltf1, fft_lltf2, fft_lltf3, fft_lltf4);
       ONCE(siso_channel_est);
       return true;
     }), STOP(NOP));
     return true;
-  };
-
-  auto lsig_handler = [&]() -> bool
-  {
-    *l_sig_vit.VitTotalBits = 24;
-    *l_sig_vit.VitTotalSoftBits = 48;
-    *l_sig_ok = false;
-    //l-sig
-    START(src, wait_ofdm, STOP([&]
-    {
-      ONCE(cfo_comp, remove_gi1, fft_data1);
-      ONCE(remove_gi2, fft_data2);
-      ONCE(remove_gi3, fft_data3);
-      ONCE(remove_gi4, fft_data4);
-      ONCE(siso_channel_comp, noise_estimator, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit);
-
-      ONCE(l_sig_parser);
-    }));
-    return *l_sig_ok;
   };
 
   auto htsig_handler = [&]() -> bool
@@ -399,36 +375,29 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
     *ht_sig_vit.VitTotalSoftBits = 96;
     *ht_sig_ok = false;
     //ht-sig
-    START(src, wait_ofdm, IF([&]
+    START(src, awgn, wait_ofdm, IF([&]
     {
       bool bRet = false;
-      ONCE(cfo_comp, remove_gi1,fft_data1);
+      ONCE(remove_gi1,fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
-      ONCE(siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_lsig_deinterleave, ht_sig_vit);
+      ONCE(siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_sig_deinterleave, ht_sig_vit);
 
       START(IF(ht_sig_parser), [&]{bRet = true;});
       return bRet;
     }), STOP(NOP), ELSE, NOP);
     return *ht_sig_ok;
   };
-
-  auto htstf_handler = [&]() -> bool
-  {
-    // ht-stf
-    START(src, wait_ofdm, cfo_comp, ht_stf, STOP(NOP));
-    return true;
-  };
-
+  
   auto htltf_handler = [&]() -> bool
   {
     // ht-ltf
-    START(src, wait_ofdm, IF([&]
+    START(src, awgn, wait_ofdm, IF([&]
     {
       bool bRet = false;
 
-      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
@@ -577,9 +546,9 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_bpsk_pipeline_1 = [&]() -> bool
   {    
-    START(src, wait_ofdm, STOP([&]
+    START(src, awgn, wait_ofdm, STOP([&]
     {
-      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
@@ -599,9 +568,9 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   {
     //printf("symbol - %d\n", symbol_count);
 
-    START(src, wait_ofdm, STOP([&]
+    START(src, awgn, wait_ofdm, STOP([&]
     {
-      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
@@ -619,9 +588,9 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_16qam_pipeline_1 = [&]() -> bool
   {
-    START(src, wait_ofdm, STOP([&]
+    START(src, awgn, wait_ofdm, STOP([&]
     {
-      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
@@ -639,10 +608,10 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_64qam_pipeline_1 = [&]() -> bool
   {
-    START(src, wait_ofdm, STOP([&]
+    START(src, awgn, wait_ofdm, STOP([&]
     {
 #if 0
-      ONCE(cfo_comp, remove_gi1, fft_data1);
+      ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
@@ -653,8 +622,6 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
       ONCE(ht_demap_64qam3, ht_deinterleave_6bpsc_iss3);
       ONCE(ht_demap_64qam4, ht_deinterleave_6bpsc_iss4);
 #else
-      ONCE(cfo_comp);
-
       ONCE([&]{
         ONCE(remove_gi1, fft_data1);
         ONCE(remove_gi2, fft_data2);
@@ -752,7 +719,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
 #if 1
   START(
-    WHILE(frame_detection), IF(lltf_handler), IF(lsig_handler), IF(htsig_handler), IF(htstf_handler), IF(htltf_handler), htdata_handler
+    WHILE(frame_detection), IF(lltf_handler), IF(htsig_handler), IF(htltf_handler), htdata_handler
     );
 #else
   profile_viterbi34();

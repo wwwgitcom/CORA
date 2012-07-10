@@ -146,4 +146,9 @@ struct __declspec(align(16)) ofdm_symbol
   {
 
   }
+
+  __forceinline void zero()
+  {
+    ZeroMemory(data, ntotal * sizeof(T));
+  }
 };

@@ -15,7 +15,7 @@
 #include "dsp_cmd.h"
 
 #define enable_draw 0
-#define enable_dbgplot 0
+#define enable_dbgplot 1
 #include "DebugPlotU.h"
 //--------------------------------------------------
 #include "TBlock.h"
@@ -102,8 +102,12 @@
 #include "b_dot11n_rx.h"
 #include "b_dot11n_tx.h"
 //#include "b_mumimo_2x2_tx.h"
-#include "b_mumimo_4x4_tx.h"
-#include "b_mumimo_4x4_rx.h"
+//#include "b_mumimo_4x4_tx.h"
+//#include "b_mumimo_4x4_rx.h"
+
+#include "b_bigap.h"
+#include "b_bigap_4x4_tx.h"
+#include "b_bigap_4x4_rx.h"
 
 BOOL WINAPI HandlerRoutine(__in  DWORD dwCtrlType)
 {
@@ -190,18 +194,16 @@ int _tmain(int argc, _TCHAR* argv[])
 
   auto mumimo_tx_main = [&]
   {
-    mumimo_4x4_tx(argc, argv);
+    bigap_4x4_tx(argc, argv);
   };
 
   auto mumimo_rx_main = [&]
   {
-    mumimo_4x4_rx(argc, argv);
+    bigap_4x4_rx(argc, argv);
   };
 
-  test();
-
   //dsp_main(mumimo_tx_main);
-  //dsp_main(mumimo_rx_main);
+  dsp_main(mumimo_rx_main);
   //dsp_main(pipeline_profiling);
   //dsp_main(rx_main);
 #if 0

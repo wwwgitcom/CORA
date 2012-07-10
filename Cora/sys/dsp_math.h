@@ -168,6 +168,10 @@ struct dsp_math
     __int64 i64y = tmax;
     i64x <<= 16;
 
+    if (i64y == 0)
+    {
+      i64y = 1;
+    }
     idx   = (int)((i64x + (i64y >> 1)) / i64y);
     idx >>= 4;
 

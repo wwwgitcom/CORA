@@ -225,6 +225,7 @@ DEFINE_BLOCK(b_frequest_offset_estimator_4v, 4, 0)
     return true;
   }
 };
+
 //////////////////////////////////////////////////////////////////////////
 
 // vdeltaf = 7*deltaf, 6*deltaf, 5*deltaf, 4*deltaf 3*deltaf, 2*deltaf, 1*deltaf, 0*deltaf
