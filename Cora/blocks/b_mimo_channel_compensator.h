@@ -264,3 +264,83 @@ DEFINE_BLOCK(b_dot11_mimo_channel_compensator_4v4, 4, 4)
     return true;
   }
 };
+
+
+
+DEFINE_BLOCK(b_dot11_mimo_channel_compensator_4v1, 4, 1)
+{
+  _global_(MIMO_4x4_H, dot11n_4x4_channel_inv);
+  _local_(int, iss, 0);
+
+  BLOCK_INIT
+  {
+    auto v = $["iss"];
+    if (!v.empty())
+    {
+      *iss = atoi(v.c_str());
+    }
+  }
+
+  void fence()
+  {
+    consume_each(16);
+  }
+
+  BLOCK_WORK
+  {
+    trace();
+    
+    auto n = ninput(0);
+    if (n < 16) return false;
+
+    auto ip1 = _$<v_cs>(0);
+    auto ip2 = _$<v_cs>(1);
+    auto ip3 = _$<v_cs>(2);
+    auto ip4 = _$<v_cs>(3);
+
+    auto ipc1 = reinterpret_cast<complex16*>(ip1);
+    auto ipc2 = reinterpret_cast<complex16*>(ip2);
+    auto ipc3 = reinterpret_cast<complex16*>(ip3);
+    auto ipc4 = reinterpret_cast<complex16*>(ip4);
+
+    auto op1 = $_<v_cs>(0);
+
+    auto opc1 = reinterpret_cast<complex16*>(op1);
+
+    MIMO_4x4_H& H_Inv = *dot11n_4x4_channel_inv;
+
+    const v_cs vMulMask = VMASK::__0x80000001800000018000000180000001<v_cs>();
+    v_ci vcomp1[2], vcomp2[2], vcomp3[2], vcomp4[2];
+
+    for (int i = 0; i < 64; i += 4)
+    {
+      v_cs &vinvh11 = (v_cs&)H_Inv[*iss][i];
+      v_cs &vinvh12 = (v_cs&)H_Inv[*iss][i + 64];
+      v_cs &vinvh13 = (v_cs&)H_Inv[*iss][i + 128];
+      v_cs &vinvh14 = (v_cs&)H_Inv[*iss][i + 192];
+      
+      v_cs &y1      = (v_cs&)ipc1[i];
+      v_cs &y2      = (v_cs&)ipc2[i];
+      v_cs &y3      = (v_cs&)ipc3[i];
+      v_cs &y4      = (v_cs&)ipc4[i];
+
+      v_cs& x1      = (v_cs&)opc1[i];
+
+      // x1
+      v_mul2ci(vinvh11, y1, vMulMask, vcomp1[0], vcomp1[1]);
+      v_mul2ci(vinvh12, y2, vMulMask, vcomp2[0], vcomp2[1]);
+      v_mul2ci(vinvh13, y3, vMulMask, vcomp3[0], vcomp3[1]);
+      v_mul2ci(vinvh14, y4, vMulMask, vcomp4[0], vcomp4[1]);
+
+      vcomp1[0] = v_add(v_add(vcomp1[0], vcomp2[0]), v_add(vcomp3[0], vcomp4[0]));
+      vcomp1[1] = v_add(v_add(vcomp1[1], vcomp2[1]), v_add(vcomp3[1], vcomp4[1]));
+
+      vcomp1[0] = vcomp1[0].v_shift_right_arithmetic(9);
+      vcomp1[1] = vcomp1[1].v_shift_right_arithmetic(9);
+
+      x1 = v_convert2cs(vcomp1[0], vcomp1[1]);      
+    }
+    produce_each(16);
+    return true;
+  }
+};

@@ -43,8 +43,8 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref axorr                      = create_block<b_auto_corr_4v2>( 1,  string("vHisLength=8") );
 
   autoref lstf_searcher              = create_block<b_lstf_searcher_2v1>();
-  autoref cfo_est                    = create_block<b_frequest_offset_estimator_4v>( 2, string("vEstimateLength=16"), string("vEstimateDistance=16") );
-  autoref cfo_comp                   = create_block<b_frequest_offset_compensator_4v4>( 1, string("vCompensateLength=2") );
+  autoref cfo_est                    = create_block<b_frequest_offset_estimator_parallel_4_4v>( 2, string("vEstimateLength=16"), string("vEstimateDistance=16") );
+  autoref cfo_comp                   = create_block<b_frequest_offset_compensator_parallel_4_4v4>( 1, string("vCompensateLength=2") );
 
   autoref fft_lltf1                  = create_block<b_fft_64_1v1>();
   autoref fft_lltf2                  = create_block<b_fft_64_1v1>();
@@ -124,7 +124,10 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref mimo_channel_estimator_zf  = create_block<b_dot11_mimo_channel_estimator_4v>();
   autoref mimo_channel_estimator_mmse= create_block<b_dot11_mimo_channel_estimator_mmse_4v>();
   
-  autoref mimo_channel_compensator   = create_block<b_dot11_mimo_channel_compensator_4v4>();
+  autoref mimo_channel_compensator_1 = create_block<b_dot11_mimo_channel_compensator_4v1>(1, string("iss=0"));
+  autoref mimo_channel_compensator_2 = create_block<b_dot11_mimo_channel_compensator_4v1>(1, string("iss=1"));
+  autoref mimo_channel_compensator_3 = create_block<b_dot11_mimo_channel_compensator_4v1>(1, string("iss=2"));
+  autoref mimo_channel_compensator_4 = create_block<b_dot11_mimo_channel_compensator_4v1>(1, string("iss=3"));
 
   autoref ht_demap_bpsk1             = create_block<b_dot11_demap_bpsk_i_1v1>( 2, string("low=-28"), string("high=28") );
   autoref ht_demap_bpsk2             = create_block<b_dot11_demap_bpsk_i_1v1>( 2, string("low=-28"), string("high=28") );
@@ -177,7 +180,10 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref crc32_checker_3            = create_block<b_crc32_check_1v>();
   autoref crc32_checker_4            = create_block<b_crc32_check_1v>();
 
-  autoref pilot_tracking             = create_block<b_dot11_pilot_tracking_4v>();
+  autoref pilot_tracking_1           = create_block<b_dot11_pilot_tracking_parallel_4_1v>(1, string("iss=0"));
+  autoref pilot_tracking_2           = create_block<b_dot11_pilot_tracking_parallel_4_1v>(1, string("iss=1"));
+  autoref pilot_tracking_3           = create_block<b_dot11_pilot_tracking_parallel_4_1v>(1, string("iss=2"));
+  autoref pilot_tracking_4           = create_block<b_dot11_pilot_tracking_parallel_4_1v>(1, string("iss=3"));
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
     .from(src, 0)
@@ -240,30 +246,38 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   //
   Channel::Create(sizeof(v_cs))
     .from(fft_data1, 0)
-    .to(siso_channel_comp, 0).to(mimo_channel_estimator_zf, 0).to(mimo_channel_estimator_mmse, 0).to(mimo_channel_compensator, 0);
+    .to(siso_channel_comp, 0).to(mimo_channel_estimator_zf, 0).to(mimo_channel_estimator_mmse, 0)
+    .to(mimo_channel_compensator_1, 0).to(mimo_channel_compensator_2, 0).to(mimo_channel_compensator_3, 0).to(mimo_channel_compensator_4, 0);
   Channel::Create(sizeof(v_cs))
     .from(fft_data2, 0)
-    .to(siso_channel_comp, 1).to(mimo_channel_estimator_zf, 1).to(mimo_channel_estimator_mmse, 1).to(mimo_channel_compensator, 1);
+    .to(siso_channel_comp, 1).to(mimo_channel_estimator_zf, 1).to(mimo_channel_estimator_mmse, 1)
+    .to(mimo_channel_compensator_1, 1).to(mimo_channel_compensator_2, 1).to(mimo_channel_compensator_3, 1).to(mimo_channel_compensator_4, 1);
   Channel::Create(sizeof(v_cs))
     .from(fft_data3, 0)
-    .to(siso_channel_comp, 2).to(mimo_channel_estimator_zf, 2).to(mimo_channel_estimator_mmse, 2).to(mimo_channel_compensator, 2);
+    .to(siso_channel_comp, 2).to(mimo_channel_estimator_zf, 2).to(mimo_channel_estimator_mmse, 2)
+    .to(mimo_channel_compensator_1, 2).to(mimo_channel_compensator_2, 2).to(mimo_channel_compensator_3, 2).to(mimo_channel_compensator_4, 2);
   Channel::Create(sizeof(v_cs))
     .from(fft_data4, 0)
-    .to(siso_channel_comp, 3).to(mimo_channel_estimator_zf, 3).to(mimo_channel_estimator_mmse, 3).to(mimo_channel_compensator, 3);
+    .to(siso_channel_comp, 3).to(mimo_channel_estimator_zf, 3).to(mimo_channel_estimator_mmse, 3)
+    .to(mimo_channel_compensator_1, 3).to(mimo_channel_compensator_2, 3).to(mimo_channel_compensator_3, 3).to(mimo_channel_compensator_4, 3);
 
   //
   Channel::Create(sizeof(v_cs))
     .from(siso_channel_comp, 0).to(noise_estimator, 0).to(siso_mrc_combine, 0)
-    .from(mimo_channel_compensator, 0).to(ht_demap_bpsk1, 0).to(ht_demap_qpsk1, 0).to(ht_demap_16qam1, 0).to(ht_demap_64qam1, 0).to(pilot_tracking, 0);
+    .from(mimo_channel_compensator_1, 0)
+    .to(ht_demap_bpsk1, 0).to(ht_demap_qpsk1, 0).to(ht_demap_16qam1, 0).to(ht_demap_64qam1, 0).to(pilot_tracking_1, 0);
   Channel::Create(sizeof(v_cs))
     .from(siso_channel_comp, 1).to(noise_estimator, 1).to(siso_mrc_combine, 1)
-    .from(mimo_channel_compensator, 1).to(ht_demap_bpsk2, 0).to(ht_demap_qpsk2, 0).to(ht_demap_16qam2, 0).to(ht_demap_64qam2, 0).to(pilot_tracking, 1);
+    .from(mimo_channel_compensator_2, 0)
+    .to(ht_demap_bpsk2, 0).to(ht_demap_qpsk2, 0).to(ht_demap_16qam2, 0).to(ht_demap_64qam2, 0).to(pilot_tracking_2, 0);
   Channel::Create(sizeof(v_cs))
     .from(siso_channel_comp, 2).to(noise_estimator, 2).to(siso_mrc_combine, 2)
-    .from(mimo_channel_compensator, 2).to(ht_demap_bpsk3, 0).to(ht_demap_qpsk3, 0).to(ht_demap_16qam3, 0).to(ht_demap_64qam3, 0).to(pilot_tracking, 2);
+    .from(mimo_channel_compensator_3, 0)
+    .to(ht_demap_bpsk3, 0).to(ht_demap_qpsk3, 0).to(ht_demap_16qam3, 0).to(ht_demap_64qam3, 0).to(pilot_tracking_3, 0);
   Channel::Create(sizeof(v_cs))
     .from(siso_channel_comp, 3).to(noise_estimator, 3).to(siso_mrc_combine, 3)
-    .from(mimo_channel_compensator, 3).to(ht_demap_bpsk4, 0).to(ht_demap_qpsk4, 0).to(ht_demap_16qam4, 0).to(ht_demap_64qam4, 0).to(pilot_tracking, 3);
+    .from(mimo_channel_compensator_4, 0)
+    .to(ht_demap_bpsk4, 0).to(ht_demap_qpsk4, 0).to(ht_demap_16qam4, 0).to(ht_demap_64qam4, 0).to(pilot_tracking_4, 0);
 
   //
   Channel::Create(sizeof(v_cs))
@@ -579,18 +593,45 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   {    
     START(src, wait_ofdm, STOP([&]
     {
+#if 0
       ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
-      ONCE(mimo_channel_compensator, pilot_tracking);
+
+      ONCE(mimo_channel_compensator_1, mimo_channel_compensator_2, mimo_channel_compensator_3, mimo_channel_compensator_4);
+      ONCE(pilot_tracking_1, pilot_tracking_2, pilot_tracking_3, pilot_tracking_4);
 
       ONCE(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1,
         ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2,
         ht_demap_bpsk3, ht_deinterleave_1bpsc_iss3,
         ht_demap_bpsk4, ht_deinterleave_1bpsc_iss4);
-    }));
+#else
+      ONCE(cfo_comp);
 
+      PARALLEL([&]{
+        ONCE(remove_gi1, fft_data1);
+        ONCE(remove_gi2, fft_data2);
+      }, [&]{
+        ONCE(remove_gi3, fft_data3);
+        ONCE(remove_gi4, fft_data4);
+      });
+
+      PARALLEL([&]{
+        ONCE(mimo_channel_compensator_1, mimo_channel_compensator_2);
+        ONCE(pilot_tracking_1, pilot_tracking_2);
+        ONCE(ht_demap_bpsk1, ht_deinterleave_1bpsc_iss1,
+          ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2);
+      }, [&]{
+        ONCE(mimo_channel_compensator_3, mimo_channel_compensator_4);
+        ONCE(pilot_tracking_3, pilot_tracking_4);
+        ONCE(ht_demap_bpsk3, ht_deinterleave_1bpsc_iss3,
+          ht_demap_bpsk4, ht_deinterleave_1bpsc_iss4);
+      });
+#endif
+      mimo_channel_compensator_1.fence();
+    }));
+    
     symbol_count--;
     return symbol_count > 0;
   };
@@ -601,16 +642,42 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
     START(src, wait_ofdm, STOP([&]
     {
+#if 0
       ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
-      ONCE(mimo_channel_compensator, pilot_tracking);
+      ONCE(mimo_channel_compensator_1, mimo_channel_compensator_2, mimo_channel_compensator_3, mimo_channel_compensator_4);
+      ONCE(pilot_tracking_1, pilot_tracking_2, pilot_tracking_3, pilot_tracking_4);
 
       ONCE(ht_demap_qpsk1, ht_deinterleave_2bpsc_iss1,
         ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2,
         ht_demap_qpsk3, ht_deinterleave_2bpsc_iss3,
         ht_demap_qpsk4, ht_deinterleave_2bpsc_iss4);
+#else
+      ONCE(cfo_comp);
+
+      PARALLEL([&]{
+        ONCE(remove_gi1, fft_data1);
+        ONCE(remove_gi2, fft_data2);
+      }, [&]{
+        ONCE(remove_gi3, fft_data3);
+        ONCE(remove_gi4, fft_data4);
+      });
+
+      PARALLEL([&]{
+        ONCE(mimo_channel_compensator_1, mimo_channel_compensator_2);
+        ONCE(pilot_tracking_1, pilot_tracking_2);
+        ONCE(ht_demap_qpsk1, ht_deinterleave_2bpsc_iss1,
+          ht_demap_qpsk2, ht_deinterleave_2bpsc_iss2);
+      }, [&]{
+        ONCE(mimo_channel_compensator_3, mimo_channel_compensator_4);
+        ONCE(pilot_tracking_3, pilot_tracking_4);
+        ONCE(ht_demap_qpsk3, ht_deinterleave_2bpsc_iss3,
+          ht_demap_qpsk4, ht_deinterleave_2bpsc_iss4);
+      });
+#endif
+      mimo_channel_compensator_1.fence();
     }));
 
     symbol_count--;
@@ -621,16 +688,44 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   {
     START(src, wait_ofdm, STOP([&]
     {
+#if 0
       ONCE(cfo_comp, remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
-      ONCE(mimo_channel_compensator, pilot_tracking);
+
+      ONCE(mimo_channel_compensator_1, mimo_channel_compensator_2, mimo_channel_compensator_3, mimo_channel_compensator_4);
+      ONCE(pilot_tracking_1, pilot_tracking_2, pilot_tracking_3, pilot_tracking_4);
 
       ONCE(ht_demap_16qam1, ht_deinterleave_4bpsc_iss1,
         ht_demap_16qam2, ht_deinterleave_4bpsc_iss2,
         ht_demap_16qam3, ht_deinterleave_4bpsc_iss3,
         ht_demap_16qam4, ht_deinterleave_4bpsc_iss4);
+#else
+      ONCE(cfo_comp);
+
+      PARALLEL([&]{
+        ONCE(remove_gi1, fft_data1);
+        ONCE(remove_gi2, fft_data2);
+      }, [&]{
+        ONCE(remove_gi3, fft_data3);
+        ONCE(remove_gi4, fft_data4);
+      });
+
+      PARALLEL([&]{
+        ONCE(mimo_channel_compensator_1, mimo_channel_compensator_2);
+        ONCE(pilot_tracking_1, pilot_tracking_2);
+        ONCE(ht_demap_16qam1, ht_deinterleave_4bpsc_iss1,
+          ht_demap_16qam2, ht_deinterleave_4bpsc_iss2);
+      }, [&]{
+        ONCE(mimo_channel_compensator_3, mimo_channel_compensator_4);
+        ONCE(pilot_tracking_3, pilot_tracking_4);
+        ONCE(ht_demap_16qam3, ht_deinterleave_4bpsc_iss3,
+          ht_demap_16qam4, ht_deinterleave_4bpsc_iss4);
+      });
+#endif
+      
+      mimo_channel_compensator_1.fence();
     }));
 
     symbol_count--;
@@ -646,7 +741,8 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
-      ONCE(mimo_channel_compensator, pilot_tracking);
+      ONCE(mimo_channel_compensator_1, mimo_channel_compensator_2, mimo_channel_compensator_3, mimo_channel_compensator_4);
+      ONCE(pilot_tracking_1, pilot_tracking_2, pilot_tracking_3, pilot_tracking_4);
 
       ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1);
       ONCE(ht_demap_64qam2, ht_deinterleave_6bpsc_iss2);
@@ -655,7 +751,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 #else
       ONCE(cfo_comp);
 
-      ONCE([&]{
+      PARALLEL([&]{
         ONCE(remove_gi1, fft_data1);
         ONCE(remove_gi2, fft_data2);
       }, [&]{
@@ -663,16 +759,19 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
         ONCE(remove_gi4, fft_data4);
       });
       
-      ONCE(mimo_channel_compensator, pilot_tracking);
-
-      ONCE([&]{
+      PARALLEL([&]{
+        ONCE(mimo_channel_compensator_1, mimo_channel_compensator_2);
+        ONCE(pilot_tracking_1, pilot_tracking_2);
         ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1,
           ht_demap_64qam2, ht_deinterleave_6bpsc_iss2);
       }, [&]{
+        ONCE(mimo_channel_compensator_3, mimo_channel_compensator_4);
+        ONCE(pilot_tracking_3, pilot_tracking_4);
         ONCE(ht_demap_64qam3, ht_deinterleave_6bpsc_iss3,
           ht_demap_64qam4, ht_deinterleave_6bpsc_iss4);
       });
 #endif
+      mimo_channel_compensator_1.fence();
     }));
 
     symbol_count--;

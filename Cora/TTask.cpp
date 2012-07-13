@@ -93,6 +93,48 @@ void cpu_manager::setup()
 
   m_sync_obj.status = 0;
 
+  // create CPUs from config file
+  
+  do 
+  {
+    FILE* hCPUConfig;
+    errno_t err;
+
+    err = fopen_s(&hCPUConfig, "CPUConfig.txt", "r");
+    
+    if (err != 0)
+    {
+      break;
+    }
+
+    ULONG nAffinity;
+    while (!feof(hCPUConfig))
+    {
+      nAffinity = 0; 
+      fscanf_s(hCPUConfig, "%d\n", &nAffinity);
+
+      if (nAffinity == 0)
+      {
+        printf("Invalid affinity 0, skip....\n");
+        continue;
+      }
+
+      if (nAffinity >= m_nTotalProcessor)
+      {
+        printf("Invalid affinity %d on this CPU, should be less than %d....\n", m_nTotalProcessor);
+        continue;
+      }
+
+      m_sync_obj.status |= (1L << nAffinity);
+      m_cpus[nAffinity].set_status_mask(&m_sync_obj.status);
+      m_cpus[nAffinity].Create((1L << nAffinity));
+    }
+
+    fclose(hCPUConfig);
+    return;
+  } while (false);
+
+  // create CPUs as usual
   m_cpu_index           = new ULONG[m_nTotalProcessor];
 
   for (int i = 0; i < m_nTotalProcessor; i++)
