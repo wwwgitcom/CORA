@@ -1,4 +1,4 @@
-
+%!TEX root=main.tex
 \section{分布式频偏估计}
 
 假设有M个发送端（STA），N个接收端（AP），各自的中心频率不相同。
@@ -32,12 +32,76 @@ r&=&[x_{0}e^{j\frac{2\pi*0\Delta f}{f_{s}}}, x_{1}e^{j\frac{2\pi*1\Delta f}{f_{s
 
 
 
-以2x2为例，每个用户频域上有4个pilot，用户i的pilot分别为p1，p2，p3，p4，接收端收到的信号为，接收到的信号为y1，y2，y3，y4
+以2x2为例，每个用户频域上有4个pilot，用户$i$的pilot分别为$p_{i,-21}$，$p_{i,-7}$，$p_{i,7}$，$p_{i,21}$，在$t$时刻接收端$i$在第$k$个pilot上收到到的信号为$y_{i, k}^{t}$
 \begin{eqnarray}
-y_{1} & = & h_{11}f_{11}p_{11} + h_{12}f_{12}p_{21} \\
-y_{2} & = & h_{11}f_{12}p_{12} + h_{22}f_{22}p_{22} \\
-y_{3} & = & h_{11}f_{13}p_{13} + h_{22}f_{22}p_{23} \\
-y_{4} & = & h_{11}f_{14}p_{14} + h_{22}f_{22}p_{24} \\
+y_{1, -21}^{t} & = & h_{11,-21}^{t}f_{11}p_{1,-21} + h_{12,-21}^{t}f_{12}p_{2,-21} \\
+y_{2, -21}^{t} & = & h_{21,-21}^{t}f_{21}p_{1,-21} + h_{22,-21}^{t}f_{22}p_{2,-21} \\
+y_{1, -7}^{t}   & = & h_{11,-7}^{t}f_{11}p_{1,-7} + h_{12,-7}^{t}f_{12}p_{2,-7} \\
+y_{2, -7}^{t}   & = & h_{21,-7}^{t}f_{21}p_{1,-7} + h_{22,-7}^{t}f_{22}p_{2,-7} \\
+y_{1, 7}^{t}   & = & h_{11,7}^{t}f_{11}p_{1,7} + h_{12,7}^{t}f_{12}p_{2,7} \\
+y_{2, 7}^{t}   & = & h_{21,7}^{t}f_{21}p_{1,7} + h_{22,7}^{t}f_{22}p_{2,7} \\
+y_{1, 21}^{t} & = & h_{11,21}^{t}f_{11}p_{1,21} + h_{12,21}^{t}f_{12}p_{2,21} \\
+y_{2, 21}^{t} & = & h_{21,21}^{t}f_{21}p_{1,21} + h_{22,21}^{t}f_{22}p_{2,21}
 \end{eqnarray}
-p1和p2为已知，解上述方程可得$f_{11}$和$f_{}$
+解上述方程可得$f_{11}$,$f_{12}$,$f_{21}$,$f_{22}$。
+
+更新$t+1$时刻第$k$个子载波的信道$h_{ij, k}^{t+1}$：
+\begin{eqnarray}
+h_{11, k}^{t+1} & = & h_{11,k}^{t}f_{11} \\
+h_{12, k}^{t+1} & = & h_{12,k}^{t}f_{21}\\
+h_{21, k}^{t+1} & = & h_{11,k}^{t}f_{11} \\
+h_{22, k}^{t+1} & = & h_{12,k}^{t}f_{21}
+\end{eqnarray}
+
+%http://www.stanford.edu/~hsiying/pubs/globecom10-cdma_ici.pdf
+Received signal on subcarrier $i$ in AWGN channel with ICI is
+\begin{eqnarray}
+R(i) & = & X(i)S(0) \\
+      & + & \Sigma_{l=0, l \neq i}^{N-1} X(l)S(l-i) + n_{i} \\
+      &     & i = 0, 1, \cdots, N-1 \nonumber
+\end{eqnarray}
+where N is the total number of subcarriers, $X(i)$ denotes the transmitted symbol, $n_{i}$ is the additive Gaussian noise on $i^{th}$ subcarrier. The sequence $S(l-i)$ is the ICI coefficient from $l^{th}$ subcarrier to $i^{th}$ subcarrier:
+\begin{eqnarray}
+S(l-i) & = & \frac{sin(\pi (\epsilon + l - i))}{N sin(\frac{\pi}{N}(\epsilon + l - i))} \\
+         & \cdot  & exp( j\pi (1 - \frac{1}{N})(\epsilon + l - i)
+\end{eqnarray}
+where $\epsilon$ is the normalized frequency offset given by $\epsilon = \frac{\Delta f}{\Delta F}$, $\Delta F$ is the subcarrier bandwidth, $\Delta f$ is the carrier frequency offset.
+$S(0)$对于$X(i)$的影响在于幅度的减小和相位的旋转，当$\epsilon$很小是可以忽略ICI，认为ICI为噪声。
+
+设$\Delta f$是频偏，估计在$t$时间后旋转多少度
+\begin{eqnarray}
+\theta & = & \frac{2 \pi \Delta f t}{\pi} \cdot 180 \\
+           & = & 360 \cdot \Delta f \cdot t
+\end{eqnarray}
+假设$\Delta f =  10 KHz$, $t=4 * 10^{-9}s$，那么旋转过的角度为$0.0144$度，即在一个OFDM Symbol内，可以认为不旋转，相邻两个OFDM Symbol之间的相位差可以忽略，这样在估计信道的时候，相位带来的影响就很小了。
+
+
+在802.11中，使用L-LTF来估计$\Delta f$，估计出来的值会不准确，有一定的方差。
+比如已知$\Delta f = 80 KHz$，在固定噪声的情况下进行多次估计，得到的估计值$\Delta \hat{f}$符合均值为80KHz，方差为$\sigma$($\sigma$取决于SNR)的均匀分布(Figure \ref{fig:cfovar})。
+\begin{figure}
+	\begin{subfigure}[htb]{0.5\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{SimCFO1.png}
+	\end{subfigure}
+
+	\begin{subfigure}[htb]{0.5\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{SimCFO2.png}
+	\end{subfigure}
+
+	\begin{subfigure}[htb]{0.5\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{SimCFO3.png}
+	\end{subfigure}
+	\caption{频偏估计误差}\label{fig:cfovar}
+\end{figure}
+
+
+
+
+
+
+
+
+
 
