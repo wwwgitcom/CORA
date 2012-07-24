@@ -8,6 +8,26 @@ struct HT_LTF
   static const int csd    = 4;// 16samples = 400ns, 40Mhz
 
   //////////////////////////////////////////////////////////////////////////
+
+  __forceinline void get_as_lltf(complex16* pout)
+  {
+    v_cs *pvin  = reinterpret_cast<v_cs*>(_ltf);
+    v_cs *pvout = reinterpret_cast<v_cs*>(pout);
+
+    int i = 8; // start from data part
+    int j = 16; // long cp, 16v_cs=64complex16
+    for (; i < VCOUNT; i++, j++)
+    {
+      pvout[j] = pvin[i];
+    }
+
+    i = VCOUNT - 16;
+    j = 0;
+    for (; i < VCOUNT; i++, j++)
+    {
+      pvout[j] = pvin[i];
+    }
+  }
   // 1 -1 1 1, csd = 0ns, 0 v_cs
   __forceinline void get_ltf_11(complex16* pout)
   {

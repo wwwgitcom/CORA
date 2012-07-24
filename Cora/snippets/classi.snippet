@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CodeSnippets  xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+	<CodeSnippet Format="1.0.0">
+		<Header>
+			<Title>defblock</Title>
+			<Shortcut>defb</Shortcut>
+			<Description>Code snippet for defining block</Description>
+			<Author>Microsoft Corporation</Author>
+			<SnippetTypes>
+				<SnippetType>Expansion</SnippetType>
+				<SnippetType>SurroundsWith</SnippetType>
+			</SnippetTypes>
+		</Header>
+		<Snippet>
+			<Declarations>
+				<Literal>
+					<ID>name</ID>
+					<ToolTip>Block name</ToolTip>
+					<Default>MyBlock</Default>
+				</Literal>
+			</Declarations>
+			<Code Language="cpp">
+    <![CDATA[DEFINE_BLOCK( $name$, , )
+				{
+					BLOCK_INIT
+					{
+					}
+					
+					BLOCK_RESET
+					{
+					}
+
+                    BLOCK_WORK
+					{
+					}
+				};
+]]>
+			</Code>
+		</Snippet>
+	</CodeSnippet>
+</CodeSnippets>

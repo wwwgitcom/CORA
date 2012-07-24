@@ -29,12 +29,11 @@ __declspec(selectany) v_align(16) v_cs::type _80211_LLTFMask[16] =
 };
 
 
-void v_siso_channel_estimation_64(__in v_cs* pcsin, __out v_cs* pcschannel)
+void v_siso_channel_estimation_64(__in v_cs* pcsin, __in v_cs* pvmask, __out v_cs* pcschannel)
 {
   v_i  vsqr, vsqrtemp;
   v_i  vciinput1, vciinput2;
-  v_cs vout;
-  v_cs *pvmask = (v_cs*)&_80211_LLTFMask[0];
+  v_cs vout;  
   int  v;
   int  i;
 
@@ -170,8 +169,9 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_1v, 1, 0)
     log("%s: n=%d\n", name(), n);
 
     auto ch = *dot11a_siso_channel;
+    v_cs *pvmask = (v_cs*)&_80211_LLTFMask[0];
     
-    v_siso_channel_estimation_64(ip, (v_cs*)&ch[0]);
+    v_siso_channel_estimation_64(ip, pvmask, (v_cs*)&ch[0]);
 
     consume(0, 32);
     return true;
@@ -206,9 +206,10 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_2v, 2, 0)
     m_draw->DrawSqrtShift((complex16*)ip1, 32 * 4);
 #endif
     autoref ch1  = *dot11a_siso_channel_1;
+    v_cs *pvmask = (v_cs*)&_80211_LLTFMask[0];
 
-    v_siso_channel_estimation_64(ip1, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip1 + 16, (v_cs*)&siso_channel_2[0]);
+    v_siso_channel_estimation_64(ip1, pvmask, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip1 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
 
 #if 1
     for (int i = 0; i < 16; i++)
@@ -225,8 +226,8 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_2v, 2, 0)
 
     autoref ch2  = *dot11a_siso_channel_2;
 
-    v_siso_channel_estimation_64(ip2, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip2 + 16, (v_cs*)&siso_channel_2[0]);
+    v_siso_channel_estimation_64(ip2, pvmask, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip2 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
 #if 1
     for (int i = 0; i < 16; i++)
     {
@@ -278,9 +279,10 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_4v, 4, 0)
     m_draw->DrawSqrtShift((complex16*)ip1, 32 * 4);
 #endif
     autoref ch1  = *dot11a_siso_channel_1;
+    v_cs *pvmask = (v_cs*)&_80211_LLTFMask[0];
     
-    v_siso_channel_estimation_64(ip1, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip1 + 16, (v_cs*)&siso_channel_2[0]);
+    v_siso_channel_estimation_64(ip1, pvmask, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip1 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
     
 #if 1
     for (int i = 0; i < 16; i++)
@@ -297,8 +299,8 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_4v, 4, 0)
 
     autoref ch2  = *dot11a_siso_channel_2;
 
-    v_siso_channel_estimation_64(ip2, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip2 + 16, (v_cs*)&siso_channel_2[0]);
+    v_siso_channel_estimation_64(ip2, pvmask, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip2 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
 #if 1
     for (int i = 0; i < 16; i++)
     {
@@ -314,8 +316,8 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_4v, 4, 0)
 
     autoref ch3  = *dot11a_siso_channel_3;
 
-    v_siso_channel_estimation_64(ip3, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip3 + 16, (v_cs*)&siso_channel_2[0]);
+    v_siso_channel_estimation_64(ip3, pvmask, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip3 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
 #if 1
     for (int i = 0; i < 16; i++)
     {
@@ -331,8 +333,8 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_4v, 4, 0)
 
     autoref ch4  = *dot11a_siso_channel_4;
 
-    v_siso_channel_estimation_64(ip4, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip4 + 16, (v_cs*)&siso_channel_2[0]);
+    v_siso_channel_estimation_64(ip4, pvmask, (v_cs*)&siso_channel_1[0]);
+    v_siso_channel_estimation_64(ip4 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
 #if 1
     for (int i = 0; i < 16; i++)
     {

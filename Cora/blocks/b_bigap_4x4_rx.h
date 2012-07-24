@@ -51,10 +51,11 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   autoref awgn                       = create_block<b_awgn_4v4>( 1, strNoiseVar );
 
   autoref wait_lltf                  = create_block<b_wait_4v>( 1, string("nwait=32") );
+  autoref wait_lltf2                 = create_block<b_wait_4v>( 1, string("nwait=40") );
   autoref wait_ofdm                  = create_block<b_wait_4v>( 1, string("nwait=20") );
   autoref axorr                      = create_block<b_auto_corr_4v2>( 1,  string("vHisLength=8") );
 
-  autoref lstf_searcher              = create_block<b_lstf_searcher_2v1>();  
+  autoref lstf_searcher              = create_block<b_lstf_searcher_2v1>();
   autoref lltf                       = create_block<b_bigap_lltf_rx_4v>( );
   //autoref cfo_est                    = create_block<b_frequest_offset_estimator_4v>( );
   //autoref cfo_comp                   = create_block<b_frequest_offset_compensator_4v4>( 1, string("vCompensateLength=2") );
