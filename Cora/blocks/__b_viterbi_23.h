@@ -65,6 +65,9 @@ public:
 
   BLOCK_RESET
   {
+    auto n = ninput(0);
+    consume(0, n);
+
     pTrellis = pTrellisBase;
     i_trellis = 0;
     nDecodedBits = 0;

@@ -71,15 +71,17 @@ IFFTSSEEx<4> (vcs* pInput)
 
     vcs xmm4 = permutation<0x4e>(xmm0);             // xmm4 =  Q1  I1  Q0  I0 Q3 I3 Q2 I2
     xmm0 = xor(xmm0, xmm5);                         // xmm0 = -Q3 -I3 -Q2 -I2 Q1 I1 Q0 I0
+    xmm0 = sub(xmm0, xmm5);
     xmm0 = saturation_add(xmm0, xmm4);              // xmm0 =  A-B, A+B'
 
     xmm5 = vector128_consts::__0xFFFF0000000000000000000000000000<vcs>();
     xmm0 = xor(xmm0, xmm5);                         // xmm0 = -Q3  I3 Q2 I2 Q1 I1 Q0 I0
+    xmm0 = sub(xmm0, xmm5);
     xmm0 = permutation_high<0xb4>(xmm0);            // xmm0 =  I3 -Q3 Q2 I2 Q1 I1 Q0 I0 = upper.4 * j
 
     vcs xmm2 = permutation<0xb1>(xmm0);             // xmm2 =  I2  Q2 I3 Q3  I0  Q0 I1 Q1
     xmm0 = xor(xmm0, xmm3);                         // xmm0 = -Q3 -I3 Q2 I2 -Q1 -I1 Q0 I0
-
+    xmm0 = sub(xmm0, xmm3);
     // TODO: saturation correct?
     *pInput = saturation_add(xmm0, xmm2);
 }
@@ -99,11 +101,13 @@ IFFTSSEEx<8> (vcs* pInput)
 
     vcs xmm5 = vector128_consts::__0xFFFF0000FFFF00000000000000000000<vcs>();
     xmm2 = xor(xmm2, xmm5);                             // xmm3 = -Q3  I3 -Q2  I2 Q1 I1 Q0 I0 = (a-b).lower34*j
+    xmm2 = sub(xmm2, xmm5); 
     vcs xmm3 = permutation_high<0xb1>(xmm2);            // xmm3 = I3 -Q3  I2 -Q2 Q1 I1 Q0 I0
                                                         // xmm0 and xmm3 store 4-point data
     xmm5 = permutation<0x4e>(xmm3);                     // xmm5 = Q1 I1 Q0 I0 I3 Q3 I2 Q2, xmm3 = Q3 I3 Q2 I2 Q1 I1 Q0 I0
     vcs xmm4 = vector128_consts::__0xFFFFFFFFFFFFFFFF0000000000000000<vcs>();
     xmm3 = xor(xmm3, xmm4);                             // xmm3 = -Q3 -I3 -Q2 -I2 Q1 I1 Q0 I0
+    xmm3 = sub(xmm3, xmm4);
     xmm3 = saturation_add(xmm3, xmm5);                  // xmm3 = xmm3 + xmm5
 
     xmm1 = conj_mul_shift(xmm3, FFT_GetTwiddleConst<8, 1>()[0], OUTPUT_SHIFT);   // lower multiplied by wLUT
@@ -111,19 +115,23 @@ IFFTSSEEx<8> (vcs* pInput)
     xmm3 = permutation<0xc8>(xmm4);                     // xmm3 = 0xFFFFFFFF00000000FFFFFFFF00000000
     xmm2 = permutation<0xb1>(xmm1);                     // xmm2 = I2 Q2 I3 Q3 I0 Q0 I1 Q1
     xmm1 = xor(xmm1, xmm3);                             // xmm1 = -Q3 -I3 Q2 I2 -Q1 -I1 Q0 I0
+    xmm1 = sub(xmm1, xmm3);
     xmm1 = saturation_add(xmm1, xmm2);                  // 4-DFT over
 
     xmm5 = permutation<0x4e>(xmm0);                     // xmm5 = Q1 I1 Q0 I0 Q3 I3 Q2 I2 xmm0 = Q3 I3 Q2 I2 Q1 I1 Q0 I0
     xmm0 = xor(xmm0, xmm4);                             // xmm0 = -Q3 -I3 -Q2 -I2 Q1 I1 Q0 I0
+    xmm0 = sub(xmm0, xmm4);
     xmm0 = saturation_add(xmm0, xmm5);                  // A-B A+B
 
     xmm4 = vector128_consts::__0xFFFF0000000000000000000000000000<vcs>();
                                                         // xmm4 = 0xFFFF0000000000000000000000000000
     xmm0 = xor(xmm0, xmm4);                             // xmm0 = upper.4 * j
+    xmm0 = sub(xmm0, xmm4);
     xmm0 = permutation_high<0xb4>(xmm0);                // xmm0 = I3 -Q3 Q2 I2 Q1 I1 Q0 I0
 
     xmm2 = permutation<0xb1>(xmm0);                     // xmm2 = I2 Q2 I3 Q3 I0  Q0 I1 Q1
     xmm0 = xor(xmm0, xmm3);                             // xmm0 = -Q3 -I3 Q2 I2 -Q1 -I1 Q0 I0
+    xmm0 = sub(xmm0, xmm3);
     xmm0 = saturation_add(xmm0, xmm2);                  // 4-IFFT Over
 
     pInput[0] = xmm0;                                   // output upper 2 2-point DFT

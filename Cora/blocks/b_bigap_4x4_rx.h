@@ -38,31 +38,12 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   autoref src = create_block<b_file_source_v4>(
     5, strFileName1, strFileName2, strFileName3, strFileName4, string("Decimate=1"));
 
-  string strNoiseVar("NoiseVar=10");
-  CmdArg = cmdline.get("nv");
-  if (CmdArg.exist())
-  {
-    int NoiseVar = CmdArg.as_int();
-    char buf[1024];
-    memset(buf, 0, 1024);
-    sprintf_s(buf, 1024, "NoiseVar=%d", NoiseVar);
-    strNoiseVar = string(buf);
-  }  
-  autoref awgn                       = create_block<b_awgn_4v4>( 1, strNoiseVar );
-
-  autoref wait_lltf                  = create_block<b_wait_4v>( 1, string("nwait=32") );
+  autoref wait_lltf                  = create_block<b_wait_4v>( 1, string("nwait=40") );
   autoref wait_ofdm                  = create_block<b_wait_4v>( 1, string("nwait=20") );
   autoref axorr                      = create_block<b_auto_corr_4v2>( 1,  string("vHisLength=8") );
 
-  autoref lstf_searcher              = create_block<b_lstf_searcher_2v1>();  
+  autoref lstf_searcher              = create_block<b_lstf_searcher_2v1>();
   autoref lltf                       = create_block<b_bigap_lltf_rx_4v>( );
-  //autoref cfo_est                    = create_block<b_frequest_offset_estimator_4v>( );
-  //autoref cfo_comp                   = create_block<b_frequest_offset_compensator_4v4>( 1, string("vCompensateLength=2") );
-
-  autoref fft_lltf1                  = create_block<b_fft_64_1v1>();
-  autoref fft_lltf2                  = create_block<b_fft_64_1v1>();
-  autoref fft_lltf3                  = create_block<b_fft_64_1v1>();
-  autoref fft_lltf4                  = create_block<b_fft_64_1v1>();
 
   autoref remove_gi1                 = create_block<b_remove_gi_1v>( 2, string("GILength=4"), string("SymbolLength=16") );
   autoref remove_gi2                 = create_block<b_remove_gi_1v>( 2, string("GILength=4"), string("SymbolLength=16") );
@@ -74,13 +55,12 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   autoref fft_data3                  = create_block<b_fft_64_1v1>();
   autoref fft_data4                  = create_block<b_fft_64_1v1>();
 
-  autoref siso_channel_est           = create_block<b_dot11_siso_channel_estimator_4v>();
-  autoref siso_channel_comp          = create_block<b_dot11_siso_channel_compensator_4v4>();
+  autoref siso_channel_comp          = create_block<b_bigap_siso_channel_compensator_4v4>();
 
   autoref siso_mrc_combine           = create_block<b_mrc_combine_4v1>();
-  autoref htsig_demap_bpsk_q         = create_block<b_dot11_demap_bpsk_q_1v1>( 2, string("low=-26"), string("high=26") );
+  autoref lsig_demap_bpsk_i          = create_block<b_dot11_demap_bpsk_i_1v1>( 2, string("low=-26"), string("high=26") );
   autoref siso_sig_deinterleave      = create_block<b_dot11a_deinterleave_1bpsc_1v1>();
-  autoref ht_sig_vit                 = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=48"), string("TraceBackOutput=48") );
+  autoref l_sig_vit                  = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=24"), string("TraceBackOutput=24") );
 
   autoref ht_data_vit_12_1           = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=48"), string("TraceBackOutput=96") );
   autoref ht_data_vit_12_2           = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=48"), string("TraceBackOutput=96") );
@@ -121,12 +101,12 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
     string("TraceBackOutput          =192")
     );
 
-  autoref ht_sig_parser              = create_block<b_htsig_parser_1v>();  
-  autoref noise_estimator            = create_block<b_noise_estimator_4v>();
+  autoref l_sig_parser               = create_block<b_lsig_parser_1v>();  
+  autoref noise_estimator            = create_block<b_bigap_4x4_noise_estimator_4v>();
   autoref mimo_channel_estimator_zf  = create_block<b_dot11_mimo_channel_estimator_4v>();
   autoref mimo_channel_estimator_mmse= create_block<b_dot11_mimo_channel_estimator_mmse_4v>();
   
-  autoref mimo_channel_compensator   = create_block<b_dot11_mimo_channel_compensator_4v4>();
+  autoref mimo_channel_compensator   = create_block<b_bigap_channel_compensator_4v4>();
 
   autoref ht_demap_bpsk1             = create_block<b_dot11_demap_bpsk_i_1v1>( 2, string("low=-28"), string("high=28") );
   autoref ht_demap_bpsk2             = create_block<b_dot11_demap_bpsk_i_1v1>( 2, string("low=-28"), string("high=28") );
@@ -182,33 +162,24 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   autoref pilot_tracking             = create_block<b_dot11_pilot_tracking_4v>();
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
-    .from(src, 0).to(awgn, 0);
-  Channel::Create(sizeof(v_cs))
-    .from(src, 1).to(awgn, 1);
-  Channel::Create(sizeof(v_cs))
-    .from(src, 2).to(awgn, 2);
-  Channel::Create(sizeof(v_cs))
-    .from(src, 3).to(awgn, 3);
-  
-  Channel::Create(sizeof(v_cs))
-    .from(awgn, 0)
+    .from(src, 0)
     .to(wait_lltf, 0).to(wait_ofdm, 0).to(axorr, 0).to(lltf, 0)
-    .to(fft_lltf1, 0).to(remove_gi1, 0).to(fft_data1, 0);
+    .to(remove_gi1, 0).to(fft_data1, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(awgn, 1)
+    .from(src, 1)
     .to(wait_lltf, 1).to(wait_ofdm, 1).to(axorr, 1).to(lltf, 1)
-    .to(fft_lltf2, 0).to(remove_gi2, 0).to(fft_data2, 0);
+    .to(remove_gi2, 0).to(fft_data2, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(awgn, 2)
+    .from(src, 2)
     .to(wait_lltf, 2).to(wait_ofdm, 2).to(axorr, 2).to(lltf, 2)
-    .to(fft_lltf3, 0).to(remove_gi3, 0).to(fft_data3, 0);
+    .to(remove_gi3, 0).to(fft_data3, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(awgn, 3)
+    .from(src, 3)
     .to(wait_lltf, 3).to(wait_ofdm, 3).to(axorr, 3).to(lltf, 3)
-    .to(fft_lltf4, 0).to(remove_gi4, 0).to(fft_data4, 0);
+    .to(remove_gi4, 0).to(fft_data4, 0);
 
   Channel::Create(sizeof(v_q))
     .from(axorr, 0)
@@ -217,24 +188,6 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   Channel::Create(sizeof(v_q))
     .from(axorr, 1)
     .to(lstf_searcher, 1);
-
-
-  // 
-  Channel::Create(sizeof(v_cs))
-    .from(fft_lltf1, 0)
-    .to(siso_channel_est, 0);
-
-  Channel::Create(sizeof(v_cs))
-    .from(fft_lltf2, 0)
-    .to(siso_channel_est, 1);
-
-  Channel::Create(sizeof(v_cs))
-    .from(fft_lltf3, 0)
-    .to(siso_channel_est, 2);
-
-  Channel::Create(sizeof(v_cs))
-    .from(fft_lltf4, 0)
-    .to(siso_channel_est, 3);
 
   //
   Channel::Create(sizeof(v_cs))
@@ -267,18 +220,18 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   //
   Channel::Create(sizeof(v_cs))
     .from(siso_mrc_combine, 0)
-    .to(htsig_demap_bpsk_q, 0);
+    .to(lsig_demap_bpsk_i, 0);
 
   Channel::Create(sizeof(uint8))
-    .from(htsig_demap_bpsk_q, 0)
+    .from(lsig_demap_bpsk_i, 0)
     .to(siso_sig_deinterleave, 0);
 
   Channel::Create(sizeof(uint8))
-    .from(siso_sig_deinterleave, 0).to(ht_sig_vit, 0);
+    .from(siso_sig_deinterleave, 0).to(l_sig_vit, 0);
 
   Channel::Create(sizeof(uint8))
-    .from(ht_sig_vit, 0)
-    .to(ht_sig_parser, 0);
+    .from(l_sig_vit, 0)
+    .to(l_sig_parser, 0);
 
   // ht-data
   
@@ -339,10 +292,25 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   v_align(64)
   _global_(bool, l_sig_ok);
   _global_(bool, ht_sig_ok);
-  _global_(uint32, ht_frame_mcs);
-  _global_(uint16, ht_frame_length);
-  int VitTotalBits = 0;
-  int symbol_count = 0;
+  _global_(uint16, l_frame_length);
+  _global_(uint32, l_frame_rate);
+
+  bool   lsig_ok_1      = false;
+  bool   lsig_ok_2      = false;
+  bool   lsig_ok_3      = false;
+  bool   lsig_ok_4      = false;
+  uint16 frame_length_1 = 0;
+  uint16 frame_length_2 = 0;
+  uint16 frame_length_3 = 0;
+  uint16 frame_length_4 = 0;
+  uint32 frame_mcs_1    = 0;
+  uint32 frame_mcs_2    = 0;
+  uint32 frame_mcs_3    = 0;
+  uint32 frame_mcs_4    = 0;
+
+  int VitTotalBits       = 0;
+  int state              = 0;
+  int max_symbol_count   = 0;
   int total_symbol_count = 0;
   tick_count t1, t2, t3;
 
@@ -353,122 +321,209 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   {
     bool bRet = false;
     RESET(axorr);
-    START(src, awgn, axorr, lstf_searcher, STOP([&]{bRet = true;}));
+    START(src, axorr, lstf_searcher, STOP([&]{bRet = true;}));
     return bRet;
   };
 
   auto lltf_handler = [&]() -> bool
   {
-    START(src, awgn, wait_lltf, IF([&]
-    {
-      ONCE(lltf);
-      START(fft_lltf1, fft_lltf2, fft_lltf3, fft_lltf4);
-      ONCE(siso_channel_est);
-      return true;
-    }), STOP(NOP));
+    START(src, wait_lltf, lltf, STOP(NOP));
     return true;
   };
 
-  auto htsig_handler = [&]() -> bool
+  auto lsig_handler = [&]() -> bool
   {
-    *ht_sig_vit.VitTotalBits = 48;
-    *ht_sig_vit.VitTotalSoftBits = 96;
-    *ht_sig_ok = false;
-    //ht-sig
-    START(src, awgn, wait_ofdm, IF([&]
+    START(src, wait_ofdm, IF([&]
     {
-      bool bRet = false;
-      ONCE(remove_gi1,fft_data1);
-      ONCE(remove_gi2, fft_data2);
-      ONCE(remove_gi3, fft_data3);
-      ONCE(remove_gi4, fft_data4);
-      ONCE(siso_channel_comp, siso_mrc_combine, htsig_demap_bpsk_q, siso_sig_deinterleave, ht_sig_vit);
-
-      START(IF(ht_sig_parser), [&]{bRet = true;});
-      return bRet;
-    }), STOP(NOP), ELSE, NOP);
-    return *ht_sig_ok;
-  };
-  
-  auto htltf_handler = [&]() -> bool
-  {
-    // ht-ltf
-    START(src, awgn, wait_ofdm, IF([&]
-    {
-      bool bRet = false;
+      *l_sig_vit.VitTotalBits     = 24;
+      *l_sig_vit.VitTotalSoftBits = 48;
+      *l_sig_ok                   = false;
 
       ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
+      ONCE(siso_channel_comp, noise_estimator, siso_mrc_combine, lsig_demap_bpsk_i, siso_sig_deinterleave, l_sig_vit);
 
-      if (bUseZF)
-      {
-        START(IF(mimo_channel_estimator_zf), [&]{bRet = true;});
-      }
-      else
-      {
-        START(IF(mimo_channel_estimator_mmse), [&]{bRet = true;});
-      }
+      *l_frame_length = 0;
+      *l_frame_rate   = 0;
+      
+      ONCE(l_sig_parser, [&]{
+        printf(" lsig%d: %d, length=%d, rate=%d\n", state, *l_sig_ok, *l_frame_length, *l_frame_rate);
+        switch (state)
+        {
+        case 0:
+          lsig_ok_1      = *l_sig_ok;
+          frame_length_1 = *l_frame_length;
+          frame_mcs_1    = *l_frame_rate;
+          break;
+        case 1:
+          lsig_ok_2      = *l_sig_ok;          
+          frame_length_2 = *l_frame_length;
+          frame_mcs_2    = *l_frame_rate;          
+          break;
+        case 2:
+          lsig_ok_3      = *l_sig_ok;
+          frame_length_3 = *l_frame_length;
+          frame_mcs_3    = *l_frame_rate;
+          break;
+        case 3:
+          lsig_ok_4      = *l_sig_ok;
+          frame_length_4 = *l_frame_length;
+          frame_mcs_4    = *l_frame_rate;
+          break;
+        default:
+          break;
+        }
+      });
 
-      return bRet;
+      state = (state + 1) % 4;
+
+      return true;
     }), STOP(NOP), ELSE, NOP);
     return true;
   };
 
-  auto pipeline_init = [&]
+  auto pipeline_init = [&]() -> bool
   {
+    int symbol_count = 0;
+
     RESET(descramble_1, descramble_2, descramble_3, descramble_4);
-    
-    *crc32_checker_1.crc32_check_length = *ht_frame_length;
-    *crc32_checker_2.crc32_check_length = *ht_frame_length;
-    *crc32_checker_3.crc32_check_length = *ht_frame_length;
-    *crc32_checker_4.crc32_check_length = *ht_frame_length;
+    RESET(ht_data_vit_12_1, ht_data_vit_12_2, ht_data_vit_12_3, ht_data_vit_12_4);
+    RESET(ht_data_vit_23_1, ht_data_vit_23_2, ht_data_vit_23_3, ht_data_vit_23_4);
+    RESET(ht_data_vit_34_1, ht_data_vit_34_2, ht_data_vit_34_3, ht_data_vit_34_4);
 
-    symbol_count = pht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
-    total_symbol_count = symbol_count;
+    *crc32_checker_1.crc32_check_length = frame_length_1;
+    *crc32_checker_2.crc32_check_length = frame_length_2;
+    *crc32_checker_3.crc32_check_length = frame_length_3;
+    *crc32_checker_4.crc32_check_length = frame_length_4;
 
-    switch (*ht_frame_mcs)
+    max_symbol_count = 0;
+
+    // setup 1st stream
+    if (lsig_ok_1)
     {
-    case 8:
-    case 9:
-    case 11:
-      *ht_data_vit_12_1.VitTotalBits = VitTotalBits;
-      *ht_data_vit_12_1.VitTotalSoftBits = VitTotalBits << 1;
-      *ht_data_vit_12_2.VitTotalBits = VitTotalBits;
-      *ht_data_vit_12_2.VitTotalSoftBits = VitTotalBits << 1;
-      *ht_data_vit_12_3.VitTotalBits = VitTotalBits;
-      *ht_data_vit_12_3.VitTotalSoftBits = VitTotalBits << 1;
-      *ht_data_vit_12_4.VitTotalBits = VitTotalBits;
-      *ht_data_vit_12_4.VitTotalSoftBits = VitTotalBits << 1;
-      break;
-    case 10:
-    case 12:
-    case 14:
-      *ht_data_vit_34_1.VitTotalBits = VitTotalBits;
-      *ht_data_vit_34_1.VitTotalSoftBits = VitTotalBits * 4 / 3;
-      *ht_data_vit_34_2.VitTotalBits = VitTotalBits;
-      *ht_data_vit_34_2.VitTotalSoftBits = VitTotalBits * 4 / 3;
-      *ht_data_vit_34_3.VitTotalBits = VitTotalBits;
-      *ht_data_vit_34_3.VitTotalSoftBits = VitTotalBits * 4 / 3;
-      *ht_data_vit_34_4.VitTotalBits = VitTotalBits;
-      *ht_data_vit_34_4.VitTotalSoftBits = VitTotalBits * 4 / 3;
-      break;
-    case 13:
-      *ht_data_vit_23_1.VitTotalBits = VitTotalBits;
-      *ht_data_vit_23_1.VitTotalSoftBits = VitTotalBits * 3 / 2;
-      *ht_data_vit_23_2.VitTotalBits = VitTotalBits;
-      *ht_data_vit_23_2.VitTotalSoftBits = VitTotalBits * 3 / 2;
-      *ht_data_vit_23_3.VitTotalBits = VitTotalBits;
-      *ht_data_vit_23_3.VitTotalSoftBits = VitTotalBits * 3 / 2;
-      *ht_data_vit_23_4.VitTotalBits = VitTotalBits;
-      *ht_data_vit_23_4.VitTotalSoftBits = VitTotalBits * 3 / 2;
-      break;
-    default:
-      break;
+      symbol_count     = pht_symbol_count(frame_mcs_1, frame_length_1, &VitTotalBits);
+      max_symbol_count = max(symbol_count, max_symbol_count);
+
+      switch (frame_mcs_1)
+      {
+      case 8:
+      case 9:
+      case 11:
+        *ht_data_vit_12_1.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_12_1.VitTotalSoftBits = VitTotalBits << 1;
+        break;
+      case 10:
+      case 12:
+      case 14:
+        *ht_data_vit_34_1.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_34_1.VitTotalSoftBits = VitTotalBits * 4 / 3;
+        break;
+      case 13:
+        *ht_data_vit_23_1.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_23_1.VitTotalSoftBits = VitTotalBits * 3 / 2;
+        break;
+      default:
+        break;
+      }
     }
 
-    printf("HT: MCS=%d, Length=%d, SymbolCount=%d\n", *ht_frame_mcs, *ht_frame_length, total_symbol_count);
+    // setup 2nd stream
+    if (lsig_ok_2)
+    {
+      symbol_count     = pht_symbol_count(frame_mcs_2, frame_length_2, &VitTotalBits);
+      max_symbol_count = max(symbol_count, max_symbol_count);
+
+      switch (frame_mcs_2)
+      {
+      case 8:
+      case 9:
+      case 11:
+        *ht_data_vit_12_2.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_12_2.VitTotalSoftBits = VitTotalBits << 1;
+        break;
+      case 10:
+      case 12:
+      case 14:
+        *ht_data_vit_34_2.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_34_2.VitTotalSoftBits = VitTotalBits * 4 / 3;
+        break;
+      case 13:
+        *ht_data_vit_23_2.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_23_2.VitTotalSoftBits = VitTotalBits * 3 / 2;
+        break;
+      default:
+        break;
+      }
+    }
+
+    // setup 3rd stream
+    if (lsig_ok_3)
+    {
+      symbol_count     = pht_symbol_count(frame_mcs_3, frame_length_3, &VitTotalBits);
+      max_symbol_count = max(symbol_count, max_symbol_count);
+
+      switch (frame_mcs_3)
+      {
+      case 8:
+      case 9:
+      case 11:
+        *ht_data_vit_12_3.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_12_3.VitTotalSoftBits = VitTotalBits << 1;
+        break;
+      case 10:
+      case 12:
+      case 14:
+        *ht_data_vit_34_3.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_34_3.VitTotalSoftBits = VitTotalBits * 4 / 3;
+        break;
+      case 13:
+        *ht_data_vit_23_3.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_23_3.VitTotalSoftBits = VitTotalBits * 3 / 2;
+        break;
+      default:
+        break;
+      }
+    }
+    
+    // setup 4th stream
+    if (lsig_ok_4)
+    {
+      symbol_count     = pht_symbol_count(frame_mcs_4, frame_length_4, &VitTotalBits);
+      max_symbol_count = max(symbol_count, max_symbol_count);
+
+      switch (frame_mcs_4)
+      {
+      case 8:
+      case 9:
+      case 11:
+        *ht_data_vit_12_4.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_12_4.VitTotalSoftBits = VitTotalBits << 1;
+        break;
+      case 10:
+      case 12:
+      case 14:
+        *ht_data_vit_34_4.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_34_4.VitTotalSoftBits = VitTotalBits * 4 / 3;
+        break;
+      case 13:
+        *ht_data_vit_23_4.VitTotalBits     = VitTotalBits;
+        *ht_data_vit_23_4.VitTotalSoftBits = VitTotalBits * 3 / 2;
+        break;
+      default:
+        break;
+      }
+    }
+
+    total_symbol_count = max_symbol_count;
+
+    printf("DATA: MCS1=%d, Length1=%d, MCS2=%d, Length2=%d, "
+      "MCS3=%d, Length3=%d, MCS4=%d, Length4=%d, SymbolCount=%d\n", 
+      frame_mcs_1, frame_length_1, frame_mcs_2, frame_length_2, 
+      frame_mcs_3, frame_length_3, frame_mcs_4, frame_length_4, total_symbol_count);
+
+    return max_symbol_count > 0;
   };
 
   auto rx_vit12_pipeline_1 = [&]
@@ -546,7 +601,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_bpsk_pipeline_1 = [&]() -> bool
   {    
-    START(src, awgn, wait_ofdm, STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
       ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
@@ -560,15 +615,15 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
         ht_demap_bpsk4, ht_deinterleave_1bpsc_iss4);
     }));
 
-    symbol_count--;
-    return symbol_count > 0;
+    max_symbol_count--;
+    return max_symbol_count > 0;
   };
 
   auto rx_qpsk_pipeline_1 = [&]() -> bool
   {
     //printf("symbol - %d\n", symbol_count);
 
-    START(src, awgn, wait_ofdm, STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
       ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
@@ -582,13 +637,13 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
         ht_demap_qpsk4, ht_deinterleave_2bpsc_iss4);
     }));
 
-    symbol_count--;
-    return symbol_count > 0;
+    max_symbol_count--;
+    return max_symbol_count > 0;
   };
 
   auto rx_16qam_pipeline_1 = [&]() -> bool
   {
-    START(src, awgn, wait_ofdm, STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
       ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
@@ -602,13 +657,13 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
         ht_demap_16qam4, ht_deinterleave_4bpsc_iss4);
     }));
 
-    symbol_count--;
-    return symbol_count > 0;
+    max_symbol_count--;
+    return max_symbol_count > 0;
   };
 
   auto rx_64qam_pipeline_1 = [&]() -> bool
   {
-    START(src, awgn, wait_ofdm, STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
 #if 0
       ONCE(remove_gi1, fft_data1);
@@ -642,8 +697,8 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 #endif
     }));
 
-    symbol_count--;
-    return symbol_count > 0;
+    max_symbol_count--;
+    return max_symbol_count > 0;
   };
   //////////////////////////////////////////////////////////////////////////
   auto rx_mcs8_pipeline = [&]
@@ -697,16 +752,33 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 
   auto htdata_handler = [&]
   {
-    ONCE(pipeline_init);
+    uint32 frame_mcs;
+    if (lsig_ok_1)
+    {
+      frame_mcs = frame_mcs_1;
+    }
+    else if (lsig_ok_2)
+    {
+      frame_mcs = frame_mcs_2;
+    }
+    else if (lsig_ok_3)
+    {
+      frame_mcs = frame_mcs_3;
+    }
+    else if (lsig_ok_4)
+    {
+      frame_mcs = frame_mcs_4;
+    }
+
     t1 = tick_count::now();
     START(
-      IF(IsTrue(*ht_frame_mcs == 8)),  rx_mcs8_pipeline,
-      ELSE_IF(IsTrue(*ht_frame_mcs == 9)),  rx_mcs9_pipeline,
-      ELSE_IF(IsTrue(*ht_frame_mcs == 10)), rx_mcs10_pipeline,
-      ELSE_IF(IsTrue(*ht_frame_mcs == 11)), rx_mcs11_pipeline,
-      ELSE_IF(IsTrue(*ht_frame_mcs == 12)), rx_mcs12_pipeline,
-      ELSE_IF(IsTrue(*ht_frame_mcs == 13)), rx_mcs13_pipeline,
-      ELSE_IF(IsTrue(*ht_frame_mcs == 14)), rx_mcs14_pipeline,
+      IF(IsTrue(frame_mcs == 8)),  rx_mcs8_pipeline,
+      ELSE_IF(IsTrue(frame_mcs == 9)),  rx_mcs9_pipeline,
+      ELSE_IF(IsTrue(frame_mcs == 10)), rx_mcs10_pipeline,
+      ELSE_IF(IsTrue(frame_mcs == 11)), rx_mcs11_pipeline,
+      ELSE_IF(IsTrue(frame_mcs == 12)), rx_mcs12_pipeline,
+      ELSE_IF(IsTrue(frame_mcs == 13)), rx_mcs13_pipeline,
+      ELSE_IF(IsTrue(frame_mcs == 14)), rx_mcs14_pipeline,
       ELSE, NOP
       );
     t2 = tick_count::now();
@@ -719,7 +791,12 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 
 #if 1
   START(
-    WHILE(frame_detection), IF(lltf_handler), IF(htsig_handler), IF(htltf_handler), htdata_handler
+    WHILE(frame_detection), 
+    IF(lltf_handler), IF(lsig_handler), 
+    IF(lltf_handler), IF(lsig_handler), 
+    IF(lltf_handler), IF(lsig_handler), 
+    IF(lltf_handler), IF(lsig_handler), 
+    IF(pipeline_init), htdata_handler
     );
 #else
   profile_viterbi34();

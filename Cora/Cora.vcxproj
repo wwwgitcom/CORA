@@ -125,6 +125,7 @@
     <ClInclude Include="blocks\b_dot11n_map.h" />
     <ClInclude Include="blocks\b_dot11n_param.h" />
     <ClInclude Include="blocks\b_dot11n_rx.h" />
+    <ClInclude Include="blocks\b_dot11n_rx_profile.h" />
     <ClInclude Include="blocks\b_dot11n_tx.h" />
     <ClInclude Include="blocks\b_dot11n_tx_ifft.h" />
     <ClInclude Include="blocks\b_dot11_frame_source.h" />
@@ -145,6 +146,7 @@
     <ClInclude Include="blocks\b_mumimo_4x4_rx.h" />
     <ClInclude Include="blocks\b_mumimo_4x4_tx.h" />
     <ClInclude Include="blocks\b_noise_estimator.h" />
+    <ClInclude Include="blocks\b_passthru.h" />
     <ClInclude Include="blocks\b_pilot_tracking.h" />
     <ClInclude Include="blocks\b_plot.h" />
     <ClInclude Include="blocks\b_producer.h" />
@@ -156,6 +158,7 @@
     <ClInclude Include="blocks\b_wait.h" />
     <ClInclude Include="blocks\__b_viterbi.h" />
     <ClInclude Include="dbgplot\inc\DebugPlotU.h" />
+    <ClInclude Include="sys\dsp_channel_matrix.h" />
     <ClInclude Include="TMain.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />

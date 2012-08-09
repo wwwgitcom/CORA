@@ -125,14 +125,14 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   autoref ht_data_vit_23 = create_block<b_viterbi64_2o3_1v1>(
     2,
-    string("TraceBackLength=96"),
+    string("TraceBackLength=36"),
     string("TraceBackOutput=192")
     );
 
   autoref ht_data_vit_34 = create_block<b_viterbi64_3o4_1v1>(
     2,
-    string("TraceBackLength=144"),
-    string("TraceBackOutput=384")
+    string("TraceBackLength=36"),
+    string("TraceBackOutput=192")
     );
 
   autoref l_sig_parser = create_block<b_lsig_parser_1v>();
@@ -378,7 +378,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   {
     *crc32_checker.crc32_check_length = *ht_frame_length;
     
-    RESET(descramble);
+    RESET(descramble, crc32_checker);
 
     symbol_count = ht_symbol_count(*ht_frame_mcs, *ht_frame_length, &VitTotalBits);
     total_symbol_count = symbol_count;
@@ -388,18 +388,21 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     case 8:
     case 9:
     case 11:
+      RESET(ht_data_vit_12);
       *ht_data_vit_12.VitTotalBits     = VitTotalBits;
       *ht_data_vit_12.VitTotalSoftBits = VitTotalBits << 1;
       break;
     case 10:
     case 12:
     case 14:
+      RESET(ht_data_vit_34);
       *ht_data_vit_34.VitTotalBits     = VitTotalBits;
-      *ht_data_vit_34.VitTotalSoftBits = VitTotalBits << 1;
+      *ht_data_vit_34.VitTotalSoftBits = VitTotalBits * 4 / 3;
       break;
     case 13:
+      RESET(ht_data_vit_23);
       *ht_data_vit_23.VitTotalBits     = VitTotalBits;
-      *ht_data_vit_23.VitTotalSoftBits = VitTotalBits << 1;
+      *ht_data_vit_23.VitTotalSoftBits = VitTotalBits * 3 / 2;
       break;
     default:
       break;
@@ -536,7 +539,9 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       );
     t2 = tick_count::now();
     tick_count t = t2 - t1;
-    printf("time = %f us, %f MSPS\n", t.us(), total_symbol_count * 80 / t.us());
+    printf("time = %f us, %f MSPS, %f Mbps\n", 
+      t.us(), total_symbol_count * 80 / t.us(),
+      *ht_frame_length * 8.0 / t.us());
     printf("frame decode done! %d\n", *crc32_checker.crc32_check_result);
   };
 

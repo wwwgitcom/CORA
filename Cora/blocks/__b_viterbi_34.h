@@ -66,6 +66,9 @@ public:
 
   BLOCK_RESET
   {
+    auto n = ninput(0);
+    consume(0, n);
+
     pTrellis     = pTrellisBase;
     i_trellis    = 0;
     nDecodedBits = 0;
@@ -257,7 +260,7 @@ public:
         //}
         //printf("\n");
 
-        i_trellis -= nTraceBackOutput;        
+        i_trellis -= nTraceBackOutput;
         produce(0, nTraceBackOutputByte);
         consume(0, nSoftBits + 4);
         return true;

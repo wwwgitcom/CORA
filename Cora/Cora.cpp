@@ -8,6 +8,7 @@
 #include "dsp_tickcount.h"
 #include "dsp_log.h"
 #include "dsp_math.h"
+#include "dsp_channel_matrix.h"
 #include "dsp_map.h"
 #include "dsp_demap.h"
 #include "dsp_crc.h"
@@ -15,7 +16,7 @@
 #include "dsp_cmd.h"
 
 #define enable_draw 0
-#define enable_dbgplot 0
+#define enable_dbgplot 1
 #include "DebugPlotU.h"
 //--------------------------------------------------
 #include "TBlock.h"
@@ -36,6 +37,7 @@
 #include "b_plot.h"
 #include "b_producer.h"
 #include "b_consumer.h"
+#include "b_passthru.h"
 #include "b_wait.h"
 #include "b_dot11n_param.h"
 
@@ -98,16 +100,20 @@
 
 
 //----------------------------------
-
+#define dot11n_test 1
 #include "b_dot11n_rx.h"
+//#include "b_dot11n_rx_profile.h"
 //#include "b_dot11n_tx.h"
+
 //#include "b_mumimo_2x2_tx.h"
 #include "b_mumimo_4x4_tx.h"
 #include "b_mumimo_4x4_rx.h"
 
-//#include "b_bigap.h"
-//#include "b_bigap_4x4_tx.h"
-//#include "b_bigap_4x4_rx.h"
+#include "b_bigap.h"
+
+
+
+
 
 BOOL WINAPI HandlerRoutine(__in  DWORD dwCtrlType)
 {
@@ -150,22 +156,6 @@ void pipeline_profiling()
   }
 }
 
-
-void test()
-{
-  const int arr_size = 1023;
-  int *pA = new int[arr_size];
-  int *pB = new int[arr_size];
-  int *pC = new int[arr_size];
-#pragma parallelize 
-  for (int i = 0; i < arr_size; i++)
-  {
-    pC[i] = pA[i] + pB[i];
-  }
-}
-
-
-
 int _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
@@ -188,32 +178,36 @@ int _tmain(int argc, _TCHAR* argv[])
 
   auto rx_main = [&]
   {
-    dot11n_2x2_rx(argc, argv);
+    dot11n_2x2_rx_profile(argc, argv);
   };
+
+  dsp_main(rx_main);
 #endif
 
   auto mumimo_tx_main = [&]
   {
-    mumimo_4x4_tx(argc, argv);
+    bigap_4x4_tx(argc, argv);
   };
 
   auto mumimo_rx_main = [&]
   {
-    mumimo_4x4_rx(argc, argv);
+    bigap_4x4_rx(argc, argv);
   };
 
   //dsp_main(mumimo_tx_main);
   dsp_main(mumimo_rx_main);
   //dsp_main(pipeline_profiling);
   //dsp_main(rx_main);
+
+  
 #if 0
   if ( cmdline.get("rx").exist() )
   {
-    dsp_main(rx_main);
+    dsp_main(mumimo_rx_main);
   }
   else if ( cmdline.get("tx").exist() )
   {
-    dsp_main(tx_main);
+    dsp_main(mumimo_tx_main);
   }
   else
   {
