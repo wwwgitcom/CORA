@@ -340,6 +340,14 @@ DEFINE_BLOCK(b_dot11_mimo_channel_compensator_4v1, 4, 1)
 
       x1 = v_convert2cs(vcomp1[0], vcomp1[1]);      
     }
+
+#if enable_dbgplot
+    char title[1024];
+    memset(title, 0, 1024);
+    sprintf_s(title, 1024, "RX %d", *iss);
+    PlotDots(title, opc1, 64);
+#endif
+
     produce_each(16);
     return true;
   }

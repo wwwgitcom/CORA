@@ -69,12 +69,13 @@ __declspec(selectany) v_align(16) v_cs::type _bigap_LTFMask[16] =
 
 DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
 {
-  _global_(Dot11aChannelCoefficient, dot11a_siso_channel);
   _global_(MIMO_4x4_H, bigap_4x4_H);
   _local_(int, state, 0);
 
   Dot11aChannelCoefficient siso_channel_1;
   Dot11aChannelCoefficient siso_channel_2;
+
+  v_cs fft_buffer[16];
 
   BLOCK_RESET
   {
@@ -86,7 +87,14 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     trace();
 
     auto n = ninput(0);
-    if (n < 32) return false;
+
+    int  nwait = 32;
+    if (*state > 0)
+    {
+      nwait += 8;
+    }
+
+    if (n < nwait) return false;
 
     auto ip1 = _$<v_cs>(0);
     auto ip2 = _$<v_cs>(1);
@@ -94,71 +102,125 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     auto ip4 = _$<v_cs>(3);
 
     v_cs *pvmask = (v_cs*)&_bigap_LTFMask[0];
+
+    if (*state > 0)
+    {
+      ip1 += 8;
+      ip2 += 8;
+      ip3 += 8;
+      ip4 += 8;
+    }
     
     short delta1 = v_estimate_i(ip1, 16, 16);
     short delta2 = v_estimate_i(ip2, 16, 16);
     short delta3 = v_estimate_i(ip3, 16, 16);
     short delta4 = v_estimate_i(ip4, 16, 16);
 
-    printf("f%d1=%d, f%d1=%d, f%d1=%d, f%d1=%d\n", 
-      *state, delta1, *state, delta2, *state, delta3, *state, delta4);
+    printf("BigAP::%d::f1=%d, f2=%d, f3=%d, f4=%d\n", 
+      *state, delta1, delta2, delta3, delta4);
 
     autoref ch  = *bigap_4x4_H;
     // 1
-    v_siso_channel_estimation_64(ip1, pvmask, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip1 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
+    FFT<64>((vcs*)ip1, (vcs*)fft_buffer);
+    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_1[0]);
+    FFT<64>((vcs*)(ip1 + 16), (vcs*)fft_buffer);
+    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_2[0]);
 
+    // average
+    v_cs* pvcs = (v_cs*)&ch[0][*state * 64];
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
-      ch[0][*state * 16 + i]  = r.v_shift_right_arithmetic(1);
-    }
-    if (*state == 0)
-    {
-      memcpy(&(*dot11a_siso_channel)[0], &ch[0][*state * 16], sizeof(v_cs) * 16);
+      pvcs[i]  = r.v_shift_right_arithmetic(1);
     }
 
+#if enable_dbgplot
+    int Spectrum[64];
+    char title[128];
+    Spectrum[0] = 0;
+#endif
+
+#if enable_dbgplot
+    for (int i = 1; i < 64; i++)
+    {
+      Spectrum[i] = ch[0][*state * 64 + i].sqr2();
+    }
+    
+    memset(title, 0, 128);
+    sprintf_s(title, 128, "channel %d : 1", *state);
+    PlotSpectrum(title, Spectrum, 64);
+#endif
+
+    
     // 2
-    v_siso_channel_estimation_64(ip2, pvmask, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip2 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
+    FFT<64>((vcs*)ip2, (vcs*)fft_buffer);
+    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_1[0]);
+    FFT<64>((vcs*)(ip2 + 16), (vcs*)fft_buffer);
+    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_2[0]);
 
+    pvcs = (v_cs*)&ch[1][*state * 64];
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
-      ch[1][*state * 16 + i]  = r.v_shift_right_arithmetic(1);
+      pvcs[i]  = r.v_shift_right_arithmetic(1);
+    }
+#if enable_dbgplot
+    for (int i = 1; i < 64; i++)
+    {
+      Spectrum[i] = ch[1][*state * 64 + i].sqr2();
     }
 
-    if (*state == 1)
-    {
-      memcpy(&(*dot11a_siso_channel)[0], &ch[1][*state * 16], sizeof(v_cs) * 16);
-    }
+    memset(title, 0, 128);
+    sprintf_s(title, 128, "channel %d : 2", *state);
+    PlotSpectrum(title, Spectrum, 64);
+#endif
 
     // 3
-    v_siso_channel_estimation_64(ip3, pvmask, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip3 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
+    FFT<64>((vcs*)ip3, (vcs*)fft_buffer);
+    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_1[0]);
+    FFT<64>((vcs*)(ip3 + 16), (vcs*)fft_buffer);
+    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_2[0]);
 
+    pvcs = (v_cs*)&ch[2][*state * 64];
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
-      ch[1][*state * 16 + i]  = r.v_shift_right_arithmetic(1);
+      pvcs[i]  = r.v_shift_right_arithmetic(1);
     }
-    if (*state == 2)
+
+#if enable_dbgplot
+    for (int i = 1; i < 64; i++)
     {
-      memcpy(&(*dot11a_siso_channel)[0], &ch[2][*state * 16], sizeof(v_cs) * 16);
+      Spectrum[i] = ch[2][*state * 64 + i].sqr2();
     }
+
+    memset(title, 0, 128);
+    sprintf_s(title, 128, "channel %d : 3", *state);
+    PlotSpectrum(title, Spectrum, 64);
+#endif
     // 4
-    v_siso_channel_estimation_64(ip4, pvmask, (v_cs*)&siso_channel_1[0]);
-    v_siso_channel_estimation_64(ip4 + 16, pvmask, (v_cs*)&siso_channel_2[0]);
+    FFT<64>((vcs*)ip4, (vcs*)fft_buffer);
+    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_1[0]);
+    FFT<64>((vcs*)(ip4 + 16), (vcs*)fft_buffer);
+    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_2[0]);
 
+    pvcs = (v_cs*)&ch[3][*state * 64];
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
-      ch[1][*state * 16 + i]  = r.v_shift_right_arithmetic(1);
+      pvcs[i]  = r.v_shift_right_arithmetic(1);
     }
-    if (*state == 3)
+
+#if enable_dbgplot
+    for (int i = 1; i < 64; i++)
     {
-      memcpy(&(*dot11a_siso_channel)[0], &ch[3][*state * 16], sizeof(v_cs) * 16);
+      Spectrum[i] = ch[3][*state * 64 + i].sqr2();
     }
+
+    memset(title, 0, 128);
+    sprintf_s(title, 128, "channel %d : 4", *state);
+    PlotSpectrum(title, Spectrum, 64);
+#endif
 
     (*state) += 1;
 
@@ -167,7 +229,7 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
       *state = 0;
     }
 
-    consume_each(32);
+    //consume_each(32);
     return true;
   }
 };

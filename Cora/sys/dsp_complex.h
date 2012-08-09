@@ -74,6 +74,11 @@ struct _scomplex
     return re * re + im * im;
   }
 
+  R sqr2() const
+  {
+    return (R)re * (R)re + (R)im * (R)im;
+  }
+
   _Myt conj_mul(_Myt& c)
   {
     _Myt t;

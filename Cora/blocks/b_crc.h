@@ -13,6 +13,12 @@ public:
     crc32_check.reset();
   }
 
+  BLOCK_RESET
+  {
+    auto n = ninput(0);
+    consume(0, n);
+  }
+
   BLOCK_WORK
   {
     trace();

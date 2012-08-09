@@ -38,18 +38,6 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   autoref src = create_block<b_file_source_v4>(
     5, strFileName1, strFileName2, strFileName3, strFileName4, string("Decimate=1"));
 
-  string strNoiseVar("NoiseVar=10");
-  CmdArg = cmdline.get("nv");
-  if (CmdArg.exist())
-  {
-    int NoiseVar = CmdArg.as_int();
-    char buf[1024];
-    memset(buf, 0, 1024);
-    sprintf_s(buf, 1024, "NoiseVar=%d", NoiseVar);
-    strNoiseVar = string(buf);
-  }  
-  autoref awgn                       = create_block<b_awgn_4v4>( 1, strNoiseVar );
-
   autoref wait_lltf                  = create_block<b_wait_4v>( 1, string("nwait=32") );
   autoref wait_lltf2                 = create_block<b_wait_4v>( 1, string("nwait=40") );
   autoref wait_ofdm                  = create_block<b_wait_4v>( 1, string("nwait=20") );
@@ -183,31 +171,22 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   autoref pilot_tracking             = create_block<b_dot11_pilot_tracking_4v>();
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
-    .from(src, 0).to(awgn, 0);
-  Channel::Create(sizeof(v_cs))
-    .from(src, 1).to(awgn, 1);
-  Channel::Create(sizeof(v_cs))
-    .from(src, 2).to(awgn, 2);
-  Channel::Create(sizeof(v_cs))
-    .from(src, 3).to(awgn, 3);
-  
-  Channel::Create(sizeof(v_cs))
-    .from(awgn, 0)
+    .from(src, 0)
     .to(wait_lltf, 0).to(wait_ofdm, 0).to(axorr, 0).to(lltf, 0)
     .to(fft_lltf1, 0).to(remove_gi1, 0).to(fft_data1, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(awgn, 1)
+    .from(src, 1)
     .to(wait_lltf, 1).to(wait_ofdm, 1).to(axorr, 1).to(lltf, 1)
     .to(fft_lltf2, 0).to(remove_gi2, 0).to(fft_data2, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(awgn, 2)
+    .from(src, 2)
     .to(wait_lltf, 2).to(wait_ofdm, 2).to(axorr, 2).to(lltf, 2)
     .to(fft_lltf3, 0).to(remove_gi3, 0).to(fft_data3, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(awgn, 3)
+    .from(src, 3)
     .to(wait_lltf, 3).to(wait_ofdm, 3).to(axorr, 3).to(lltf, 3)
     .to(fft_lltf4, 0).to(remove_gi4, 0).to(fft_data4, 0);
 
@@ -354,13 +333,13 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   {
     bool bRet = false;
     RESET(axorr);
-    START(src, awgn, axorr, lstf_searcher, STOP([&]{bRet = true;}));
+    START(src, axorr, lstf_searcher, STOP([&]{bRet = true;}));
     return bRet;
   };
 
   auto lltf_handler = [&]() -> bool
   {
-    START(src, awgn, wait_lltf, IF([&]
+    START(src, wait_lltf, IF([&]
     {
       ONCE(lltf);
       START(fft_lltf1, fft_lltf2, fft_lltf3, fft_lltf4);
@@ -376,7 +355,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
     *ht_sig_vit.VitTotalSoftBits = 96;
     *ht_sig_ok = false;
     //ht-sig
-    START(src, awgn, wait_ofdm, IF([&]
+    START(src, wait_ofdm, IF([&]
     {
       bool bRet = false;
       ONCE(remove_gi1,fft_data1);
@@ -394,7 +373,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   auto htltf_handler = [&]() -> bool
   {
     // ht-ltf
-    START(src, awgn, wait_ofdm, IF([&]
+    START(src, wait_ofdm, IF([&]
     {
       bool bRet = false;
 
@@ -547,7 +526,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_bpsk_pipeline_1 = [&]() -> bool
   {    
-    START(src, awgn, wait_ofdm, STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
       ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
@@ -569,7 +548,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   {
     //printf("symbol - %d\n", symbol_count);
 
-    START(src, awgn, wait_ofdm, STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
       ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
@@ -589,7 +568,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_16qam_pipeline_1 = [&]() -> bool
   {
-    START(src, awgn, wait_ofdm, STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
       ONCE(remove_gi1, fft_data1);
       ONCE(remove_gi2, fft_data2);
@@ -609,7 +588,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_64qam_pipeline_1 = [&]() -> bool
   {
-    START(src, awgn, wait_ofdm, STOP([&]
+    START(src, wait_ofdm, STOP([&]
     {
 #if 0
       ONCE(remove_gi1, fft_data1);

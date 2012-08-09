@@ -338,7 +338,7 @@ void dot11n_2x2_tx(int argc, _TCHAR* argv[])
 
   _init_(mcs, frame_length);
 
-  int nloop = 10000;
+  int nloop = 1;
 
   START(
     WHILE(IsTrue(nloop-- > 0)), 

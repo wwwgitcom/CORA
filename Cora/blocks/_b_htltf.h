@@ -20,6 +20,11 @@ struct HT_LTF
     {
       pvout[j] = pvin[i];
     }
+    // repeat
+    for (i = 8; i < VCOUNT; i++, j++)
+    {
+      pvout[j] = pvin[i];
+    }
 
     i = VCOUNT - 16;
     j = 0;
