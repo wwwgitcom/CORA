@@ -583,7 +583,7 @@ public:
       op3[i] = (*pSignalBlock3)->operator[](*nOffset);
       op4[i] = (*pSignalBlock4)->operator[](*nOffset);
 
-#if enable_dbgplot
+#if 0
       for (int i = 0; i < 4; i++)
       {
         RxBuffer[0][i] = op1[0][i].re * op1[0][i].re + op1[0][i].im * op1[0][i].im;
