@@ -1,13 +1,9 @@
 #pragma once
 
-#include "Strsafe.h"
-#include <gdiplus.h>
-using namespace Gdiplus;
-#pragma comment (lib,"Gdiplus.lib")
 
 
-#include "dsp_vector1.h"
-#include "dsp_helper.h"
+
+
 
 typedef struct _DSP_DRAW_DESC
 {

@@ -71,6 +71,13 @@ class dsp_block
   dsp_buffer_reader_ptr m_inputs[NINPUT + 1];
 
   dsp_block(){}
+  ~dsp_block()
+  {
+    __if_exists(T::_deinit_)
+    {
+      ((T*)(this))->_deinit_();
+    }
+  }
   const char* name(){return typeid(T).name();}
 
   // default op
@@ -176,6 +183,8 @@ class dsp_block
 #define DEFINE_BLOCK(block_name, number_of_input, number_of_output)\
 class _declspec(align(64)) block_name : public dsp_block<block_name, number_of_input, number_of_output>
 
+#define INHERIT_BLOCK(SubClass, ParentClass)\
+class SubClass : public ParentClass
 
 #define END_BLOCK };
 
@@ -195,6 +204,10 @@ public:
 #define BLOCK_INIT \
 public:\
 void _init_(std::map<string, string> & $)
+
+#define BLOCK_DEINIT \
+public:\
+  void _deinit_()
 
 #define BLOCK_RESET \
 public:\

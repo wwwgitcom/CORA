@@ -152,7 +152,7 @@
     <ClInclude Include="blocks\b_producer.h" />
     <ClInclude Include="blocks\b_remove_gi.h" />
     <ClInclude Include="blocks\b_dot11n_scramble.h" />
-    <ClInclude Include="blocks\b_socket_source.h" />
+    <ClInclude Include=".\blocks\b_socket.h" />
     <ClInclude Include="blocks\b_stream_joiner.h" />
     <ClInclude Include="blocks\b_stream_parser.h" />
     <ClInclude Include="blocks\b_viterbi.h" />
@@ -161,6 +161,7 @@
     <ClInclude Include="dbgplot\inc\DebugPlotU.h" />
     <ClInclude Include="sys\dsp_channel_matrix.h" />
     <ClInclude Include="sys\dsp_console.h" />
+    <ClInclude Include="sys\_windows.h" />
     <ClInclude Include="TMain.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />

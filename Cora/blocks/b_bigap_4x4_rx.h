@@ -813,3 +813,390 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 
   printf("rx main terminated...\n");
 };
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+
+
+void bigap_4x4_rx_front_end(int argc, _TCHAR* argv[])
+{
+  dsp_cmd cmdline;
+  cmdline.parse(argc, argv);
+
+  int bUseZF = cmdline.get("zf").as_int();
+
+  autoref dummy = create_block<dummy_block>();
+
+  string strFileName1 = string("FileName1=c:\\MiMo_0.dmp");
+  string strFileName2 = string("FileName2=c:\\MiMo_1.dmp");
+  string strFileName3 = string("FileName3=c:\\MiMo_2.dmp");
+  string strFileName4 = string("FileName4=c:\\MiMo_3.dmp");
+
+  auto CmdArg = cmdline.get("FileName1");
+  if ( CmdArg.exist() )
+  {
+    strFileName1 = CmdArg.as_string();
+  }
+  CmdArg = cmdline.get("FileName2");
+  if ( CmdArg.exist() )
+  {
+    strFileName2 = CmdArg.as_string();
+  }
+  CmdArg = cmdline.get("FileName3");
+  if ( CmdArg.exist() )
+  {
+    strFileName3 = CmdArg.as_string();
+  }
+  CmdArg = cmdline.get("FileName4");
+  if ( CmdArg.exist() )
+  {
+    strFileName4 = CmdArg.as_string();
+  }
+
+  autoref src = create_block<b_file_source_v4>(
+    5, strFileName1, strFileName2, strFileName3, strFileName4, string("Decimate=1"));
+
+  autoref wait_lltf                  = create_block<b_wait_4v>( 1, string("nwait=40") );
+  autoref wait_ofdm                  = create_block<b_wait_4v>( 1, string("nwait=20") );
+  autoref axorr                      = create_block<b_auto_corr_4v2>( 1,  string("vHisLength=8") );
+
+  autoref lstf_searcher              = create_block<b_lstf_searcher_2v1>();
+  autoref lltf                       = create_block<b_bigap_lltf_rx_4v>( );
+
+  autoref remove_gi1                 = create_block<b_remove_gi_1v>( 2, string("GILength=4"), string("SymbolLength=16") );
+  autoref remove_gi2                 = create_block<b_remove_gi_1v>( 2, string("GILength=4"), string("SymbolLength=16") );
+  autoref remove_gi3                 = create_block<b_remove_gi_1v>( 2, string("GILength=4"), string("SymbolLength=16") );
+  autoref remove_gi4                 = create_block<b_remove_gi_1v>( 2, string("GILength=4"), string("SymbolLength=16") );
+
+  autoref fft_data1                  = create_block<b_fft_64_1v1>();
+  autoref fft_data2                  = create_block<b_fft_64_1v1>();
+  autoref fft_data3                  = create_block<b_fft_64_1v1>();
+  autoref fft_data4                  = create_block<b_fft_64_1v1>();
+
+  autoref siso_channel_comp          = create_block<b_bigap_siso_channel_compensator_4v4>();
+
+  autoref siso_mrc_combine           = create_block<b_mrc_combine_4v1>();
+  autoref lsig_demap_bpsk_i          = create_block<b_dot11_demap_bpsk_i_1v1>( 2, string("low=-26"), string("high=26") );
+  autoref siso_sig_deinterleave      = create_block<b_dot11a_deinterleave_1bpsc_1v1>();
+  autoref l_sig_vit                  = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=24"), string("TraceBackOutput=24") );
+
+
+  autoref l_sig_parser               = create_block<b_lsig_parser_1v>();  
+  autoref noise_estimator            = create_block<b_bigap_4x4_noise_estimator_4v>();
+  autoref mimo_channel_estimator_zf  = create_block<b_dot11_mimo_channel_estimator_4v>();
+  autoref mimo_channel_estimator_mmse= create_block<b_dot11_mimo_channel_estimator_mmse_4v>();
+
+  autoref socket_sink                = create_block<b_bigap_sink_4v>(1, string("port=99999"));
+  //---------------------------------------------------------
+  Channel::Create(sizeof(v_cs))
+    .from(src, 0)
+    .to(wait_lltf, 0).to(wait_ofdm, 0).to(axorr, 0).to(lltf, 0)
+    .to(remove_gi1, 0).to(fft_data1, 0);
+
+  Channel::Create(sizeof(v_cs))
+    .from(src, 1)
+    .to(wait_lltf, 1).to(wait_ofdm, 1).to(axorr, 1).to(lltf, 1)
+    .to(remove_gi2, 0).to(fft_data2, 0);
+
+  Channel::Create(sizeof(v_cs))
+    .from(src, 2)
+    .to(wait_lltf, 2).to(wait_ofdm, 2).to(axorr, 2).to(lltf, 2)
+    .to(remove_gi3, 0).to(fft_data3, 0);
+
+  Channel::Create(sizeof(v_cs))
+    .from(src, 3)
+    .to(wait_lltf, 3).to(wait_ofdm, 3).to(axorr, 3).to(lltf, 3)
+    .to(remove_gi4, 0).to(fft_data4, 0);
+
+  Channel::Create(sizeof(v_q))
+    .from(axorr, 0)
+    .to(lstf_searcher, 0);
+
+  Channel::Create(sizeof(v_q))
+    .from(axorr, 1)
+    .to(lstf_searcher, 1);
+
+  //
+  Channel::Create(sizeof(v_cs))
+    .from(fft_data1, 0)
+    .to(socket_sink, 0).to(siso_channel_comp, 0);
+  Channel::Create(sizeof(v_cs))
+    .from(fft_data2, 0)
+    .to(socket_sink, 1).to(siso_channel_comp, 1);
+  Channel::Create(sizeof(v_cs))
+    .from(fft_data3, 0)
+    .to(socket_sink, 2).to(siso_channel_comp, 2);
+  Channel::Create(sizeof(v_cs))
+    .from(fft_data4, 0)
+    .to(socket_sink, 3).to(siso_channel_comp, 3);
+
+  //
+  //
+  Channel::Create(sizeof(v_cs))
+    .from(siso_channel_comp, 0).to(noise_estimator, 0).to(siso_mrc_combine, 0);
+  Channel::Create(sizeof(v_cs))
+    .from(siso_channel_comp, 1).to(noise_estimator, 1).to(siso_mrc_combine, 1);
+  Channel::Create(sizeof(v_cs))
+    .from(siso_channel_comp, 2).to(noise_estimator, 2).to(siso_mrc_combine, 2);
+  Channel::Create(sizeof(v_cs))
+    .from(siso_channel_comp, 3).to(noise_estimator, 3).to(siso_mrc_combine, 3);
+
+  //
+  Channel::Create(sizeof(v_cs))
+    .from(siso_mrc_combine, 0)
+    .to(lsig_demap_bpsk_i, 0);
+
+  Channel::Create(sizeof(uint8))
+    .from(lsig_demap_bpsk_i, 0)
+    .to(siso_sig_deinterleave, 0);
+
+  Channel::Create(sizeof(uint8))
+    .from(siso_sig_deinterleave, 0).to(l_sig_vit, 0);
+
+  Channel::Create(sizeof(uint8))
+    .from(l_sig_vit, 0)
+    .to(l_sig_parser, 0);
+  //---------------------------------------------------------
+  // var used by 1st block
+  v_align(64)
+  _global_(bool, l_sig_ok);
+  _global_(uint16, l_frame_length);
+  _global_(uint32, l_frame_rate);
+
+  bigap_channel_msg chnnel_msg;
+  bigap_rate_msg    rate_msg;
+
+  int state              = 0;
+  int max_symbol_count   = 0;
+
+  // var used by 2nd block
+  //v_align(64)
+  //////////////////////////////////////////////////////////////////////////
+  auto frame_detection = [&]() -> bool
+  {
+    bool bRet = false;
+    RESET(axorr);
+    START(src, axorr, lstf_searcher, STOP([&]{bRet = true;}));
+    return bRet;
+  };
+
+  auto lltf_handler = [&]() -> bool
+  {
+    START(src, wait_lltf, lltf, STOP(NOP));
+    return true;
+  };
+
+  auto lsig_handler = [&]() -> bool
+  {
+    START(src, wait_ofdm, IF([&]
+    {
+      *l_sig_vit.VitTotalBits     = 24;
+      *l_sig_vit.VitTotalSoftBits = 48;
+      *l_sig_ok                   = false;
+
+      ONCE(remove_gi1, fft_data1);
+      ONCE(remove_gi2, fft_data2);
+      ONCE(remove_gi3, fft_data3);
+      ONCE(remove_gi4, fft_data4);
+      ONCE(siso_channel_comp, noise_estimator, siso_mrc_combine, lsig_demap_bpsk_i, siso_sig_deinterleave, l_sig_vit);
+
+      *l_frame_length = 0;
+      *l_frame_rate   = 0;
+
+      ONCE(l_sig_parser, [&]{
+        printf(" lsig%d: %d, length=%d, rate=%d\n", state, *l_sig_ok, *l_frame_length, *l_frame_rate);
+        switch (state)
+        {
+        case 0:
+          rate_msg.msg.frame1_ok     = *l_sig_ok;
+          rate_msg.msg.frame1_length = *l_frame_length;
+          rate_msg.msg.frame1_rate   = *l_frame_rate;
+          break;
+        case 1:
+          rate_msg.msg.frame2_ok     = *l_sig_ok;
+          rate_msg.msg.frame2_length = *l_frame_length;
+          rate_msg.msg.frame2_rate   = *l_frame_rate;
+          break;
+        case 2:
+          rate_msg.msg.frame3_ok     = *l_sig_ok;
+          rate_msg.msg.frame3_length = *l_frame_length;
+          rate_msg.msg.frame3_rate   = *l_frame_rate;
+          break;
+        case 3:
+          rate_msg.msg.frame4_ok     = *l_sig_ok;
+          rate_msg.msg.frame4_length = *l_frame_length;
+          rate_msg.msg.frame4_rate   = *l_frame_rate;
+          break;
+        default:
+          break;
+        }
+      });
+
+      state = (state + 1) % 4;
+
+      return true;
+    }), STOP(NOP), ELSE, NOP);
+    return true;
+  };
+
+  auto pipeline_init = [&]() -> bool
+  {
+    int symbol_count = 0;
+    int VitTotalBits = 0;
+
+    max_symbol_count = 0;
+
+    // setup 1st stream
+    if (rate_msg.msg.frame1_ok)
+    {
+      symbol_count     = pht_symbol_count(rate_msg.msg.frame1_rate, rate_msg.msg.frame1_length, &VitTotalBits);
+      max_symbol_count = max(symbol_count, max_symbol_count);
+    }
+
+    // setup 2nd stream
+    if (rate_msg.msg.frame2_ok)
+    {
+      symbol_count     = pht_symbol_count(rate_msg.msg.frame2_rate, rate_msg.msg.frame2_length, &VitTotalBits);
+      max_symbol_count = max(symbol_count, max_symbol_count);
+    }
+
+    // setup 3rd stream
+    if (rate_msg.msg.frame3_ok)
+    {
+      symbol_count     = pht_symbol_count(rate_msg.msg.frame3_rate, rate_msg.msg.frame3_length, &VitTotalBits);
+      max_symbol_count = max(symbol_count, max_symbol_count);
+    }
+
+    // setup 4th stream
+    if (rate_msg.msg.frame4_ok)
+    {
+      symbol_count     = pht_symbol_count(rate_msg.msg.frame4_rate, rate_msg.msg.frame4_length, &VitTotalBits);
+      max_symbol_count = max(symbol_count, max_symbol_count);
+    }
+    
+    printf("DATA: MCS1=%d, Length1=%d, MCS2=%d, Length2=%d, "
+      "MCS3=%d, Length3=%d, MCS4=%d, Length4=%d, SymbolCount=%d\n", 
+      rate_msg.msg.frame1_rate, rate_msg.msg.frame1_length, rate_msg.msg.frame2_rate, rate_msg.msg.frame2_length, 
+      rate_msg.msg.frame3_rate, rate_msg.msg.frame3_length, rate_msg.msg.frame4_rate, rate_msg.msg.frame4_length, max_symbol_count);
+
+    if ( max_symbol_count > 0 )
+    {
+      socket_sink.SendData((uint8*)&rate_msg, sizeof(rate_msg));
+      return true;
+    }
+    return false;
+  };
+
+  //////////////////////////////////////////////////////////////////////////
+
+  auto rx_bpsk_pipeline_1 = [&]() -> bool
+  {    
+    START(src, wait_ofdm, STOP([&]
+    {
+      ONCE(remove_gi1, fft_data1);
+      ONCE(remove_gi2, fft_data2);
+      ONCE(remove_gi3, fft_data3);
+      ONCE(remove_gi4, fft_data4);
+      ONCE(socket_sink);
+    }));
+
+    max_symbol_count--;
+    return max_symbol_count > 0;
+  };
+
+  auto rx_qpsk_pipeline_1 = [&]() -> bool
+  {
+    //printf("symbol - %d\n", symbol_count);
+
+    START(src, wait_ofdm, STOP([&]
+    {
+      ONCE(remove_gi1, fft_data1);
+      ONCE(remove_gi2, fft_data2);
+      ONCE(remove_gi3, fft_data3);
+      ONCE(remove_gi4, fft_data4);
+      ONCE(socket_sink);
+    }));
+
+    max_symbol_count--;
+    return max_symbol_count > 0;
+  };
+
+  auto rx_16qam_pipeline_1 = [&]() -> bool
+  {
+    START(src, wait_ofdm, STOP([&]
+    {
+      ONCE(remove_gi1, fft_data1);
+      ONCE(remove_gi2, fft_data2);
+      ONCE(remove_gi3, fft_data3);
+      ONCE(remove_gi4, fft_data4);
+      ONCE(socket_sink);
+    }));
+
+    max_symbol_count--;
+    return max_symbol_count > 0;
+  };
+
+  auto rx_64qam_pipeline_1 = [&]() -> bool
+  {
+    START(src, wait_ofdm, STOP([&]
+    {
+      ONCE([&]{
+        ONCE(remove_gi1, fft_data1);
+        ONCE(remove_gi2, fft_data2);
+      }, [&]{
+        ONCE(remove_gi3, fft_data3);
+        ONCE(remove_gi4, fft_data4);
+      });
+
+      ONCE(socket_sink);
+    }));
+
+    max_symbol_count--;
+    return max_symbol_count > 0;
+  };
+  //////////////////////////////////////////////////////////////////////////
+  auto htdata_handler = [&]
+  {
+    uint32 frame_mcs;
+    if (rate_msg.msg.frame1_ok)
+    {
+      frame_mcs = rate_msg.msg.frame1_rate;
+    }
+    else if (rate_msg.msg.frame2_ok)
+    {
+      frame_mcs = rate_msg.msg.frame2_rate;
+    }
+    else if (rate_msg.msg.frame3_ok)
+    {
+      frame_mcs = rate_msg.msg.frame3_rate;
+    }
+    else if (rate_msg.msg.frame4_ok)
+    {
+      frame_mcs = rate_msg.msg.frame4_rate;
+    }
+    else
+    {
+      printf("error: none l-sig is right! abort decoding...\n");
+      return;
+    }
+
+    START(
+      IF(IsTrue(frame_mcs == 8)),  WHILE(rx_bpsk_pipeline_1),
+      ELSE_IF(IsTrue(frame_mcs == 9  || frame_mcs == 10)),  WHILE(rx_qpsk_pipeline_1),
+      ELSE_IF(IsTrue(frame_mcs == 11 || frame_mcs == 12)), WHILE(rx_16qam_pipeline_1),
+      ELSE_IF(IsTrue(frame_mcs == 13 || frame_mcs == 14)), WHILE(rx_64qam_pipeline_1),
+      ELSE, NOP
+      );
+  };
+
+  START(
+    WHILE(frame_detection), 
+    IF(lltf_handler), IF(lsig_handler), 
+    IF(lltf_handler), IF(lsig_handler), 
+    IF(lltf_handler), IF(lsig_handler), 
+    IF(lltf_handler), IF(lsig_handler), 
+    IF(pipeline_init), htdata_handler
+    );
+};

@@ -551,7 +551,148 @@ DEFINE_BLOCK(b_bigap_channel_compensator_4v4, 4, 4)
   }
 };
 
+//////////////////////////////////////////////////////////////////////////
 
+
+
+enum bigap_msg_type
+{
+  channel = 0,
+  rate,
+  data
+};
+
+struct _bigap_channel_msg
+{
+  v_cs data[4][16];
+};
+
+struct _bigap_rate_msg
+{
+  bool   frame1_ok;
+  uint32 frame1_rate;
+  uint32 frame1_length;
+  bool   frame2_ok;
+  uint32 frame2_rate;
+  uint32 frame2_length;
+  bool   frame3_ok;
+  uint32 frame3_rate;
+  uint32 frame3_length;
+  bool   frame4_ok;
+  uint32 frame4_rate;
+  uint32 frame4_length;
+};
+
+struct _bigap_data_msg
+{
+  v_cs data[4][16];
+};
+
+struct bigap_msg_hdr
+{
+  uint32 type;
+  uint32 length;
+};
+
+struct bigap_channel_msg 
+{
+  uint32 type;
+  uint32 length;
+  _bigap_channel_msg msg;
+
+  bigap_channel_msg()
+  {
+    type   = bigap_msg_type::channel;
+    length = sizeof(_bigap_channel_msg);
+  }
+};
+
+struct bigap_rate_msg 
+{
+  uint32 type;
+  uint32 length;
+  _bigap_rate_msg msg;
+
+  bigap_rate_msg()
+  {
+    type   = bigap_msg_type::rate;
+    length = sizeof(_bigap_rate_msg);
+  }
+};
+
+struct bigap_data_msg 
+{
+  uint32 type;
+  uint32 length;
+  _bigap_data_msg msg;
+
+  bigap_data_msg()
+  {
+    type   = bigap_msg_type::data;
+    length = sizeof(_bigap_data_msg);
+  }
+};
+
+
+INHERIT_BLOCK(b_bigap_sink_4v, b_tcp_socket_sink_4v)
+{
+  bigap_data_msg data_msg;
+
+  BLOCK_WORK
+  {
+    auto n = ninput(0);
+    if (n < 16) return false;
+
+    auto ip1 = _$<v_cs>(0);
+    auto ip2 = _$<v_cs>(1);
+    auto ip3 = _$<v_cs>(2);
+    auto ip4 = _$<v_cs>(3);
+
+    CopyMemory(&data_msg.msg.data[0], ip1, sizeof(v_cs) * 16);
+    CopyMemory(&data_msg.msg.data[1], ip2, sizeof(v_cs) * 16);
+    CopyMemory(&data_msg.msg.data[2], ip3, sizeof(v_cs) * 16);
+    CopyMemory(&data_msg.msg.data[3], ip4, sizeof(v_cs) * 16);
+
+    printf("Send data msg...\n");
+    consume_each(16);
+    return SendData((uint8*)&data_msg, sizeof(data_msg));
+  }
+};
+
+INHERIT_BLOCK(b_bigap_source_v4, b_tcp_socket_source_v4)
+{
+  static const int recvbuflen = sizeof(bigap_data_msg);
+  uint8 recvbuf[recvbuflen];
+
+  BLOCK_WORK
+  {
+    if ( !RecvData(recvbuf, recvbuflen) ) return false;
+
+    bigap_msg_hdr* hdr = reinterpret_cast<bigap_msg_hdr*>(recvbuf);
+
+    if (hdr->type == bigap_msg_type::channel)
+    {
+      printf("Recv::msg::channel, len=%d\n", hdr->length);
+    }
+    else if (hdr->type == bigap_msg_type::rate)
+    {
+      printf("Recv::msg::rate, len=%d\n", hdr->length);
+    }
+    else if (hdr->type == bigap_msg_type::data)
+    {
+      printf("Recv::msg::data, len=%d\n", hdr->length);
+    }
+    else
+    {
+      printf("Recv::msg::error\n");
+    }
+
+    //produce_each(16);
+    return true;
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////
 
 
 #include "b_bigap_4x4_tx.h"

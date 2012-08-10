@@ -14,6 +14,9 @@
 #include "dsp_crc.h"
 #include "dsp_processor.h"
 #include "dsp_cmd.h"
+#include "dsp_vector1.h"
+
+#include "dsp_draw.h"
 
 #define enable_draw 0
 #define enable_dbgplot 1
@@ -67,6 +70,7 @@
 #include "b_stream_joiner.h"
 #include "b_descramble.h"
 #include "b_crc.h"
+#include "b_socket.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -112,7 +116,7 @@
 #include "b_bigap.h"
 
 
-#include "b_socket_source.h"
+
 
 
 BOOL WINAPI HandlerRoutine(__in  DWORD dwCtrlType)
@@ -155,6 +159,20 @@ void pipeline_profiling()
     printf("Pipeline producer & consumer: %f us, %d bytes, %f Mbps\n", t.us(), nItemsEach, nItemsTotal * 8.0 / t.us());
   }
 }
+
+void test_source_sock()
+{
+  autoref bsock = create_block<b_bigap_source_v4>(2, string("ip=127.0.0.1"), string("port=99999"));
+  START(bsock);
+}
+
+void test_sink_sock()
+{
+  autoref bsock = create_block<b_bigap_sink_4v>(1, string("port=99999"));
+  START(bsock);
+}
+
+
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -200,13 +218,27 @@ int _tmain(int argc, _TCHAR* argv[])
     bigap_4x4_rx(argc, argv);
   };
 
+  if (cmdline.get("source").exist())
+  {
+    test_source_sock();
+  }
+  else if (cmdline.get("sink").exist())
+  {
+    //test_sink_sock();
+    bigap_4x4_rx_front_end(argc, argv);
+  }
+  else
+  {
+    printf("Invalid socket type...\n");
+  }
+  
   //dsp_main(mumimo_tx_main);
-  //dsp_main(mumimo_tx_main);
+  //dsp_main(mumimo_rx_main);
   //dsp_main(pipeline_profiling);
   //dsp_main(rx_main);
 
   
-#if 1
+#if 0
   if ( cmdline.get("rx").exist() )
   {
     dsp_main(mumimo_rx_main);

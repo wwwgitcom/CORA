@@ -22,6 +22,12 @@
     <Filter Include="Header Files\blocks">
       <UniqueIdentifier>{708e12fb-31b7-4a8c-92a2-3a28e3c83203}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\blocks">
+      <UniqueIdentifier>{3aa0245e-76f1-4dbe-a88c-0c8a8efe996a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\dbgplot">
+      <UniqueIdentifier>{98038135-88bd-4be2-b157-1dcab2e4cd29}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -120,9 +126,6 @@
     <ClInclude Include="sys\dsp_map.h">
       <Filter>Header Files\sys</Filter>
     </ClInclude>
-    <ClInclude Include="blocks\b_map.h">
-      <Filter>Header Files\blocks</Filter>
-    </ClInclude>
     <ClInclude Include="blocks\b_demap.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
@@ -183,6 +186,146 @@
     <ClInclude Include="blocks\b_dot11n_param.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="TParallel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_pilot_tracking.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\__b_viterbi.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="sys\dsp_cmd.h">
+      <Filter>Header Files\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_rx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="sys\dsp_ofdm_symbol.h">
+      <Filter>Header Files\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="TReset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_conv.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_lstf.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_lltf.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_htstf.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_htltf.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_lsig.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_htsig.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_stream_parser.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_tx_ifft.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_csd.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_add_cp.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_dma_join.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_map.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11a_map.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11a_interleave.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_interleave.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_scramble.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11_frame_source.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11a_add_pilot.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_add_pilot.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_tx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_wait.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="TMain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_producer.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_consumer.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_mumimo_2x2_tx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_mumimo_4x4_tx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_mumimo_4x4_rx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_mumimo_2x2_rx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_noise_estimator.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_awgn.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="dbgplot\inc\DebugPlotU.h">
+      <Filter>Header Files\dbgplot</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_bigap_4x4_rx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_bigap_4x4_tx.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_bigap.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_passthru.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11n_rx_profile.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="sys\dsp_channel_matrix.h">
+      <Filter>Header Files\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="sys\dsp_console.h">
+      <Filter>Header Files\sys</Filter>
+    <ClInclude Include="blocks\b_socket_source.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -226,6 +369,27 @@
     </ClCompile>
     <ClCompile Include="sys\dsp_processor.cpp">
       <Filter>Source Files\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="TTask.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\__b_viterbi.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_conv.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_lstf.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_lltf.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_htstf.cpp">
+      <Filter>Source Files\blocks</Filter>
+    </ClCompile>
+    <ClCompile Include="blocks\_b_htltf.cpp">
+      <Filter>Source Files\blocks</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
