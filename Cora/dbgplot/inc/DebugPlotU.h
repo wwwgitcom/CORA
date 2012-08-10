@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Windows.h>
+//#include <Windows.h>
 
 // error code
 #define E_ALLOCATION_FAIL       0x80050025L

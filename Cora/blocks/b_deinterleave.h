@@ -233,6 +233,15 @@ DEFINE_BLOCK(b_dot11n_deinterleave_6bpsc_1v1, 1, 1)
 
     deinterleaver(ip, op);
 
+#if 0
+    printf("deinterleave %d: ", *iss);
+    for (int i = 0; i < ItemsRequired; i++)
+    {
+      printf("%02X ", ip[i]);
+    }
+    printf("\n");
+#endif
+
     consume(0, ItemsRequired);
     produce(0, ItemsRequired);
 

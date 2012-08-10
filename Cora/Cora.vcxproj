@@ -152,6 +152,7 @@
     <ClInclude Include="blocks\b_producer.h" />
     <ClInclude Include="blocks\b_remove_gi.h" />
     <ClInclude Include="blocks\b_dot11n_scramble.h" />
+    <ClInclude Include="blocks\b_socket_source.h" />
     <ClInclude Include="blocks\b_stream_joiner.h" />
     <ClInclude Include="blocks\b_stream_parser.h" />
     <ClInclude Include="blocks\b_viterbi.h" />

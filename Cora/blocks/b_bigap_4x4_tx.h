@@ -84,24 +84,24 @@ inline void bigap_4x4_tx(int argc, _TCHAR* argv[])
 
   // interleaver
   autoref ht_itlv_1bpsc_1 = create_block<b_dot11n_interleaver_1bpsc_half_1v1>(1, string("iss=1"));
-  autoref ht_itlv_1bpsc_2 = create_block<b_dot11n_interleaver_1bpsc_half_1v1>(1, string("iss=2"));
-  autoref ht_itlv_1bpsc_3 = create_block<b_dot11n_interleaver_1bpsc_half_1v1>(1, string("iss=3"));
-  autoref ht_itlv_1bpsc_4 = create_block<b_dot11n_interleaver_1bpsc_half_1v1>(1, string("iss=4"));
+  autoref ht_itlv_1bpsc_2 = create_block<b_dot11n_interleaver_1bpsc_half_1v1>(1, string("iss=1"));
+  autoref ht_itlv_1bpsc_3 = create_block<b_dot11n_interleaver_1bpsc_half_1v1>(1, string("iss=1"));
+  autoref ht_itlv_1bpsc_4 = create_block<b_dot11n_interleaver_1bpsc_half_1v1>(1, string("iss=1"));
 
   autoref ht_itlv_2bpsc_1 = create_block<b_dot11n_interleaver_2bpsc_1v1>(1, string("iss=1"));
-  autoref ht_itlv_2bpsc_2 = create_block<b_dot11n_interleaver_2bpsc_1v1>(1, string("iss=2"));
-  autoref ht_itlv_2bpsc_3 = create_block<b_dot11n_interleaver_2bpsc_1v1>(1, string("iss=3"));
-  autoref ht_itlv_2bpsc_4 = create_block<b_dot11n_interleaver_2bpsc_1v1>(1, string("iss=4"));
+  autoref ht_itlv_2bpsc_2 = create_block<b_dot11n_interleaver_2bpsc_1v1>(1, string("iss=1"));
+  autoref ht_itlv_2bpsc_3 = create_block<b_dot11n_interleaver_2bpsc_1v1>(1, string("iss=1"));
+  autoref ht_itlv_2bpsc_4 = create_block<b_dot11n_interleaver_2bpsc_1v1>(1, string("iss=1"));
 
   autoref ht_itlv_4bpsc_1 = create_block<b_dot11n_interleaver_4bpsc_1v1>(1, string("iss=1"));
-  autoref ht_itlv_4bpsc_2 = create_block<b_dot11n_interleaver_4bpsc_1v1>(1, string("iss=2"));
-  autoref ht_itlv_4bpsc_3 = create_block<b_dot11n_interleaver_4bpsc_1v1>(1, string("iss=3"));
-  autoref ht_itlv_4bpsc_4 = create_block<b_dot11n_interleaver_4bpsc_1v1>(1, string("iss=4"));
+  autoref ht_itlv_4bpsc_2 = create_block<b_dot11n_interleaver_4bpsc_1v1>(1, string("iss=1"));
+  autoref ht_itlv_4bpsc_3 = create_block<b_dot11n_interleaver_4bpsc_1v1>(1, string("iss=1"));
+  autoref ht_itlv_4bpsc_4 = create_block<b_dot11n_interleaver_4bpsc_1v1>(1, string("iss=1"));
 
   autoref ht_itlv_6bpsc_1 = create_block<b_dot11n_interleaver_6bpsc_1v1>(1, string("iss=1"));
-  autoref ht_itlv_6bpsc_2 = create_block<b_dot11n_interleaver_6bpsc_1v1>(1, string("iss=2"));
-  autoref ht_itlv_6bpsc_3 = create_block<b_dot11n_interleaver_6bpsc_1v1>(1, string("iss=3"));
-  autoref ht_itlv_6bpsc_4 = create_block<b_dot11n_interleaver_6bpsc_1v1>(1, string("iss=4"));
+  autoref ht_itlv_6bpsc_2 = create_block<b_dot11n_interleaver_6bpsc_1v1>(1, string("iss=1"));
+  autoref ht_itlv_6bpsc_3 = create_block<b_dot11n_interleaver_6bpsc_1v1>(1, string("iss=1"));
+  autoref ht_itlv_6bpsc_4 = create_block<b_dot11n_interleaver_6bpsc_1v1>(1, string("iss=1"));
 
   // mapper
   autoref ht_map_bpsk_1   = create_block<b_dot11n_map_bpsk_i_1v1>();
