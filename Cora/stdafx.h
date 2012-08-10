@@ -20,7 +20,19 @@
 using namespace std;
 // TODO: reference additional headers your program requires here
 
+//The WIN32_LEAN_AND_MEAN macro prevents the Winsock.h from being included by the Windows.h header.
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <windows.h>
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+
+#pragma comment(lib, "Ws2_32.lib")
+
 #include <ppl.h>
 #include <array>
 

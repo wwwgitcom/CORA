@@ -130,24 +130,24 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 
   // deinterleave
   autoref ht_deinterleave_1bpsc_iss1 = create_block<b_dot11n_deinterleave_1bpsc_1v1>( 1, string("iss=1") );
-  autoref ht_deinterleave_1bpsc_iss2 = create_block<b_dot11n_deinterleave_1bpsc_1v1>( 1, string("iss=2") );
-  autoref ht_deinterleave_1bpsc_iss3 = create_block<b_dot11n_deinterleave_1bpsc_1v1>( 1, string("iss=3") );
-  autoref ht_deinterleave_1bpsc_iss4 = create_block<b_dot11n_deinterleave_1bpsc_1v1>( 1, string("iss=4") );
+  autoref ht_deinterleave_1bpsc_iss2 = create_block<b_dot11n_deinterleave_1bpsc_1v1>( 1, string("iss=1") );
+  autoref ht_deinterleave_1bpsc_iss3 = create_block<b_dot11n_deinterleave_1bpsc_1v1>( 1, string("iss=1") );
+  autoref ht_deinterleave_1bpsc_iss4 = create_block<b_dot11n_deinterleave_1bpsc_1v1>( 1, string("iss=1") );
 
   autoref ht_deinterleave_2bpsc_iss1 = create_block<b_dot11n_deinterleave_2bpsc_1v1>( 1, string("iss=1") );
-  autoref ht_deinterleave_2bpsc_iss2 = create_block<b_dot11n_deinterleave_2bpsc_1v1>( 1, string("iss=2") );
-  autoref ht_deinterleave_2bpsc_iss3 = create_block<b_dot11n_deinterleave_2bpsc_1v1>( 1, string("iss=3") );
-  autoref ht_deinterleave_2bpsc_iss4 = create_block<b_dot11n_deinterleave_2bpsc_1v1>( 1, string("iss=4") );
+  autoref ht_deinterleave_2bpsc_iss2 = create_block<b_dot11n_deinterleave_2bpsc_1v1>( 1, string("iss=1") );
+  autoref ht_deinterleave_2bpsc_iss3 = create_block<b_dot11n_deinterleave_2bpsc_1v1>( 1, string("iss=1") );
+  autoref ht_deinterleave_2bpsc_iss4 = create_block<b_dot11n_deinterleave_2bpsc_1v1>( 1, string("iss=1") );
 
   autoref ht_deinterleave_4bpsc_iss1 = create_block<b_dot11n_deinterleave_4bpsc_1v1>( 1, string("iss=1") );
-  autoref ht_deinterleave_4bpsc_iss2 = create_block<b_dot11n_deinterleave_4bpsc_1v1>( 1, string("iss=2") );
-  autoref ht_deinterleave_4bpsc_iss3 = create_block<b_dot11n_deinterleave_4bpsc_1v1>( 1, string("iss=3") );
-  autoref ht_deinterleave_4bpsc_iss4 = create_block<b_dot11n_deinterleave_4bpsc_1v1>( 1, string("iss=4") );
+  autoref ht_deinterleave_4bpsc_iss2 = create_block<b_dot11n_deinterleave_4bpsc_1v1>( 1, string("iss=1") );
+  autoref ht_deinterleave_4bpsc_iss3 = create_block<b_dot11n_deinterleave_4bpsc_1v1>( 1, string("iss=1") );
+  autoref ht_deinterleave_4bpsc_iss4 = create_block<b_dot11n_deinterleave_4bpsc_1v1>( 1, string("iss=1") );
 
   autoref ht_deinterleave_6bpsc_iss1 = create_block<b_dot11n_deinterleave_6bpsc_1v1>( 1, string("iss=1") );
-  autoref ht_deinterleave_6bpsc_iss2 = create_block<b_dot11n_deinterleave_6bpsc_1v1>( 1, string("iss=2") );
-  autoref ht_deinterleave_6bpsc_iss3 = create_block<b_dot11n_deinterleave_6bpsc_1v1>( 1, string("iss=3") );
-  autoref ht_deinterleave_6bpsc_iss4 = create_block<b_dot11n_deinterleave_6bpsc_1v1>( 1, string("iss=4") );
+  autoref ht_deinterleave_6bpsc_iss2 = create_block<b_dot11n_deinterleave_6bpsc_1v1>( 1, string("iss=1") );
+  autoref ht_deinterleave_6bpsc_iss3 = create_block<b_dot11n_deinterleave_6bpsc_1v1>( 1, string("iss=1") );
+  autoref ht_deinterleave_6bpsc_iss4 = create_block<b_dot11n_deinterleave_6bpsc_1v1>( 1, string("iss=1") );
 
   autoref descramble_1               = create_block<b_dot11_descramble_1v1>();
   autoref descramble_2               = create_block<b_dot11_descramble_1v1>();
@@ -594,8 +594,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
 
   auto rx_vit34_pipeline_4 = [&]
   {
-    bool bFinish = false;
-    START(WHILE(IsTrue(!bFinish)), ht_data_vit_34_4, descramble_4, crc32_checker_4, STOP([&]{bFinish = true;}));
+    START(WHILE(IsTrue(true)), ht_data_vit_34_4, descramble_4, crc32_checker_4, STOP(NOP));
   };
   //////////////////////////////////////////////////////////////////////////
 
@@ -686,7 +685,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
       });
       
       ONCE(mimo_channel_compensator, pilot_tracking);
-
+#if 1
       ONCE([&]{
         ONCE(ht_demap_64qam1, ht_deinterleave_6bpsc_iss1,
           ht_demap_64qam2, ht_deinterleave_6bpsc_iss2);
@@ -694,6 +693,9 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
         ONCE(ht_demap_64qam3, ht_deinterleave_6bpsc_iss3,
           ht_demap_64qam4, ht_deinterleave_6bpsc_iss4);
       });
+#else
+      ONCE(ht_demap_64qam3, ht_deinterleave_6bpsc_iss3);
+#endif
 #endif
     }));
 
@@ -747,6 +749,7 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
   {
     PIPE_LINE(rx_64qam_pipeline_1, [&]{
       PARALLEL(rx_vit34_pipeline_1, rx_vit34_pipeline_2, rx_vit34_pipeline_3, rx_vit34_pipeline_4);
+      //PARALLEL(rx_vit34_pipeline_3);
     });
   };
 
@@ -768,6 +771,11 @@ void bigap_4x4_rx(int argc, _TCHAR* argv[])
     else if (lsig_ok_4)
     {
       frame_mcs = frame_mcs_4;
+    }
+    else
+    {
+      printf("error: none l-sig is right! abort decoding...\n");
+      return;
     }
 
     t1 = tick_count::now();

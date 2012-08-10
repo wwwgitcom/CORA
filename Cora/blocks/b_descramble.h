@@ -50,6 +50,7 @@ public:
       *nInputCount = 2;
     }
 
+    //printf("cd::des::%p:: ", this);
     for (int i = 0; i < n; i++)
     {
       op[i] = descrambler(ip[i]);

@@ -112,7 +112,7 @@
 #include "b_bigap.h"
 
 
-
+#include "b_socket_source.h"
 
 
 BOOL WINAPI HandlerRoutine(__in  DWORD dwCtrlType)
@@ -163,6 +163,12 @@ int _tmain(int argc, _TCHAR* argv[])
   
   SetConsoleCtrlHandler(HandlerRoutine, true);
   SetThreadAffinityMask(GetCurrentThread(), 1);
+
+  if (dsp_sysconfig::Instance()->GetCPUProcessorCount() > 2)
+  {
+    SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+  }
+
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
@@ -195,12 +201,12 @@ int _tmain(int argc, _TCHAR* argv[])
   };
 
   //dsp_main(mumimo_tx_main);
-  dsp_main(mumimo_rx_main);
+  //dsp_main(mumimo_tx_main);
   //dsp_main(pipeline_profiling);
   //dsp_main(rx_main);
 
   
-#if 0
+#if 1
   if ( cmdline.get("rx").exist() )
   {
     dsp_main(mumimo_rx_main);

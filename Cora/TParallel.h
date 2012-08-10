@@ -1,5 +1,11 @@
 #pragma once
 
+template<typename _Function1>
+__forceinline void PARALLEL(const _Function1 &_Func1)
+{
+  _Func1();
+}
+
 template<typename _Function1, typename _Function2>
 __forceinline void PARALLEL(const _Function1 &_Func1, const _Function2 &_Func2)
 {

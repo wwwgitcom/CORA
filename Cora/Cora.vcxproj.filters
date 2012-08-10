@@ -321,6 +321,8 @@
     <ClInclude Include="sys\dsp_channel_matrix.h">
       <Filter>Header Files\sys</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_socket_source.h">
+      <Filter>Header Files\blocks</Filter>
     <ClInclude Include="sys\dsp_console.h">
       <Filter>Header Files\sys</Filter>
     </ClInclude>
