@@ -321,6 +321,9 @@
     <ClInclude Include="sys\dsp_channel_matrix.h">
       <Filter>Header Files\sys</Filter>
     </ClInclude>
+    <ClInclude Include="sys\dsp_console.h">
+      <Filter>Header Files\sys</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

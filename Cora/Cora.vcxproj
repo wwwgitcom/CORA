@@ -159,6 +159,7 @@
     <ClInclude Include="blocks\__b_viterbi.h" />
     <ClInclude Include="dbgplot\inc\DebugPlotU.h" />
     <ClInclude Include="sys\dsp_channel_matrix.h" />
+    <ClInclude Include="sys\dsp_console.h" />
     <ClInclude Include="TMain.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sys\dsp_buffer.h" />
