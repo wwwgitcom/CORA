@@ -220,7 +220,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
   if (cmdline.get("source").exist())
   {
-    test_source_sock();
+    //test_source_sock();
+    bigap_4x4_rx_back_end(argc, argv);
   }
   else if (cmdline.get("sink").exist())
   {

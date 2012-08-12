@@ -194,7 +194,6 @@ DEFINE_BLOCK(b_tcp_socket_sink_4v, 4, 0)
     if (ConnectSocket == INVALID_SOCKET) 
     {
       printf("Error at socket(): %ld\n", WSAGetLastError());
-      freeaddrinfo(result);
       WSACleanup();
       return;
     }
@@ -222,6 +221,15 @@ DEFINE_BLOCK(b_tcp_socket_sink_4v, 4, 0)
       WSACleanup();
       return false;
     }
+
+#if 0
+    printf("Sent %d bytes.\n", sendbuflen);
+    for (int i = 0; i < sendbuflen; i++)
+    {
+      printf("%02X ", sendbuf[i]);
+    }
+    printf("\n\n");
+#endif
 
     return true;
   }

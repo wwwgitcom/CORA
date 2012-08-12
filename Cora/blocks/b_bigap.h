@@ -557,18 +557,13 @@ DEFINE_BLOCK(b_bigap_channel_compensator_4v4, 4, 4)
 
 enum bigap_msg_type
 {
-  channel = 0,
-  rate,
+  config = 0,
   data
 };
 
-struct _bigap_channel_msg
+struct _bigap_config_msg
 {
-  v_cs data[4][16];
-};
-
-struct _bigap_rate_msg
-{
+  v_cs   channel[4][64];
   bool   frame1_ok;
   uint32 frame1_rate;
   uint32 frame1_length;
@@ -580,7 +575,7 @@ struct _bigap_rate_msg
   uint32 frame3_length;
   bool   frame4_ok;
   uint32 frame4_rate;
-  uint32 frame4_length;
+  uint32 frame4_length;  
 };
 
 struct _bigap_data_msg
@@ -591,45 +586,37 @@ struct _bigap_data_msg
 struct bigap_msg_hdr
 {
   uint32 type;
+  uint32 seq;
   uint32 length;
 };
 
-struct bigap_channel_msg 
+struct bigap_config_msg 
 {
   uint32 type;
+  uint32 seq;
   uint32 length;
-  _bigap_channel_msg msg;
+  _bigap_config_msg msg;
 
-  bigap_channel_msg()
+  bigap_config_msg()
   {
-    type   = bigap_msg_type::channel;
-    length = sizeof(_bigap_channel_msg);
-  }
-};
-
-struct bigap_rate_msg 
-{
-  uint32 type;
-  uint32 length;
-  _bigap_rate_msg msg;
-
-  bigap_rate_msg()
-  {
-    type   = bigap_msg_type::rate;
-    length = sizeof(_bigap_rate_msg);
+    type   = bigap_msg_type::config;
+    seq    = 0;
+    length = sizeof(bigap_config_msg);
   }
 };
 
 struct bigap_data_msg 
 {
   uint32 type;
+  uint32 seq;
   uint32 length;
   _bigap_data_msg msg;
 
   bigap_data_msg()
   {
     type   = bigap_msg_type::data;
-    length = sizeof(_bigap_data_msg);
+    seq    = 0;
+    length = sizeof(bigap_data_msg);
   }
 };
 
@@ -637,6 +624,8 @@ struct bigap_data_msg
 INHERIT_BLOCK(b_bigap_sink_4v, b_tcp_socket_sink_4v)
 {
   bigap_data_msg data_msg;
+
+  _local_(int, send_count, 0);
 
   BLOCK_WORK
   {
@@ -653,41 +642,105 @@ INHERIT_BLOCK(b_bigap_sink_4v, b_tcp_socket_sink_4v)
     CopyMemory(&data_msg.msg.data[2], ip3, sizeof(v_cs) * 16);
     CopyMemory(&data_msg.msg.data[3], ip4, sizeof(v_cs) * 16);
 
-    printf("Send data msg...\n");
+    printf("%d: Send data msg...\n", (*send_count)++);
+
+#if 0
+    complex16 (*pc)[64] = (complex16 (*)[64])data_msg.msg.data;
+
+    printf("\n-------\n");
+    for (int i = 0; i < 4; i++)
+    {
+      for (int j = 0; j < 64; j++)
+      {
+        printf("%d, %d \t ", pc[i][j].re, pc[i][j].im);
+      }
+      printf("\n");
+    }
+#endif
+    
+    data_msg.seq++;
+
     consume_each(16);
+    Sleep(1000);
     return SendData((uint8*)&data_msg, sizeof(data_msg));
   }
 };
 
 INHERIT_BLOCK(b_bigap_source_v4, b_tcp_socket_source_v4)
 {
-  static const int recvbuflen = sizeof(bigap_data_msg);
-  uint8 recvbuf[recvbuflen];
+  _global_(bigap_config_msg, config_msg);
+  _global_(MIMO_4x4_H, bigap_4x4_H);
 
+  _local_(int, recv_count, 0);
+
+  static const int recvbuflen = sizeof(bigap_config_msg);
+  
   BLOCK_WORK
   {
+    uint8* recvbuf = reinterpret_cast<uint8*>(config_msg.p_var);
     if ( !RecvData(recvbuf, recvbuflen) ) return false;
 
     bigap_msg_hdr* hdr = reinterpret_cast<bigap_msg_hdr*>(recvbuf);
 
-    if (hdr->type == bigap_msg_type::channel)
+    printf("%d: recv msg...\n", (*recv_count)++);
+
+    if (hdr->type == bigap_msg_type::config)
     {
-      printf("Recv::msg::channel, len=%d\n", hdr->length);
-    }
-    else if (hdr->type == bigap_msg_type::rate)
-    {
-      printf("Recv::msg::rate, len=%d\n", hdr->length);
+      autoref msg = *config_msg;
+      autoref ch = *bigap_4x4_H;
+      printf("Recv::msg::config, len=%d\n", hdr->length);
+
+      memcpy(&ch[0], &msg.msg.channel[0], sizeof(MIMO_4x4_H));
+
+#if 0
+      for (int i = 0; i < 4; i++)
+      {
+        for (int j = 0; j < 256; j++)
+        {
+          printf("%d, %d \t ", ch[i][j].re, ch[i][j].im);
+        }
+        printf("\n");
+      }
+#endif
+
+      return true;
     }
     else if (hdr->type == bigap_msg_type::data)
     {
-      printf("Recv::msg::data, len=%d\n", hdr->length);
+      printf("Recv::msg::data, len=%d, seq=%d\n", hdr->length, hdr->seq);
+      bigap_data_msg* data_msg = reinterpret_cast<bigap_data_msg*>(recvbuf);
+
+      auto op1 = $_<v_cs>(0);
+      auto op2 = $_<v_cs>(1);
+      auto op3 = $_<v_cs>(2);
+      auto op4 = $_<v_cs>(3);
+
+      memcpy(op1, &data_msg->msg.data[0], 16 * sizeof(v_cs));
+      memcpy(op2, &data_msg->msg.data[1], 16 * sizeof(v_cs));
+      memcpy(op3, &data_msg->msg.data[2], 16 * sizeof(v_cs));
+      memcpy(op4, &data_msg->msg.data[3], 16 * sizeof(v_cs));
+
+#if 0
+      complex16 (*pc)[64] = (complex16 (*)[64])data_msg->msg.data;
+
+      printf("\n-------\n");
+      for (int i = 0; i < 4; i++)
+      {
+        for (int j = 0; j < 64; j++)
+        {
+          printf("%d, %d \t ", pc[i][j].re, pc[i][j].im);
+        }
+        printf("\n");
+      }
+#endif
     }
     else
     {
       printf("Recv::msg::error\n");
+      return false;
     }
 
-    //produce_each(16);
+    produce_each(16);
     return true;
   }
 };
