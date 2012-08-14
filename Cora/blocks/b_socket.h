@@ -88,9 +88,9 @@ DEFINE_BLOCK(b_tcp_socket_source_v4, 0, 4)
     return true;
   }
 
-  bool RecvData(uint8 *recvbuf, uint32 recvbuflen)
+  bool RecvData(uint8 *recvbuf, uint32 recvbuflen, int32* recvedLen)
   {
-    int iResult;
+    int32 iResult;
 
     if (!bConnected)
     {
@@ -137,10 +137,10 @@ DEFINE_BLOCK(b_tcp_socket_source_v4, 0, 4)
     }
 
     iResult = recv(ClientSocket, (char*)recvbuf, recvbuflen, 0);
+    *recvedLen = iResult;
     if (iResult > 0) 
     {
 #if 0
-      printf("Received %d bytes.\n", iResult);
       for (int i = 0; i < iResult; i++)
       {
         printf("%02X ", recvbuf[i]);
@@ -269,12 +269,7 @@ DEFINE_BLOCK(b_tcp_socket_sink_4v, 4, 0)
   {
     int iResult;
     // Send an initial buffer
-
-    int iOpt;
-    int iOptLen = sizeof(int);
-    getsockopt(ConnectSocket,  SOL_SOCKET, SO_SNDBUF, (char*)&iOpt, &iOptLen);
-    printf("ConnectSocket: SNDBUF=%d\n", iOpt);
-
+    
     iResult = send( ConnectSocket, (char*)sendbuf, sendbuflen, 0 );
     if (iResult == SOCKET_ERROR) 
     {

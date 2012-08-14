@@ -660,15 +660,6 @@ INHERIT_BLOCK(b_bigap_sink_4v, b_tcp_socket_sink_4v)
 
     printf("%d: Send data msg... seq = %d\n", (*send_count)++, data_msg.seq);
 
-    if ( data_msg.seq % 11 == 0 )
-    {
-      uint32 hb;
-      printf("wait for hb....\n");
-      RecvData((uint8*)&hb, sizeof(uint32));
-      printf("Recv hb %d...\n", hb);
-      Sleep(1000);
-    }
-    
     consume_each(16);
     //getchar();
     bool bRet = SendData((uint8*)&data_msg, sizeof(data_msg));
@@ -688,76 +679,67 @@ INHERIT_BLOCK(b_bigap_source_v4, b_tcp_socket_source_v4)
   
   BLOCK_WORK
   {
+    int32 recvedLen;
     uint8* recvbuf = reinterpret_cast<uint8*>(config_msg.p_var);
-    if ( !RecvData(recvbuf, recvbuflen) ) return false;
+    if ( !RecvData(recvbuf, recvbuflen, &recvedLen) ) return false;
 
     bigap_msg_hdr* hdr = reinterpret_cast<bigap_msg_hdr*>(recvbuf);
-    printf("%d: recv msg...\n", (*recv_count)++);
+    //printf("%d: recv msg...\n", (*recv_count)++);
 
-    if (hdr->type == bigap_msg_type::config)
+    auto op1 = $_<v_cs>(0);
+    auto op2 = $_<v_cs>(1);
+    auto op3 = $_<v_cs>(2);
+    auto op4 = $_<v_cs>(3);
+
+    do 
     {
-      autoref msg = *config_msg;
-      autoref ch = *bigap_4x4_H;
-      printf("Recv::msg::config, len=%d\n", hdr->length);
-
-      memcpy(&ch[0], &msg.msg.channel[0], sizeof(MIMO_4x4_H));
-
-#if 0
-      for (int i = 0; i < 4; i++)
+      if (hdr->type == bigap_msg_type::config)
       {
-        for (int j = 0; j < 256; j++)
-        {
-          printf("%d, %d \t ", ch[i][j].re, ch[i][j].im);
-        }
-        printf("\n");
+        autoref msg = *config_msg;
+        autoref ch  = *bigap_4x4_H;
+        printf("Recv::msg::config, len=%d\n", hdr->length);
+
+        memcpy(&ch[0], &msg.msg.channel[0], sizeof(MIMO_4x4_H));
+
+        recvedLen -= sizeof(bigap_config_msg);
+
+        printf("left %d\n", recvedLen); 
       }
-#endif
-
-      return true;
-    }
-    else if (hdr->type == bigap_msg_type::data)
-    {
-      printf("Recv::msg::data, len=%d, seq=%d\n", hdr->length, hdr->seq);
-      bigap_data_msg* data_msg = reinterpret_cast<bigap_data_msg*>(recvbuf);
-
-      auto op1 = $_<v_cs>(0);
-      auto op2 = $_<v_cs>(1);
-      auto op3 = $_<v_cs>(2);
-      auto op4 = $_<v_cs>(3);
-
-      memcpy(op1, &data_msg->msg.data[0], 16 * sizeof(v_cs));
-      memcpy(op2, &data_msg->msg.data[1], 16 * sizeof(v_cs));
-      memcpy(op3, &data_msg->msg.data[2], 16 * sizeof(v_cs));
-      memcpy(op4, &data_msg->msg.data[3], 16 * sizeof(v_cs));
-
-      if (data_msg->seq % 10 == 0)
+      else if (hdr->type == bigap_msg_type::data)
       {
-        uint32 hb = data_msg->seq;
-        printf("send hb %d...\n", hb);
-        SendData((uint8*)&hb, sizeof(hb));
-      }
-      
-#if 0
-      complex16 (*pc)[64] = (complex16 (*)[64])data_msg->msg.data;
+        printf("Recv::msg::data, len=%d, seq=%d\n", recvedLen, hdr->seq);
+        bigap_data_msg* data_msg = reinterpret_cast<bigap_data_msg*>(hdr);
 
-      printf("\n-------\n");
-      for (int i = 0; i < 4; i++)
+        memcpy(op1, &data_msg->msg.data[0], 16 * sizeof(v_cs));
+        memcpy(op2, &data_msg->msg.data[1], 16 * sizeof(v_cs));
+        memcpy(op3, &data_msg->msg.data[2], 16 * sizeof(v_cs));
+        memcpy(op4, &data_msg->msg.data[3], 16 * sizeof(v_cs));
+
+        produce_each(16);
+
+        op1 += 16;
+        op2 += 16;
+        op3 += 16;
+        op4 += 16;
+
+        
+        recvedLen -= sizeof(bigap_data_msg);
+
+        printf("left %d\n", recvedLen);
+      }
+      else
       {
-        for (int j = 0; j < 64; j++)
-        {
-          printf("%d, %d \t ", pc[i][j].re, pc[i][j].im);
-        }
-        printf("\n");
+        printf("Recv::msg::error\n");
+        return false;
       }
-#endif
-    }
-    else
-    {
-      printf("Recv::msg::error\n");
-      return false;
-    }
 
-    produce_each(16);
+      char* p = reinterpret_cast<char*>(hdr);
+
+      p += hdr->length;
+
+      hdr = reinterpret_cast<bigap_msg_hdr*>(p);
+    } while (recvedLen > 0);
+    
     return true;
   }
 };

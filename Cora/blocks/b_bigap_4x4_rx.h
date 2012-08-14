@@ -1230,7 +1230,7 @@ void bigap_4x4_rx_back_end(int argc, _TCHAR* argv[])
   autoref src = create_block<b_bigap_source_v4>(
     1, string("port=99999"));
 
-  autoref wait_ofdm                  = create_block<b_wait_4v>( 1, string("nwait=20") );
+  autoref wait_ofdm                  = create_block<b_wait_4v>( 1, string("nwait=16") );
   
   autoref ht_data_vit_12_1           = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=48"), string("TraceBackOutput=96") );
   autoref ht_data_vit_12_2           = create_block<b_viterbi64_1o2_1v1>( 2, string("TraceBackLength=48"), string("TraceBackOutput=96") );
@@ -1303,16 +1303,16 @@ void bigap_4x4_rx_back_end(int argc, _TCHAR* argv[])
   autoref pilot_tracking             = create_block<b_dot11_pilot_tracking_4v>();
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
-    .from(src, 0).to(mimo_channel_compensator, 0);
+    .from(src, 0).to(wait_ofdm, 0).to(mimo_channel_compensator, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(src, 1).to(mimo_channel_compensator, 1);
+    .from(src, 1).to(wait_ofdm, 0).to(mimo_channel_compensator, 1);
 
   Channel::Create(sizeof(v_cs))
-    .from(src, 2).to(mimo_channel_compensator, 2);
+    .from(src, 2).to(wait_ofdm, 0).to(mimo_channel_compensator, 2);
 
   Channel::Create(sizeof(v_cs))
-    .from(src, 3).to(mimo_channel_compensator, 3);
+    .from(src, 3).to(wait_ofdm, 0).to(mimo_channel_compensator, 3);
 
   //
   Channel::Create(sizeof(v_cs))
@@ -1620,7 +1620,7 @@ void bigap_4x4_rx_back_end(int argc, _TCHAR* argv[])
 
   auto rx_bpsk_pipeline_1 = [&]() -> bool
   {
-    START(src, STOP([&]
+    START(src, wait_ofdm, IF(IsTrue(max_symbol_count > 0)), [&]
     {
       ONCE(mimo_channel_compensator, pilot_tracking);
 
@@ -1628,11 +1628,16 @@ void bigap_4x4_rx_back_end(int argc, _TCHAR* argv[])
         ht_demap_bpsk2, ht_deinterleave_1bpsc_iss2,
         ht_demap_bpsk3, ht_deinterleave_1bpsc_iss3,
         ht_demap_bpsk4, ht_deinterleave_1bpsc_iss4);
-    }));
 
-    max_symbol_count--;
+      max_symbol_count--;
+    }, ELSE, STOP(NOP));
     printf("%d symbols left...\n", max_symbol_count);
-    return max_symbol_count > 0;
+    bool bRet = max_symbol_count > 0;
+    if (bRet)
+    {
+      Sleep(2000);
+    }
+    return bRet;
   };
 
   auto rx_qpsk_pipeline_1 = [&]() -> bool
