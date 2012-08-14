@@ -642,8 +642,6 @@ INHERIT_BLOCK(b_bigap_sink_4v, b_tcp_socket_sink_4v)
     CopyMemory(&data_msg.msg.data[2], ip3, sizeof(v_cs) * 16);
     CopyMemory(&data_msg.msg.data[3], ip4, sizeof(v_cs) * 16);
 
-    printf("%d: Send data msg...\n", (*send_count)++);
-
 #if 0
     complex16 (*pc)[64] = (complex16 (*)[64])data_msg.msg.data;
 
@@ -660,9 +658,22 @@ INHERIT_BLOCK(b_bigap_sink_4v, b_tcp_socket_sink_4v)
     
     data_msg.seq++;
 
+    printf("%d: Send data msg... seq = %d\n", (*send_count)++, data_msg.seq);
+
+    if ( data_msg.seq % 11 == 0 )
+    {
+      uint32 hb;
+      printf("wait for hb....\n");
+      RecvData((uint8*)&hb, sizeof(uint32));
+      printf("Recv hb %d...\n", hb);
+      Sleep(1000);
+    }
+    
     consume_each(16);
-    Sleep(1000);
-    return SendData((uint8*)&data_msg, sizeof(data_msg));
+    //getchar();
+    bool bRet = SendData((uint8*)&data_msg, sizeof(data_msg));
+    //Sleep(1000);
+    return bRet;
   }
 };
 
@@ -681,7 +692,6 @@ INHERIT_BLOCK(b_bigap_source_v4, b_tcp_socket_source_v4)
     if ( !RecvData(recvbuf, recvbuflen) ) return false;
 
     bigap_msg_hdr* hdr = reinterpret_cast<bigap_msg_hdr*>(recvbuf);
-
     printf("%d: recv msg...\n", (*recv_count)++);
 
     if (hdr->type == bigap_msg_type::config)
@@ -720,6 +730,13 @@ INHERIT_BLOCK(b_bigap_source_v4, b_tcp_socket_source_v4)
       memcpy(op3, &data_msg->msg.data[2], 16 * sizeof(v_cs));
       memcpy(op4, &data_msg->msg.data[3], 16 * sizeof(v_cs));
 
+      if (data_msg->seq % 10 == 0)
+      {
+        uint32 hb = data_msg->seq;
+        printf("send hb %d...\n", hb);
+        SendData((uint8*)&hb, sizeof(hb));
+      }
+      
 #if 0
       complex16 (*pc)[64] = (complex16 (*)[64])data_msg->msg.data;
 

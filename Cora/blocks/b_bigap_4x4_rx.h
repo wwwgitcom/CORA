@@ -1631,6 +1631,7 @@ void bigap_4x4_rx_back_end(int argc, _TCHAR* argv[])
     }));
 
     max_symbol_count--;
+    printf("%d symbols left...\n", max_symbol_count);
     return max_symbol_count > 0;
   };
 

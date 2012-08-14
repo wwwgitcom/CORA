@@ -73,6 +73,21 @@ DEFINE_BLOCK(b_tcp_socket_source_v4, 0, 4)
     WSACleanup();
   }
 
+  bool SendData(uint8* sendbuf, uint32 sendbuflen)
+  {
+    int iResult;
+    // Send an initial buffer
+
+    iResult = send( ClientSocket, (char*)sendbuf, sendbuflen, 0 );
+    if (iResult == SOCKET_ERROR) 
+    {
+      printf("send failed with error: %d\n", WSAGetLastError());
+      WSACleanup();
+      return false;
+    }
+    return true;
+  }
+
   bool RecvData(uint8 *recvbuf, uint32 recvbuflen)
   {
     int iResult;
@@ -95,6 +110,28 @@ DEFINE_BLOCK(b_tcp_socket_source_v4, 0, 4)
         WSACleanup();
         return false;
       }
+
+      int iOpt = 0;
+      int iOptLen = sizeof(int);
+      // If iMode = 0, blocking is enabled; 
+      // If iMode != 0, non-blocking mode is enabled.
+      u_long iMode = 0;
+      iResult = ioctlsocket(ClientSocket, FIONBIO, &iMode);
+
+      iOpt = 4 * 1024 * 1024;
+      setsockopt(ClientSocket,  SOL_SOCKET, SO_RCVBUF, (char*)&iOpt, iOptLen);
+
+      getsockopt(ClientSocket,  SOL_SOCKET, SO_RCVBUF, (char*)&iOpt, &iOptLen);
+      printf("ClientSocket: SO_RCVBUF=%d\n", iOpt);
+
+      iOpt = 2000000;
+      setsockopt(ClientSocket,  SOL_SOCKET, SO_RCVTIMEO, (char*)&iOpt, iOptLen);
+      getsockopt(ClientSocket,  SOL_SOCKET, SO_RCVTIMEO, (char*)&iOpt, &iOptLen);
+      printf("ClientSocket: SO_RCVTIMEO=%d\n", iOpt);
+      //////////////////////////////////////////////////////////////////////////
+
+      u_long iRecvBufLen = 2 * 1024 * 1024;
+      setsockopt(ClientSocket,  SOL_SOCKET, SO_RCVBUF, (char*)&iRecvBufLen, sizeof(u_long));
 
       bConnected = true;
     }
@@ -179,6 +216,26 @@ DEFINE_BLOCK(b_tcp_socket_sink_4v, 4, 0)
         return;
       }
 
+      //////////////////////////////////////////////////////////////////////////
+      int iOpt = 0;
+      int iOptLen = sizeof(int);
+      // If iMode = 0, blocking is enabled; 
+      // If iMode != 0, non-blocking mode is enabled.
+      u_long iMode = 0;
+      iResult = ioctlsocket(ConnectSocket, FIONBIO, &iMode);
+
+      iOpt = 2 * 1024 * 1024;
+      setsockopt(ConnectSocket,  SOL_SOCKET, SO_SNDBUF, (char*)&iOpt, iOptLen);
+
+      getsockopt(ConnectSocket,  SOL_SOCKET, SO_SNDBUF, (char*)&iOpt, &iOptLen);
+      printf("ConnectSocket: SNDBUF=%d\n", iOpt);
+
+      iOpt = 2000000;
+      setsockopt(ConnectSocket,  SOL_SOCKET, SO_SNDTIMEO, (char*)&iOpt, iOptLen);
+      getsockopt(ConnectSocket,  SOL_SOCKET, SO_SNDTIMEO, (char*)&iOpt, &iOptLen);
+      printf("ConnectSocket: SO_SNDTIMEO=%d\n", iOpt);
+      
+      //////////////////////////////////////////////////////////////////////////
       // Connect to server.
       iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
       if (iResult == SOCKET_ERROR) {
@@ -213,6 +270,11 @@ DEFINE_BLOCK(b_tcp_socket_sink_4v, 4, 0)
     int iResult;
     // Send an initial buffer
 
+    int iOpt;
+    int iOptLen = sizeof(int);
+    getsockopt(ConnectSocket,  SOL_SOCKET, SO_SNDBUF, (char*)&iOpt, &iOptLen);
+    printf("ConnectSocket: SNDBUF=%d\n", iOpt);
+
     iResult = send( ConnectSocket, (char*)sendbuf, sendbuflen, 0 );
     if (iResult == SOCKET_ERROR) 
     {
@@ -230,6 +292,30 @@ DEFINE_BLOCK(b_tcp_socket_sink_4v, 4, 0)
     }
     printf("\n\n");
 #endif
+
+    return true;
+  }
+
+  bool RecvData(uint8 *recvbuf, uint32 recvbuflen)
+  {
+    int iResult;
+    
+    iResult = recv(ConnectSocket, (char*)recvbuf, recvbuflen, 0);
+    if (iResult > 0) 
+    {
+      
+    }
+    else if (iResult == 0)
+    {
+      closesocket(ConnectSocket);
+      printf("Connection closing...\n");
+    }
+    else
+    {
+      printf("recv failed with error: %d\n", WSAGetLastError());
+      closesocket(ConnectSocket);
+      return false;
+    }
 
     return true;
   }
