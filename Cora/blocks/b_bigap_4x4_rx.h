@@ -854,6 +854,19 @@ void bigap_4x4_rx_front_end(int argc, _TCHAR* argv[])
   {
     strFileName4 = CmdArg.as_string();
   }
+  string backend_ip = string("ip=127.0.0.1");
+  CmdArg = cmdline.get("ip");
+  if ( CmdArg.exist() )
+  {
+    backend_ip = CmdArg.as_string();
+  }
+
+  string backend_port = string("port=99999");
+  CmdArg = cmdline.get("port");
+  if ( CmdArg.exist() )
+  {
+    backend_port = CmdArg.as_string();
+  }
 
   autoref src = create_block<b_file_source_v4>(
     5, strFileName1, strFileName2, strFileName3, strFileName4, string("Decimate=1"));
@@ -888,7 +901,7 @@ void bigap_4x4_rx_front_end(int argc, _TCHAR* argv[])
   autoref mimo_channel_estimator_zf  = create_block<b_dot11_mimo_channel_estimator_4v>();
   autoref mimo_channel_estimator_mmse= create_block<b_dot11_mimo_channel_estimator_mmse_4v>();
 
-  autoref socket_sink                = create_block<b_bigap_sink_4v>(2, string("ip=127.0.0.1"), string("port=99999"));
+  autoref socket_sink                = create_block<b_bigap_sink_4v>(2, backend_ip, backend_port);
   //---------------------------------------------------------
   Channel::Create(sizeof(v_cs))
     .from(src, 0)
@@ -1121,6 +1134,13 @@ void bigap_4x4_rx_front_end(int argc, _TCHAR* argv[])
     }));
 
     max_symbol_count--;
+
+    if (max_symbol_count <= 0)
+    {
+      printf("Press ENTRE...\n");
+      getchar();
+    }
+
     return max_symbol_count > 0;
   };
 
@@ -1226,9 +1246,22 @@ void bigap_4x4_rx_back_end(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
   cmdline.parse(argc, argv);
+  
+  string backend_ip = string("ip=127.0.0.1");
+  auto CmdArg = cmdline.get("ip");
+  if ( CmdArg.exist() )
+  {
+    backend_ip = CmdArg.as_string();
+  }
 
-  autoref src = create_block<b_bigap_source_v4>(
-    1, string("port=99999"));
+  string backend_port = string("port=99999");
+  CmdArg = cmdline.get("port");
+  if ( CmdArg.exist() )
+  {
+    backend_port = CmdArg.as_string();
+  }
+
+  autoref src = create_block<b_bigap_source_v4>(1, backend_port);
 
   autoref wait_ofdm                  = create_block<b_wait_4v>( 1, string("nwait=16") );
   
@@ -1620,7 +1653,7 @@ void bigap_4x4_rx_back_end(int argc, _TCHAR* argv[])
 
   auto rx_bpsk_pipeline_1 = [&]() -> bool
   {
-    START(src, wait_ofdm, IF(IsTrue(max_symbol_count > 0)), [&]
+    START(src, IF([&]() -> bool
     {
       ONCE(mimo_channel_compensator, pilot_tracking);
 
@@ -1630,14 +1663,10 @@ void bigap_4x4_rx_back_end(int argc, _TCHAR* argv[])
         ht_demap_bpsk4, ht_deinterleave_1bpsc_iss4);
 
       max_symbol_count--;
-    }, ELSE, STOP(NOP));
-    printf("%d symbols left...\n", max_symbol_count);
-    bool bRet = max_symbol_count > 0;
-    if (bRet)
-    {
-      Sleep(2000);
-    }
-    return bRet;
+      printf("%d symbol left...\n", max_symbol_count);
+      return (max_symbol_count <= 0);
+    }), STOP(NOP));
+    return false;
   };
 
   auto rx_qpsk_pipeline_1 = [&]() -> bool

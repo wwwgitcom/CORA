@@ -110,7 +110,7 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
       ip3 += 8;
       ip4 += 8;
     }
-    
+
     short delta1 = v_estimate_i(ip1, 16, 16);
     short delta2 = v_estimate_i(ip2, 16, 16);
     short delta3 = v_estimate_i(ip3, 16, 16);
@@ -145,13 +145,13 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     {
       Spectrum[i] = ch[0][*state * 64 + i].sqr2();
     }
-    
+
     memset(title, 0, 128);
     sprintf_s(title, 128, "channel %d : 1", *state);
     PlotSpectrum(title, Spectrum, 64);
 #endif
 
-    
+
     // 2
     FFT<64>((vcs*)ip2, (vcs*)fft_buffer);
     v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_1[0]);
@@ -238,7 +238,7 @@ DEFINE_BLOCK(b_bigap_siso_channel_compensator_4v4, 4, 4)
 {
   _global_(MIMO_4x4_H, bigap_4x4_H);
   _local_(int, state, 0);
-  
+
   v_cs vmask;
 
   BLOCK_INIT
@@ -532,7 +532,7 @@ DEFINE_BLOCK(b_bigap_channel_compensator_4v4, 4, 4)
 
       x4 = v_convert2cs(vcomp1[0], vcomp1[1]);
     }
-    
+
 #if enable_dbgplot
     opc1[0] = opc2[0] = opc3[0] = opc4[0] = 0;
     for (int i = 29; i < 64 - 28; i++)
@@ -557,8 +557,8 @@ DEFINE_BLOCK(b_bigap_channel_compensator_4v4, 4, 4)
 
 enum bigap_msg_type
 {
-  config = 0,
-  data
+  config = 0xABCD0001,
+  data   = 0xABCD0002
 };
 
 struct _bigap_config_msg
@@ -655,7 +655,7 @@ INHERIT_BLOCK(b_bigap_sink_4v, b_tcp_socket_sink_4v)
       printf("\n");
     }
 #endif
-    
+
     data_msg.seq++;
 
     printf("%d: Send data msg... seq = %d\n", (*send_count)++, data_msg.seq);
@@ -673,73 +673,80 @@ INHERIT_BLOCK(b_bigap_source_v4, b_tcp_socket_source_v4)
   _global_(bigap_config_msg, config_msg);
   _global_(MIMO_4x4_H, bigap_4x4_H);
 
+  uint8 rcvbuf[4016];
   _local_(int, recv_count, 0);
 
-  static const int recvbuflen = sizeof(bigap_config_msg);
-  
+  static const int recvbuflen = 1040;//sizeof(bigap_config_msg);
+
+  int recv_state;
+  int recv_symbol_count;
+
+  BLOCK_INIT
+  {
+    b_tcp_socket_source_v4::_init_($);
+    recv_state = 0;
+    recv_symbol_count = 0;
+  }
+
   BLOCK_WORK
   {
     int32 recvedLen;
-    uint8* recvbuf = reinterpret_cast<uint8*>(config_msg.p_var);
-    if ( !RecvData(recvbuf, recvbuflen, &recvedLen) ) return false;
 
-    bigap_msg_hdr* hdr = reinterpret_cast<bigap_msg_hdr*>(recvbuf);
-    //printf("%d: recv msg...\n", (*recv_count)++);
-
-    auto op1 = $_<v_cs>(0);
-    auto op2 = $_<v_cs>(1);
-    auto op3 = $_<v_cs>(2);
-    auto op4 = $_<v_cs>(3);
-
-    do 
+    if (recv_state == 0)
     {
-      if (hdr->type == bigap_msg_type::config)
+      autoref msg = *config_msg;
+      autoref ch  = *bigap_4x4_H;
+
+      if ( !RecvData((uint8*)config_msg.p_var, sizeof(bigap_config_msg), &recvedLen) ) return false;
+
+      bigap_msg_hdr* hdr = reinterpret_cast<bigap_msg_hdr*>(config_msg.p_var);
+
+      printf("Recv::msg::config, len=%d\n", hdr->length);
+
+      memcpy(&ch[0], &msg.msg.channel[0], sizeof(MIMO_4x4_H));
+
+      int VitTotalBits;
+      int symbol_count = pht_symbol_count((*config_msg).msg.frame1_rate, (*config_msg).msg.frame1_length, &VitTotalBits);
+      recv_symbol_count = max(symbol_count, recv_symbol_count);
+
+      symbol_count = pht_symbol_count((*config_msg).msg.frame2_rate, (*config_msg).msg.frame2_length, &VitTotalBits);
+      recv_symbol_count = max(symbol_count, recv_symbol_count);
+
+      symbol_count = pht_symbol_count((*config_msg).msg.frame3_rate, (*config_msg).msg.frame3_length, &VitTotalBits);
+      recv_symbol_count = max(symbol_count, recv_symbol_count);
+
+      symbol_count = pht_symbol_count((*config_msg).msg.frame4_rate, (*config_msg).msg.frame4_length, &VitTotalBits);
+      recv_symbol_count = max(symbol_count, recv_symbol_count);
+
+      recv_state = 1;
+    }
+    else if (recv_state == 1)
+    {
+      auto op1 = $_<v_cs>(0);
+      auto op2 = $_<v_cs>(1);
+      auto op3 = $_<v_cs>(2);
+      auto op4 = $_<v_cs>(3);
+
+      bigap_data_msg* data_msg = reinterpret_cast<bigap_data_msg*>(config_msg.p_var);
+
+      if ( !RecvData((uint8*)config_msg.p_var, sizeof(bigap_data_msg), &recvedLen) ) return false;
+
+      printf("Recv::msg::data, seq=%d\n", data_msg->seq);
+
+      memcpy(op1, &data_msg->msg.data[0], 16 * sizeof(v_cs));
+      memcpy(op2, &data_msg->msg.data[1], 16 * sizeof(v_cs));
+      memcpy(op3, &data_msg->msg.data[2], 16 * sizeof(v_cs));
+      memcpy(op4, &data_msg->msg.data[3], 16 * sizeof(v_cs));
+
+      produce_each(16);
+
+      recv_symbol_count--;
+      if (recv_symbol_count <= 0)
       {
-        autoref msg = *config_msg;
-        autoref ch  = *bigap_4x4_H;
-        printf("Recv::msg::config, len=%d\n", hdr->length);
-
-        memcpy(&ch[0], &msg.msg.channel[0], sizeof(MIMO_4x4_H));
-
-        recvedLen -= sizeof(bigap_config_msg);
-
-        printf("left %d\n", recvedLen); 
+        recv_state = 0;
       }
-      else if (hdr->type == bigap_msg_type::data)
-      {
-        printf("Recv::msg::data, len=%d, seq=%d\n", recvedLen, hdr->seq);
-        bigap_data_msg* data_msg = reinterpret_cast<bigap_data_msg*>(hdr);
+    }
 
-        memcpy(op1, &data_msg->msg.data[0], 16 * sizeof(v_cs));
-        memcpy(op2, &data_msg->msg.data[1], 16 * sizeof(v_cs));
-        memcpy(op3, &data_msg->msg.data[2], 16 * sizeof(v_cs));
-        memcpy(op4, &data_msg->msg.data[3], 16 * sizeof(v_cs));
-
-        produce_each(16);
-
-        op1 += 16;
-        op2 += 16;
-        op3 += 16;
-        op4 += 16;
-
-        
-        recvedLen -= sizeof(bigap_data_msg);
-
-        printf("left %d\n", recvedLen);
-      }
-      else
-      {
-        printf("Recv::msg::error\n");
-        return false;
-      }
-
-      char* p = reinterpret_cast<char*>(hdr);
-
-      p += hdr->length;
-
-      hdr = reinterpret_cast<bigap_msg_hdr*>(p);
-    } while (recvedLen > 0);
-    
     return true;
   }
 };

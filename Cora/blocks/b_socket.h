@@ -102,6 +102,8 @@ DEFINE_BLOCK(b_tcp_socket_source_v4, 0, 4)
         return false;
       }
 
+      printf("socket listen ok: %d\n", iResult);
+
       // Accept a client socket
       ClientSocket = accept(ListenSocket, NULL, NULL);
       if (ClientSocket == INVALID_SOCKET) {
@@ -110,6 +112,8 @@ DEFINE_BLOCK(b_tcp_socket_source_v4, 0, 4)
         WSACleanup();
         return false;
       }
+
+      printf("socket accept ok: %d\n", iResult);
 
       int iOpt = 0;
       int iOptLen = sizeof(int);
