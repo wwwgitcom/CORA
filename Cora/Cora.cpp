@@ -218,6 +218,7 @@ int _tmain(int argc, _TCHAR* argv[])
     bigap_4x4_rx(argc, argv);
   };
 
+#if 0
   if (cmdline.get("source").exist())
   {
     //test_source_sock();
@@ -232,9 +233,10 @@ int _tmain(int argc, _TCHAR* argv[])
   {
     printf("Invalid socket type...\n");
   }
+#endif
   
   //dsp_main(mumimo_tx_main);
-  //dsp_main(mumimo_rx_main);
+  dsp_main(mumimo_rx_main);
   //dsp_main(pipeline_profiling);
   //dsp_main(rx_main);
 

@@ -75,7 +75,10 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
   Dot11aChannelCoefficient siso_channel_1;
   Dot11aChannelCoefficient siso_channel_2;
 
-  v_cs fft_buffer[16];
+  v_cs h_buffer[16];
+  v_cs fft_buffer[2][16];
+  v_cs noise_buffer[4][4];
+
 
   BLOCK_RESET
   {
@@ -121,18 +124,42 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
 
     autoref ch  = *bigap_4x4_H;
     // 1
-    FFT<64>((vcs*)ip1, (vcs*)fft_buffer);
-    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_1[0]);
-    FFT<64>((vcs*)(ip1 + 16), (vcs*)fft_buffer);
-    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_2[0]);
-
+    FFT<64>((vcs*)ip1, (vcs*)fft_buffer[0]);
+    v_siso_channel_estimation_64(fft_buffer[0], pvmask, (v_cs*)&siso_channel_1[0]);
+    FFT<64>((vcs*)(ip1 + 16), (vcs*)fft_buffer[1]);
+    v_siso_channel_estimation_64(fft_buffer[1], pvmask, (v_cs*)&siso_channel_2[0]);
+    
+    fft_buffer[0][0][0]._r = 0;
+    fft_buffer[1][0][0]._r = 0;
     // average
     v_cs* pvcs = (v_cs*)&ch[0][*state * 64];
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
       pvcs[i]  = r.v_shift_right_arithmetic(1);
+
+      h_buffer[i] = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
     }
+
+    v_cs  vnoise;
+    v_s   vabsmax;
+    vabsmax.v_zero();
+    vnoise.v_zero();
+    for (int i = 0; i < 16; i++)
+    {
+      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[0][i].v_abs()));
+      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[1][i].v_abs()));
+      
+      v_cs n1 = v_sub(fft_buffer[0][i], h_buffer[i]);
+      v_cs n2 = v_sub(fft_buffer[1][i], h_buffer[i]);
+      vnoise  = v_add(n1, n2);
+    }
+    vnoise = vnoise.v_hsums().v_shift_right_arithmetic(4);
+
+    noise_buffer[*state][0] = vnoise;
+
+    printf("---[0]abs max---\n");
+    v_print(stdout, vabsmax);
 
 #if enable_dbgplot
     int Spectrum[64];
@@ -153,17 +180,41 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
 
 
     // 2
-    FFT<64>((vcs*)ip2, (vcs*)fft_buffer);
-    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_1[0]);
-    FFT<64>((vcs*)(ip2 + 16), (vcs*)fft_buffer);
-    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_2[0]);
+    FFT<64>((vcs*)ip2, (vcs*)fft_buffer[0]);
+    v_siso_channel_estimation_64(fft_buffer[0], pvmask, (v_cs*)&siso_channel_1[0]);
+    FFT<64>((vcs*)(ip2 + 16), (vcs*)fft_buffer[1]);
+    v_siso_channel_estimation_64(fft_buffer[1], pvmask, (v_cs*)&siso_channel_2[0]);
+    
+    fft_buffer[0][0][0]._r = 0;
+    fft_buffer[1][0][0]._r = 0;
 
     pvcs = (v_cs*)&ch[1][*state * 64];
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
       pvcs[i]  = r.v_shift_right_arithmetic(1);
+
+      h_buffer[i] = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
     }
+
+    vabsmax.v_zero();
+    vnoise.v_zero();
+    for (int i = 0; i < 16; i++)
+    {
+      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[0][i].v_abs()));
+      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[1][i].v_abs()));
+
+      v_cs n1 = v_sub(fft_buffer[0][i], h_buffer[i]);
+      v_cs n2 = v_sub(fft_buffer[1][i], h_buffer[i]);
+      vnoise = v_add(n1, n2);
+    }
+    vnoise = vnoise.v_hsums().v_shift_right_arithmetic(4);
+
+    noise_buffer[*state][1] = vnoise;
+
+    printf("---[1]abs max---\n");
+    v_print(stdout, vabsmax);
+
 #if enable_dbgplot
     for (int i = 1; i < 64; i++)
     {
@@ -176,17 +227,39 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
 #endif
 
     // 3
-    FFT<64>((vcs*)ip3, (vcs*)fft_buffer);
-    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_1[0]);
-    FFT<64>((vcs*)(ip3 + 16), (vcs*)fft_buffer);
-    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_2[0]);
+    FFT<64>((vcs*)ip3, (vcs*)fft_buffer[0]);
+    v_siso_channel_estimation_64(fft_buffer[0], pvmask, (v_cs*)&siso_channel_1[0]);
+    FFT<64>((vcs*)(ip3 + 16), (vcs*)fft_buffer[1]);
+    v_siso_channel_estimation_64(fft_buffer[1], pvmask, (v_cs*)&siso_channel_2[0]);
+
+    fft_buffer[0][0][0]._r = 0;
+    fft_buffer[1][0][0]._r = 0;
 
     pvcs = (v_cs*)&ch[2][*state * 64];
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
       pvcs[i]  = r.v_shift_right_arithmetic(1);
+
+      h_buffer[i] = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
     }
+    vabsmax.v_zero();
+    vnoise.v_zero();
+    for (int i = 0; i < 16; i++)
+    {
+      vabsmax = ((v_s&)(vabsmax), (v_s&)(fft_buffer[0][i].v_abs()));
+      vabsmax = ((v_s&)(vabsmax), (v_s&)(fft_buffer[1][i].v_abs()));
+
+      v_cs n1 = v_sub(fft_buffer[0][i], h_buffer[i]);
+      v_cs n2 = v_sub(fft_buffer[1][i], h_buffer[i]);
+      vnoise = v_add(n1, n2);
+    }
+    vnoise = vnoise.v_hsums().v_shift_right_arithmetic(4);
+
+    noise_buffer[*state][2] = vnoise;
+    
+    printf("---[2]abs max---\n");
+    v_print(stdout, vabsmax);
 
 #if enable_dbgplot
     for (int i = 1; i < 64; i++)
@@ -199,17 +272,40 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     PlotSpectrum(title, Spectrum, 64);
 #endif
     // 4
-    FFT<64>((vcs*)ip4, (vcs*)fft_buffer);
-    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_1[0]);
-    FFT<64>((vcs*)(ip4 + 16), (vcs*)fft_buffer);
-    v_siso_channel_estimation_64(fft_buffer, pvmask, (v_cs*)&siso_channel_2[0]);
+    FFT<64>((vcs*)ip4, (vcs*)fft_buffer[0]);
+    v_siso_channel_estimation_64(fft_buffer[0], pvmask, (v_cs*)&siso_channel_1[0]);
+    FFT<64>((vcs*)(ip4 + 16), (vcs*)fft_buffer[1]);
+    v_siso_channel_estimation_64(fft_buffer[1], pvmask, (v_cs*)&siso_channel_2[0]);
+
+    fft_buffer[0][0][0]._r = 0;
+    fft_buffer[1][0][0]._r = 0;
 
     pvcs = (v_cs*)&ch[3][*state * 64];
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
       pvcs[i]  = r.v_shift_right_arithmetic(1);
+
+      h_buffer[i] = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
     }
+
+    vabsmax.v_zero();
+    vnoise.v_zero();
+    for (int i = 0; i < 16; i++)
+    {
+      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[0][i].v_abs()));
+      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[1][i].v_abs()));
+
+      v_cs n1 = v_sub(fft_buffer[0][i], h_buffer[i]);
+      v_cs n2 = v_sub(fft_buffer[1][i], h_buffer[i]);
+      vnoise = v_add(n1, n2);
+    }
+    vnoise = vnoise.v_hsums().v_shift_right_arithmetic(4);
+
+    noise_buffer[*state][3] = vnoise;
+
+    printf("---[3]abs max---\n");
+    v_print(stdout, vabsmax);
 
 #if enable_dbgplot
     for (int i = 1; i < 64; i++)
@@ -227,6 +323,17 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     if (*state == 4)
     {
       *state = 0;
+
+      printf("===noise---\n");
+      for (int i = 0; i < 4; i++)
+      {
+        for (int j = 0; j < 4; j++)
+        {
+          v_print(stdout, noise_buffer[i][j]);
+        }
+        printf("\n");
+      }
+      printf("\n");
     }
 
     consume_each(nwait);
@@ -476,6 +583,17 @@ DEFINE_BLOCK(b_bigap_channel_compensator_4v4, 4, 4)
       v_cs& x3      = (v_cs&)opc3[i];
       v_cs& x4      = (v_cs&)opc4[i];
 
+#define compression_shift 5
+      
+      y1 = y1.v_shift_right_logical(compression_shift);
+      y1 = y1.v_shift_left(compression_shift);
+      y2 = y2.v_shift_right_logical(compression_shift);
+      y2 = y2.v_shift_left(compression_shift);
+      y3 = y3.v_shift_right_logical(compression_shift);
+      y3 = y3.v_shift_left(compression_shift);
+      y4 = y4.v_shift_right_logical(compression_shift);
+      y4 = y4.v_shift_left(compression_shift);
+
       // x1
       v_mul2ci(vinvh11, y1, vMulMask, vcomp1[0], vcomp1[1]);
       v_mul2ci(vinvh12, y2, vMulMask, vcomp2[0], vcomp2[1]);
@@ -539,10 +657,10 @@ DEFINE_BLOCK(b_bigap_channel_compensator_4v4, 4, 4)
     {
       opc1[i] = opc2[i] = opc3[i] = opc4[i] = 0;
     }
-    PlotDots("RX 1", opc1, 64);
-    PlotDots("RX 2", opc2, 64);
-    PlotDots("RX 3", opc3, 64);
-    PlotDots("RX 4", opc4, 64);
+    PlotDots("X1", opc1, 64);
+    PlotDots("X2", opc2, 64);
+    PlotDots("X3", opc3, 64);
+    PlotDots("X4", opc4, 64);
 #endif
 
     consume_each(16);
