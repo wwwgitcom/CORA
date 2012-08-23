@@ -5,8 +5,8 @@
 		<WndNameIsSet>0</WndNameIsSet>
 		<WndRectTLX>0</WndRectTLX>
 		<WndRectTLY>0</WndRectTLY>
-		<WndRectBRX>300</WndRectBRX>
-		<WndRectBRY>300</WndRectBRY>
+		<WndRectBRX>180</WndRectBRX>
+		<WndRectBRY>180</WndRectBRY>
 		<WndshowGrid>-1</WndshowGrid>
 		<AutoScale>-1</AutoScale>
 		<XLabel></XLabel>
@@ -37,10 +37,10 @@
 		<WndName></WndName>
 		<WndType>class PlotWindowOpenedSpectrum</WndType>
 		<WndNameIsSet>0</WndNameIsSet>
-		<WndRectTLX>300</WndRectTLX>
+		<WndRectTLX>180</WndRectTLX>
 		<WndRectTLY>0</WndRectTLY>
-		<WndRectBRX>600</WndRectBRX>
-		<WndRectBRY>300</WndRectBRY>
+		<WndRectBRX>360</WndRectBRX>
+		<WndRectBRY>180</WndRectBRY>
 		<WndshowGrid>-1</WndshowGrid>
 		<AutoScale>-1</AutoScale>
 		<XLabel></XLabel>
@@ -71,10 +71,10 @@
 		<WndName></WndName>
 		<WndType>class PlotWindowOpenedSpectrum</WndType>
 		<WndNameIsSet>0</WndNameIsSet>
-		<WndRectTLX>600</WndRectTLX>
+		<WndRectTLX>360</WndRectTLX>
 		<WndRectTLY>0</WndRectTLY>
-		<WndRectBRX>900</WndRectBRX>
-		<WndRectBRY>300</WndRectBRY>
+		<WndRectBRX>540</WndRectBRX>
+		<WndRectBRY>180</WndRectBRY>
 		<WndshowGrid>-1</WndshowGrid>
 		<AutoScale>-1</AutoScale>
 		<XLabel></XLabel>
@@ -105,10 +105,10 @@
 		<WndName></WndName>
 		<WndType>class PlotWindowOpenedSpectrum</WndType>
 		<WndNameIsSet>0</WndNameIsSet>
-		<WndRectTLX>900</WndRectTLX>
+		<WndRectTLX>540</WndRectTLX>
 		<WndRectTLY>0</WndRectTLY>
-		<WndRectBRX>1200</WndRectBRX>
-		<WndRectBRY>300</WndRectBRY>
+		<WndRectBRX>720</WndRectBRX>
+		<WndRectBRY>180</WndRectBRY>
 		<WndshowGrid>-1</WndshowGrid>
 		<AutoScale>-1</AutoScale>
 		<XLabel></XLabel>
@@ -140,9 +140,9 @@
 		<WndType>class PlotWindowOpenedDots</WndType>
 		<WndNameIsSet>0</WndNameIsSet>
 		<WndRectTLX>0</WndRectTLX>
-		<WndRectTLY>300</WndRectTLY>
-		<WndRectBRX>300</WndRectBRX>
-		<WndRectBRY>600</WndRectBRY>
+		<WndRectTLY>180</WndRectTLY>
+		<WndRectBRX>180</WndRectBRX>
+		<WndRectBRY>360</WndRectBRY>
 		<WndshowGrid>-1</WndshowGrid>
 		<AutoScale>0</AutoScale>
 		<XLabel></XLabel>
@@ -152,17 +152,17 @@
 		<Process>Cora.exe</Process>
 		<ProcessName>1</ProcessName>
 	<Channel>
-			<SName>RX 1</SName>
+			<SName>X1</SName>
 			<SType>class ChannelOpenedDots</SType>
 			<color>65535</color></Channel></PlotWnd>
 	<PlotWnd>
 		<WndName></WndName>
 		<WndType>class PlotWindowOpenedDots</WndType>
 		<WndNameIsSet>0</WndNameIsSet>
-		<WndRectTLX>300</WndRectTLX>
-		<WndRectTLY>300</WndRectTLY>
-		<WndRectBRX>600</WndRectBRX>
-		<WndRectBRY>600</WndRectBRY>
+		<WndRectTLX>180</WndRectTLX>
+		<WndRectTLY>180</WndRectTLY>
+		<WndRectBRX>360</WndRectBRX>
+		<WndRectBRY>360</WndRectBRY>
 		<WndshowGrid>-1</WndshowGrid>
 		<AutoScale>0</AutoScale>
 		<XLabel></XLabel>
@@ -172,17 +172,17 @@
 		<Process>Cora.exe</Process>
 		<ProcessName>1</ProcessName>
 	<Channel>
-			<SName>RX 2</SName>
+			<SName>X2</SName>
 			<SType>class ChannelOpenedDots</SType>
 			<color>255</color></Channel></PlotWnd>
 	<PlotWnd>
 		<WndName></WndName>
 		<WndType>class PlotWindowOpenedDots</WndType>
 		<WndNameIsSet>0</WndNameIsSet>
-		<WndRectTLX>600</WndRectTLX>
-		<WndRectTLY>300</WndRectTLY>
-		<WndRectBRX>900</WndRectBRX>
-		<WndRectBRY>600</WndRectBRY>
+		<WndRectTLX>360</WndRectTLX>
+		<WndRectTLY>180</WndRectTLY>
+		<WndRectBRX>540</WndRectBRX>
+		<WndRectBRY>360</WndRectBRY>
 		<WndshowGrid>-1</WndshowGrid>
 		<AutoScale>0</AutoScale>
 		<XLabel></XLabel>
@@ -192,17 +192,17 @@
 		<Process>Cora.exe</Process>
 		<ProcessName>1</ProcessName>
 	<Channel>
-			<SName>RX 3</SName>
+			<SName>X3</SName>
 			<SType>class ChannelOpenedDots</SType>
 			<color>16776960</color></Channel></PlotWnd>
 	<PlotWnd>
 		<WndName></WndName>
 		<WndType>class PlotWindowOpenedDots</WndType>
 		<WndNameIsSet>0</WndNameIsSet>
-		<WndRectTLX>900</WndRectTLX>
-		<WndRectTLY>300</WndRectTLY>
-		<WndRectBRX>1200</WndRectBRX>
-		<WndRectBRY>600</WndRectBRY>
+		<WndRectTLX>540</WndRectTLX>
+		<WndRectTLY>180</WndRectTLY>
+		<WndRectBRX>720</WndRectBRX>
+		<WndRectBRY>360</WndRectBRY>
 		<WndshowGrid>-1</WndshowGrid>
 		<AutoScale>0</AutoScale>
 		<XLabel></XLabel>
@@ -212,6 +212,6 @@
 		<Process>Cora.exe</Process>
 		<ProcessName>1</ProcessName>
 	<Channel>
-			<SName>RX 4</SName>
+			<SName>X4</SName>
 			<SType>class ChannelOpenedDots</SType>
 			<color>16711935</color></Channel></PlotWnd></PlotWndAreaProp>
