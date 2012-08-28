@@ -1,0 +1,99 @@
+<PlotWndAreaProp>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>0</WndRectTLX>
+		<WndRectTLY>0</WndRectTLY>
+		<WndRectBRX>300</WndRectBRX>
+		<WndRectBRY>300</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<WndmaxValue>205.5</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>RX 0</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>65535</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>300</WndRectTLX>
+		<WndRectTLY>0</WndRectTLY>
+		<WndRectBRX>600</WndRectBRX>
+		<WndRectBRY>300</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<WndmaxValue>198.09088823063</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>RX 1</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>16711935</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>600</WndRectTLX>
+		<WndRectTLY>0</WndRectTLY>
+		<WndRectBRX>900</WndRectBRX>
+		<WndRectBRY>300</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<WndmaxValue>204.005514631345</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>RX 2</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>16776960</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>900</WndRectTLX>
+		<WndRectTLY>0</WndRectTLY>
+		<WndRectBRX>1200</WndRectBRX>
+		<WndRectBRY>300</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<WndmaxValue>201.050366823838</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>RX 3</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>65280</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedText</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>0</WndRectTLX>
+		<WndRectTLY>300</WndRectTLY>
+		<WndRectBRX>600</WndRectBRX>
+		<WndRectBRY>600</WndRectBRY>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>CFO</SName>
+			<SType>class ChannelOpenedText</SType>
+			<color>13158600</color>
+		<subRectTLX>0</subRectTLX>
+		<subRectTLY>0</subRectTLY>
+		<subRectBRX>10</subRectBRX>
+		<subRectBRY>10</subRectBRY></Channel></PlotWnd></PlotWndAreaProp>

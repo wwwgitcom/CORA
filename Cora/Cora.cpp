@@ -113,8 +113,6 @@
 #include "b_mumimo_4x4_tx.h"
 #include "b_mumimo_4x4_rx.h"
 
-#include "b_bigap.h"
-
 
 
 
@@ -160,18 +158,6 @@ void pipeline_profiling()
   }
 }
 
-void test_source_sock()
-{
-  autoref bsock = create_block<b_bigap_source_v4>(2, string("ip=127.0.0.1"), string("port=99999"));
-  START(bsock);
-}
-
-void test_sink_sock()
-{
-  autoref bsock = create_block<b_bigap_sink_4v>(1, string("port=99999"));
-  START(bsock);
-}
-
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -210,12 +196,12 @@ int _tmain(int argc, _TCHAR* argv[])
 
   auto mumimo_tx_main = [&]
   {
-    bigap_4x4_tx(argc, argv);
+    mumimo_4x4_tx(argc, argv);
   };
 
   auto mumimo_rx_main = [&]
   {
-    bigap_4x4_rx(argc, argv);
+    mumimo_4x4_rx(argc, argv);
   };
 
 #if 0

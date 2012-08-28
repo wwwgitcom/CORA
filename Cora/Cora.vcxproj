@@ -98,9 +98,6 @@
   <ItemGroup>
     <ClInclude Include="blocks\b_auto_corr.h" />
     <ClInclude Include="blocks\b_awgn.h" />
-    <ClInclude Include="blocks\b_bigap.h" />
-    <ClInclude Include="blocks\b_bigap_4x4_rx.h" />
-    <ClInclude Include="blocks\b_bigap_4x4_tx.h" />
     <ClInclude Include="blocks\b_channel_compensator.h" />
     <ClInclude Include="blocks\b_channel_estimator.h" />
     <ClInclude Include="blocks\b_consumer.h" />

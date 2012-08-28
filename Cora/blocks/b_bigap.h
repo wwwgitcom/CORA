@@ -318,9 +318,6 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
         }
       }
       
-
-
-
       // reset 
       for each (v_cs& var in noise_buffer)
       {
