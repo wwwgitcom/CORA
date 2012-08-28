@@ -390,7 +390,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto lsig_handler = [&]() -> bool
   {
-    *l_sig_vit.VitTotalBits = 24;
+    *l_sig_vit.VitTotalBits     = 24;
     *l_sig_vit.VitTotalSoftBits = 48;
     *l_sig_ok = false;
     //l-sig

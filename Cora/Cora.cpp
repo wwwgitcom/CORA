@@ -159,6 +159,57 @@ void pipeline_profiling()
 }
 
 
+#define fft_size 1024
+
+vcs fft_input[fft_size/4];
+vcs fft_output[fft_size/4];
+
+
+template<int N>
+DSP_INLINE1 void PFFT(vcs * pInput, vcs * pOutput)
+{
+  const int nArray = N / vcs::size;
+
+  FFTSSE<N> (pInput);
+
+  PARALLEL([&]{
+    FFTSSEEx<N/4> (pInput);
+    FFTSSEEx<N/4> (pInput + nArray / 4);
+  },[&]{
+    FFTSSEEx<N/4> (pInput + nArray / 2);
+    FFTSSEEx<N/4> (pInput + nArray / 4 * 3);
+  });
+
+  int i;
+  for (i = 0; i < N; i++)
+    ((COMPLEX16*)pOutput)[i] = ((COMPLEX16*)pInput) [FFTLUTMapTable<N>(i)];
+}
+
+
+void fft_test()
+{
+  tick_count t1, t2, t;
+  t1 = tick_count::now();
+  for (int i = 0; i < 100000; i++)
+  {
+    FFT<fft_size>(fft_input, fft_output);
+  }  
+  t2 = tick_count::now();
+  t = t2 - t1;
+  printf("fft single: %f us\n", t.us() /  100000.0);
+
+  //------------------------
+  t1 = tick_count::now();
+  for (int i = 0; i < 100000; i++)
+  {
+    PFFT<fft_size>(fft_input, fft_output);
+  }
+  t2 = tick_count::now();
+  t = t2 - t1;
+  printf("pfft single: %f us\n", t.us() /  100000.0);
+}
+
+
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -221,8 +272,8 @@ int _tmain(int argc, _TCHAR* argv[])
   }
 #endif
   
-  //dsp_main(mumimo_tx_main);
-  dsp_main(mumimo_rx_main);
+  dsp_main(mumimo_tx_main);
+  //dsp_main(fft_test);
   //dsp_main(pipeline_profiling);
   //dsp_main(rx_main);
 
