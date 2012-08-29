@@ -24,6 +24,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -45,11 +46,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>.\dbgplot\debug\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>.\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>.\dbgplot\release\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>.\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -57,8 +58,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\sys;.\blocks;.\dbgplot\inc;</AdditionalIncludeDirectories>
-      <CallingConvention>Cdecl</CallingConvention>
+      <AdditionalIncludeDirectories>.\sys;.\blocks;.\dbgplot\inc;.\sorainc;</AdditionalIncludeDirectories>
+      <CallingConvention>StdCall</CallingConvention>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -74,13 +75,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\sys;.\blocks;.\dbgplot\inc;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\sys;.\blocks;.\dbgplot\inc;.\sorainc;</AdditionalIncludeDirectories>
       <BrowseInformation>true</BrowseInformation>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <CallingConvention>StdCall</CallingConvention>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,6 +135,7 @@
     <ClInclude Include="blocks\b_frequest_offset.h" />
     <ClInclude Include="blocks\b_htsig_parser.h" />
     <ClInclude Include="blocks\b_dot11a_interleave.h" />
+    <ClInclude Include="blocks\b_hw_source.h" />
     <ClInclude Include="blocks\b_lsig_parser.h" />
     <ClInclude Include="blocks\b_lstf_searcher.h" />
     <ClInclude Include="blocks\b_mimo_channel_compensator.h" />
@@ -157,6 +160,67 @@
     <ClInclude Include="blocks\b_wait.h" />
     <ClInclude Include="blocks\__b_viterbi.h" />
     <ClInclude Include="dbgplot\inc\DebugPlotU.h" />
+    <ClInclude Include="sorainc\alinew.h" />
+    <ClInclude Include="sorainc\complex.h" />
+    <ClInclude Include="sorainc\complex_ext.h" />
+    <ClInclude Include="sorainc\const.h" />
+    <ClInclude Include="sorainc\CRC16.h" />
+    <ClInclude Include="sorainc\CRC32.h" />
+    <ClInclude Include="sorainc\diagnostics.h" />
+    <ClInclude Include="sorainc\fft.h" />
+    <ClInclude Include="sorainc\fft_lut_bitreversal.h" />
+    <ClInclude Include="sorainc\fft_lut_twiddle.h" />
+    <ClInclude Include="sorainc\fft_r4dif.h" />
+    <ClInclude Include="sorainc\func.h" />
+    <ClInclude Include="sorainc\ifft_r4dif.h" />
+    <ClInclude Include="sorainc\intalg.h" />
+    <ClInclude Include="sorainc\intalglut.h" />
+    <ClInclude Include="sorainc\resource_collection.h" />
+    <ClInclude Include="sorainc\rxstream.h" />
+    <ClInclude Include="sorainc\send_packet_data.h" />
+    <ClInclude Include="sorainc\smart_pointer.h" />
+    <ClInclude Include="sorainc\sora.h" />
+    <ClInclude Include="sorainc\soradsp.h" />
+    <ClInclude Include="sorainc\soradsp_asm.h" />
+    <ClInclude Include="sorainc\soratime.h" />
+    <ClInclude Include="sorainc\soratypes.h" />
+    <ClInclude Include="sorainc\thread_func.h" />
+    <ClInclude Include="sorainc\thread_if.h" />
+    <ClInclude Include="sorainc\tpltrick.h" />
+    <ClInclude Include="sorainc\typeof.h" />
+    <ClInclude Include="sorainc\unroll.h" />
+    <ClInclude Include="sorainc\uwdm.h" />
+    <ClInclude Include="sorainc\variadic_macro.h" />
+    <ClInclude Include="sorainc\vector128.h" />
+    <ClInclude Include="sorainc\_auto_mutex_k.h" />
+    <ClInclude Include="sorainc\_auto_mutex_u.h" />
+    <ClInclude Include="sorainc\_core_thread.h" />
+    <ClInclude Include="sorainc\_enlist.h" />
+    <ClInclude Include="sorainc\_fsm.h" />
+    <ClInclude Include="sorainc\_hw_op.h" />
+    <ClInclude Include="sorainc\_new.h" />
+    <ClInclude Include="sorainc\_packet_base.h" />
+    <ClInclude Include="sorainc\_private_ext_k.h" />
+    <ClInclude Include="sorainc\_private_ext_u.h" />
+    <ClInclude Include="sorainc\_radio_manager.h" />
+    <ClInclude Include="sorainc\_reg_conf.h" />
+    <ClInclude Include="sorainc\_rx_manager.h" />
+    <ClInclude Include="sorainc\_rx_stream.h" />
+    <ClInclude Include="sorainc\_scheduler.h" />
+    <ClInclude Include="sorainc\_share_lock_if.h" />
+    <ClInclude Include="sorainc\_share_lock_kimp.h" />
+    <ClInclude Include="sorainc\_share_lock_uimp.h" />
+    <ClInclude Include="sorainc\_share_mem_if.h" />
+    <ClInclude Include="sorainc\_share_mem_kimp.h" />
+    <ClInclude Include="sorainc\_share_mem_uimp.h" />
+    <ClInclude Include="sorainc\_signal_cache.h" />
+    <ClInclude Include="sorainc\_sora_clock.h" />
+    <ClInclude Include="sorainc\_sora_regman.h" />
+    <ClInclude Include="sorainc\_tx_manager2.h" />
+    <ClInclude Include="sorainc\_UExtK.h" />
+    <ClInclude Include="sorainc\_user_mode_ext.h" />
+    <ClInclude Include="sorainc\_WARP_Control.h" />
+    <ClInclude Include="sorainc\_WARP_Regs.h" />
     <ClInclude Include="sys\dsp_channel_matrix.h" />
     <ClInclude Include="sys\dsp_console.h" />
     <ClInclude Include="sys\_windows.h" />

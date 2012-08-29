@@ -15,8 +15,11 @@
 #include "dsp_processor.h"
 #include "dsp_cmd.h"
 #include "dsp_vector1.h"
-
+#include "dsp_source.h"
 #include "dsp_draw.h"
+
+#define USER_MODE
+#include "sora.h"
 
 #define enable_draw 0
 #define enable_dbgplot 1
@@ -37,6 +40,8 @@
 #include "TReset.h"
 
 //--------------------------------------------------
+#include "b_hw_source.h"
+
 #include "b_plot.h"
 #include "b_producer.h"
 #include "b_consumer.h"
@@ -112,7 +117,6 @@
 //#include "b_mumimo_2x2_tx.h"
 #include "b_mumimo_4x4_tx.h"
 #include "b_mumimo_4x4_rx.h"
-
 
 
 
@@ -210,8 +214,18 @@ void fft_test()
 }
 
 
+void hw_plot()
+{
+  autoref hwsrc = create_block<b_hw_source_v1>();
+  autoref plot  = create_block<b_plot_1v>();
 
-int _tmain(int argc, _TCHAR* argv[])
+  Channel::Create(sizeof(v_cs)).from(hwsrc, 0).to(plot, 0);
+
+  START(hwsrc, plot);
+}
+
+
+int __cdecl _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
   cmdline.parse(argc, argv);
@@ -272,10 +286,10 @@ int _tmain(int argc, _TCHAR* argv[])
   }
 #endif
   
-  dsp_main(mumimo_tx_main);
+  //dsp_main(mumimo_tx_main);
   //dsp_main(fft_test);
   //dsp_main(pipeline_profiling);
-  //dsp_main(rx_main);
+  dsp_main(hw_plot);
 
   
 #if 0
