@@ -41,7 +41,7 @@
 
 //--------------------------------------------------
 #include "b_hw_source.h"
-
+#include "b_hw_sink.h"
 #include "b_plot.h"
 #include "b_producer.h"
 #include "b_consumer.h"
@@ -225,6 +225,29 @@ void hw_plot()
 }
 
 
+void hw_sink(int argc, _TCHAR* argv[])
+{
+  dsp_cmd cmdline;
+  cmdline.parse(argc, argv);
+
+
+  string strFileName = string("FileName=c:\\mimo_tx_0.dmp");
+  auto CmdArg = cmdline.get("FileName");
+  if ( CmdArg.exist() )
+  {
+    strFileName = "FileName=" + CmdArg.as_string();
+  }
+
+  printf("|- %s\n", strFileName.c_str());
+
+  autoref txsrc  = create_block<b_tx_file_source_v1>(1, strFileName);
+  autoref hwsink = create_block<b_hw_sink_1v>();
+
+  Channel::Create(sizeof(v_cs), 1024000).from(txsrc, 0).to(hwsink, 0);
+
+  dsp_main( [&]{START(txsrc, hwsink);} );
+}
+
 int __cdecl _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
@@ -289,7 +312,9 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   //dsp_main(mumimo_tx_main);
   //dsp_main(fft_test);
   //dsp_main(pipeline_profiling);
-  dsp_main(hw_plot);
+  //dsp_main(hw_plot);
+
+  hw_sink(argc,argv);
 
   
 #if 0

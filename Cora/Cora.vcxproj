@@ -135,6 +135,7 @@
     <ClInclude Include="blocks\b_frequest_offset.h" />
     <ClInclude Include="blocks\b_htsig_parser.h" />
     <ClInclude Include="blocks\b_dot11a_interleave.h" />
+    <ClInclude Include="blocks\b_hw_sink.h" />
     <ClInclude Include="blocks\b_hw_source.h" />
     <ClInclude Include="blocks\b_lsig_parser.h" />
     <ClInclude Include="blocks\b_lstf_searcher.h" />

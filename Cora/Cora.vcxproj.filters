@@ -510,6 +510,9 @@
     <ClInclude Include="sorainc\vector128.h">
       <Filter>Header Files\sora</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_hw_sink.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
