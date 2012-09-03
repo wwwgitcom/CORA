@@ -710,9 +710,8 @@ public:
 
     memcpy(op, *pBufferStart, file_length);
 
-    produce(0, file_length / v_cs::size);
-
-    printf("produce %d vcs\n", file_length / v_cs::size); 
+    int nvcs = file_length / v_cs::size;
+    produce(0, nvcs);
 
     return true;
   }

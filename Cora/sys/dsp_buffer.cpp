@@ -244,6 +244,8 @@ bool dsp_buffer::allocate_buffer (int nitems, size_t sizeof_item)
   // If we rounded-up a whole bunch, give the user a heads up.
   // This only happens if sizeof_item is not a power of two.
 
+
+  // TODO:: make dsp_buffer size as power-of-two
 #if 0
   if (nitems > 2 * orig_nitems && nitems * (int) sizeof_item > granularity)
   {

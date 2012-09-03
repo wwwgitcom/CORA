@@ -17,7 +17,7 @@ DEFINE_BLOCK(b_hw_sink_1v, 1, 0)
     TARGET_RADIO = 0
   };
 
-  static const int ChannelFreq = 2422;
+  static const int ChannelFreq = 5200;
 
   void ConfigureRadio () 
   {
@@ -49,7 +49,7 @@ DEFINE_BLOCK(b_hw_sink_1v, 1, 0)
     SoraURadioSetRxGain (TARGET_RADIO, RxG);   // 2G dB
 
     SampleSize = 4 * 1024 * 1024;
-    printf("SampleSize=%d\n", SampleSize);
+    printf("SampleBufferSize=%d\n", SampleSize);
     SampleBuffer = SoraUForceAllocContinuousBuffer(SampleSize);
     if (!SampleBuffer) {
       printf ( "SoraUForceAllocContinuousBuffer Fails...\n" );
@@ -91,32 +91,29 @@ DEFINE_BLOCK(b_hw_sink_1v, 1, 0)
 
     v_cs v1, v2;
 
-    printf("%d vcs\n", n);
-
-    for (int i = 0; i < (n & 0x1); i += 2)
+    int ivcb = 0;
+    for (int i = 0; i < n; i += 2, ivcb++)
     {
-      v1 = ip[i].v_shift_right_arithmetic(6);
-      v2 = ip[i + 1].v_shift_right_arithmetic(6);
+      v1 = ip[i].v_shift_right_arithmetic(4);
+      v2 = ip[i + 1].v_shift_right_arithmetic(4);
 
-      op[i] = v_convert2cb(v1, v2);
+      op[ivcb] = v_convert2cb(v1, v2);
     }
 
-    printf("%d left\n", n & 0x01);
     if ( (n & 0x1) )
     {
-      v1 = ip[n - 1].v_shift_right_arithmetic(6);
+      v1 = ip[n - 1].v_shift_right_arithmetic(4);
 
-      op[n - 1] = v_convert2cb(v1, v1);
+      op[ivcb++] = v_convert2cb(v1, v1);
     }
 
-    ULONG SignalLength = ( n + (n & 0x1) ) * v_cb::size;
+    ULONG SignalLength = ivcb * v_cb::size;
     ULONG SignalID = 0;
-    printf("Transfer, %d bytes\n", SignalLength);
     HRESULT hr = SoraURadioTransferEx(TARGET_RADIO, SampleBuffer, SignalLength, &SignalID);
     if (SUCCEEDED(hr))
-    {
-      printf("TX\n");
+    {      
       SoraURadioTx(TARGET_RADIO, SignalID);
+      SoraURadioTxFree(TARGET_RADIO, SignalID);
     }
     else
     {
@@ -124,6 +121,7 @@ DEFINE_BLOCK(b_hw_sink_1v, 1, 0)
     }
 
     consume(0, n);
+
     return true;
   }
 };

@@ -38,7 +38,7 @@ DEFINE_BLOCK(b_hw_source_v1, 0, 1)
     TARGET_RADIO = 0
   };
 
-  static const int ChannelFreq = 2422;
+  static const int ChannelFreq = 5200;
 
   void ConfigureRadio () 
   {
@@ -105,6 +105,7 @@ DEFINE_BLOCK(b_hw_source_v1, 0, 1)
   {
     if (!bHWInitOK)
     {
+      printf("error: HW not ready...\n");
       return false;
     }
 

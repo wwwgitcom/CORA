@@ -106,6 +106,7 @@
     <ClInclude Include="blocks\b_consumer.h" />
     <ClInclude Include="blocks\b_conv.h" />
     <ClInclude Include="blocks\b_crc.h" />
+    <ClInclude Include="blocks\b_dot11af_lstf.h" />
     <ClInclude Include="blocks\b_dot11a_add_pilot.h" />
     <ClInclude Include="blocks\b_dot11a_map.h" />
     <ClInclude Include="blocks\b_dot11n_add_pilot.h" />

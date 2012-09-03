@@ -243,7 +243,7 @@ void hw_sink(int argc, _TCHAR* argv[])
   autoref txsrc  = create_block<b_tx_file_source_v1>(1, strFileName);
   autoref hwsink = create_block<b_hw_sink_1v>();
 
-  Channel::Create(sizeof(v_cs), 1024000).from(txsrc, 0).to(hwsink, 0);
+  Channel::Create(sizeof(v_cs), 128 * 1024).from(txsrc, 0).to(hwsink, 0);
 
   dsp_main( [&]{START(txsrc, hwsink);} );
 }
@@ -336,7 +336,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 #endif
 
   ExitProcess(0);
-  exit(0);
+  exit(0); 
 	return 0;
 }
 
