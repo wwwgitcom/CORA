@@ -17,7 +17,7 @@ DEFINE_BLOCK(b_hw_sink_1v, 1, 0)
     TARGET_RADIO = 0
   };
 
-  static const int ChannelFreq = 5200;
+  static const int ChannelFreq = 2422;
 
   void ConfigureRadio () 
   {
@@ -86,28 +86,12 @@ DEFINE_BLOCK(b_hw_sink_1v, 1, 0)
     auto n = ninput(0);
     if (n < 1) return false;
 
-    auto ip = _$<v_cs>(0);
+    auto ip = _$<v_cb>(0);
     auto op = (v_cb*)(SampleBuffer);
 
-    v_cs v1, v2;
+    memcpy(op, ip, n * v_cb::size);
 
-    int ivcb = 0;
-    for (int i = 0; i < n; i += 2, ivcb++)
-    {
-      v1 = ip[i].v_shift_right_arithmetic(4);
-      v2 = ip[i + 1].v_shift_right_arithmetic(4);
-
-      op[ivcb] = v_convert2cb(v1, v2);
-    }
-
-    if ( (n & 0x1) )
-    {
-      v1 = ip[n - 1].v_shift_right_arithmetic(4);
-
-      op[ivcb++] = v_convert2cb(v1, v1);
-    }
-
-    ULONG SignalLength = ivcb * v_cb::size;
+    ULONG SignalLength = n * v_cb::size;
     ULONG SignalID = 0;
     HRESULT hr = SoraURadioTransferEx(TARGET_RADIO, SampleBuffer, SignalLength, &SignalID);
     if (SUCCEEDED(hr))

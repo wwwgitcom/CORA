@@ -259,8 +259,10 @@ DEFINE_BLOCK(b_dot11n_dma_join_4v1, 4, 1)
         for (int k = 0; k < 4; k++)
         {
           complex8  cop;
-          cop.re = pc[k].re >> 6;
-          cop.im = pc[k].im >> 6;
+          cop.re = (pc[k].re >> 4);
+          cop.im = (pc[k].im >> 4);
+
+          //printf("%d, %d \t %d, %d\n", cop.re, cop.im, pc[k].re, pc[k].im);
 
           fwrite(&cop, sizeof(complex8) * 1, 1, hFile);
         }

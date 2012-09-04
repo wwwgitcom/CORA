@@ -243,9 +243,9 @@ void hw_sink(int argc, _TCHAR* argv[])
   autoref txsrc  = create_block<b_tx_file_source_v1>(1, strFileName);
   autoref hwsink = create_block<b_hw_sink_1v>();
 
-  Channel::Create(sizeof(v_cs), 128 * 1024).from(txsrc, 0).to(hwsink, 0);
+  Channel::Create(sizeof(v_cb), 128 * 1024).from(txsrc, 0).to(hwsink, 0);
 
-  dsp_main( [&]{START(txsrc, hwsink);} );
+  dsp_main( [&]{START(txsrc, hwsink);} ); 
 }
 
 int __cdecl _tmain(int argc, _TCHAR* argv[])
@@ -312,9 +312,9 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   //dsp_main(mumimo_tx_main);
   //dsp_main(fft_test);
   //dsp_main(pipeline_profiling);
-  //dsp_main(hw_plot);
+  dsp_main(hw_plot);
 
-  hw_sink(argc,argv);
+  //hw_sink(argc,argv);
 
   
 #if 0

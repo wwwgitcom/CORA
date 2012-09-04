@@ -706,12 +706,12 @@ public:
 
   BLOCK_WORK
   {
-    auto op = $_<v_cs>(0);
+    auto op = $_<v_cb>(0);
 
     memcpy(op, *pBufferStart, file_length);
 
-    int nvcs = file_length / v_cs::size;
-    produce(0, nvcs);
+    int nvcb = file_length / v_cb::size;
+    produce(0, nvcb);
 
     return true;
   }
