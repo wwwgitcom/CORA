@@ -27,7 +27,14 @@ DEFINE_BLOCK(b_plot_1v, 1, 0)
       vpower[i] = vtemp.v_sqr2i();
     }
 
-    PlotLine("HW Energy", (int*)&vpower, 4 * 7);
+    static int ncount = 0;    
+    HRESULT hr = PlotLine("HW Energy", (int*)&vpower, 4 * 7);
+    
+    ncount++;
+    if (ncount % 1000000 == 0)
+    {
+      fprintf(stderr, "Call PlotLine %d times, hr = 0x%p\n", ncount, hr);
+    }
 
 #if 0
 

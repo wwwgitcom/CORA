@@ -2,6 +2,7 @@
 
 #include "_fft_r4dif.h"
 #include "_ifft_r4dif.h"
+#include "_ifft_r4dif_wonorm.h"
 
 DEFINE_BLOCK(b_fft_64_1v1, 1, 1)
 {

@@ -248,6 +248,165 @@ void hw_sink(int argc, _TCHAR* argv[])
   dsp_main( [&]{START(txsrc, hwsink);} ); 
 }
 
+
+class T_LSTF
+{
+  static const complex16 czero;
+  static const complex16 cpos;
+  static const complex16 cneg;
+public:
+  static const complex16 values[144];
+};
+
+const complex16 T_LSTF::czero(0, 0);
+const complex16 T_LSTF::cpos(203, 203);
+const complex16 T_LSTF::cneg(-203, -203);
+const complex16 T_LSTF::values[] =
+{
+  // 14 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	
+  //
+  // -58 58
+  czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,																				
+  cneg	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,								
+  cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,														
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,
+  czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,										
+  cneg	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,														
+  czero	,	czero	,	czero	,	 cpos	,	czero	,	czero ,
+  // 13 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	
+  //
+};
+
+class T_LLTF
+{
+  static const complex16 czero;
+  static const complex16 cpos;
+  static const complex16 cneg;
+public:
+  static const complex16 values[144];
+};
+
+const complex16 T_LLTF::czero(0, 0);
+const complex16 T_LLTF::cpos(138, 0);
+const complex16 T_LLTF::cneg(-138, 0);
+const complex16 T_LLTF::values[] =
+{
+  // 14 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	
+  //
+  // -58 58
+  cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,
+  cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cneg	,	cneg	,	cneg	,
+  cneg	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cneg	,	cpos	,	czero	,	czero	,	czero	,	cneg	,
+  cpos	,	cpos	,	cneg	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,
+  cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cneg	,	cneg	,
+  cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,
+  // 13 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero
+  //
+};
+
+void dot11af_gen_lstf(ULONG FreqSeg)
+{
+  const int N  = 1024;
+  const int NV = N / v_cs::elem_cnt;
+
+  v_cs FreqDomain[NV];
+  v_cs TimeDomain[NV];
+
+  v_i  FreqPower[NV];
+  v_i  TimePower[NV];
+
+  ZeroMemory(FreqDomain, NV * v_cs::size);
+  ZeroMemory(TimeDomain, NV * v_cs::size);
+
+  complex16* pFirstSegment = (complex16*)FreqDomain;
+  pFirstSegment += (1024 - 144);
+
+  complex16* pSecondSegment = (complex16*)FreqDomain;
+  pFirstSegment += 0;
+
+  if (FreqSeg & 0x1)
+  {
+    memcpy(pFirstSegment,  T_LSTF::values, sizeof(T_LSTF::values));
+  }
+  if (FreqSeg & 0x2)
+  {
+    memcpy(pSecondSegment, T_LSTF::values, sizeof(T_LSTF::values));
+  }
+
+  for (int i = 0; i < NV; i++)
+  {
+    FreqPower[i] = FreqDomain[i].v_sqr2i();
+  }
+  
+
+  IFFT_WONORM<N>(FreqDomain, TimeDomain);
+
+
+  FFT<N>((vcs*)TimeDomain, (vcs*)FreqDomain);
+
+
+  for (int i = 0; i < NV; i++)
+  {
+    TimePower[i] = FreqDomain[i].v_sqr2i();
+  }
+
+  PlotSpectrum("FreqPower", (int*)FreqPower, N);
+  PlotSpectrum("TimePower", (int*)TimePower, N);
+}
+
+void dot11af_gen_lltf(ULONG FreqSeg)
+{
+  const int N  = 1024;
+  const int NV = N / v_cs::elem_cnt;
+
+  v_cs FreqDomain[NV];
+  v_cs TimeDomain[NV];
+
+  v_i  FreqPower[NV];
+  v_i  TimePower[NV];
+
+  ZeroMemory(FreqDomain, NV * v_cs::size);
+  ZeroMemory(TimeDomain, NV * v_cs::size);
+
+  complex16* pFirstSegment = (complex16*)FreqDomain;
+  pFirstSegment += (1024 - 144);
+
+  complex16* pSecondSegment = (complex16*)FreqDomain;
+  pFirstSegment += 0;
+
+  if (FreqSeg & 0x1)
+  {
+    memcpy(pFirstSegment,  T_LLTF::values, sizeof(T_LLTF::values));
+  }
+  if (FreqSeg & 0x2)
+  {
+    memcpy(pSecondSegment, T_LLTF::values, sizeof(T_LLTF::values));
+  }
+
+  for (int i = 0; i < NV; i++)
+  {
+    FreqPower[i] = FreqDomain[i].v_sqr2i();
+  }
+
+
+  IFFT_WONORM<N>(FreqDomain, TimeDomain);
+
+
+  FFT<N>((vcs*)TimeDomain, (vcs*)FreqDomain);
+
+  for (int i = 0; i < NV; i++)
+  {
+    TimePower[i] = FreqDomain[i].v_sqr2i();
+  }
+
+  PlotSpectrum("LLTF:FreqPower", (int*)FreqPower, N);
+  PlotSpectrum("LLTF:TimePower", (int*)TimePower, N);
+}
+
 int __cdecl _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
@@ -312,10 +471,11 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   //dsp_main(mumimo_tx_main);
   //dsp_main(fft_test);
   //dsp_main(pipeline_profiling);
-  dsp_main(hw_plot);
+  //dsp_main(hw_plot);
 
   //hw_sink(argc,argv);
-
+  dot11af_gen_lstf(3);
+  dot11af_gen_lltf(3);
   
 #if 0
   if ( cmdline.get("rx").exist() )

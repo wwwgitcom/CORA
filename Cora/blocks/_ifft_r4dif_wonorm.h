@@ -9,7 +9,7 @@
 // with input in normal order and output in bit-reversed order
 /////////////////////////////////////////////////
 template<int N>
-DSP_INLINE1 void IFFTSSE(vcs* pInput)
+DSP_INLINE1 void IFFTSSE_WONORM(vcs* pInput)
 {
     const int INPUT_SHIFT  = 2;
     const int OUTPUT_SHIFT = 15;
@@ -18,10 +18,10 @@ DSP_INLINE1 void IFFTSSE(vcs* pInput)
     vcs *pi = pInput;
     for (int n = 0; n < nArray/4; n++, pi++)
     {
-        vcs a = shift_right(pi[0], INPUT_SHIFT);
-        vcs b = shift_right(pi[nArray/4], INPUT_SHIFT);
-        vcs c = shift_right(pi[nArray/2], INPUT_SHIFT);
-        vcs d = shift_right(pi[nArray/4*3], INPUT_SHIFT);
+        vcs& a = pi[0];
+        vcs& b = pi[nArray/4];
+        vcs& c = pi[nArray/2];
+        vcs& d = pi[nArray/4*3];
 
         vcs ac  = saturation_add(a, c);
         vcs bd  = saturation_add(b, d);
@@ -48,26 +48,26 @@ DSP_INLINE1 void IFFTSSE(vcs* pInput)
 
 template<int N>
 DSP_INLINE1 void
-IFFTSSEEx (vcs* pInput)
+IFFTSSEEx_WONORM (vcs* pInput)
 {
     const int nArray = N / vcs::size;
 
-    IFFTSSE<N> (pInput);
-    IFFTSSEEx<N/4> (pInput);
-    IFFTSSEEx<N/4> (pInput + nArray / 4);
-    IFFTSSEEx<N/4> (pInput + nArray / 2);
-    IFFTSSEEx<N/4> (pInput + nArray / 4 * 3);
+    IFFTSSE_WONORM<N> (pInput);
+    IFFTSSEEx_WONORM<N/4> (pInput);
+    IFFTSSEEx_WONORM<N/4> (pInput + nArray / 4);
+    IFFTSSEEx_WONORM<N/4> (pInput + nArray / 2);
+    IFFTSSEEx_WONORM<N/4> (pInput + nArray / 4 * 3);
 }
 
 template<>
 DSP_INLINE void
-IFFTSSEEx<4> (vcs* pInput)
+IFFTSSEEx_WONORM<4> (vcs* pInput)
 {
     const int INPUT_SHIFT = 2;
 
     vcs xmm3 = vector128_consts::__0xFFFFFFFF00000000FFFFFFFF00000000<vcs>();
     vcs xmm5 = vector128_consts::__0xFFFFFFFFFFFFFFFF0000000000000000<vcs>();
-    vcs xmm0 = shift_right(*pInput, INPUT_SHIFT);
+    vcs& xmm0 = *pInput;
 
     vcs xmm4 = permutation<0x4e>(xmm0);             // xmm4 =  Q1  I1  Q0  I0 Q3 I3 Q2 I2
     xmm0 = xor(xmm0, xmm5);                         // xmm0 = -Q3 -I3 -Q2 -I2 Q1 I1 Q0 I0
@@ -88,13 +88,12 @@ IFFTSSEEx<4> (vcs* pInput)
 
 template<>
 DSP_INLINE1 void
-IFFTSSEEx<8> (vcs* pInput)
+IFFTSSEEx_WONORM<8> (vcs* pInput)
 {
-    const int INPUT_SHIFT  = 3;
     const int OUTPUT_SHIFT = 15;
 
-    vcs xmm0 = shift_right(pInput[0], INPUT_SHIFT);     // xmm0 = a
-    vcs xmm1 = shift_right(pInput[1], INPUT_SHIFT);     // xmm1 = b
+    vcs &xmm0 = pInput[0];     // xmm0 = a
+    vcs &xmm1 = pInput[1];     // xmm1 = b
 
     vcs xmm2 = saturation_sub(xmm0, xmm1);              // xmm2 = a - b
     xmm0 = saturation_add(xmm0, xmm1);                  // xmm0 = a + b, for 4-point IFFT
@@ -140,9 +139,9 @@ IFFTSSEEx<8> (vcs* pInput)
 
 // Note: side-effect: pInput[] will be destroyed after calling
 template<int N>
-DSP_INLINE1 void IFFT(vcs * pInput, vcs * pOutput)
+DSP_INLINE1 void IFFT_WONORM(vcs * pInput, vcs * pOutput)
 {
-    IFFTSSEEx<N>(pInput);
+    IFFTSSEEx_WONORM<N>(pInput);
 
     int i;
     for (i = 0; i < N; i++)
@@ -150,9 +149,9 @@ DSP_INLINE1 void IFFT(vcs * pInput, vcs * pOutput)
 }
 
 template<int N>
-DSP_INLINE1 void IFFT(v_cs * pInput, v_cs * pOutput)
+DSP_INLINE1 void IFFT_WONORM(v_cs * pInput, v_cs * pOutput)
 {
-  IFFTSSEEx<N>((vcs *)pInput);
+  IFFTSSEEx_WONORM<N>((vcs *)pInput);
 
   int i;
   for (i = 0; i < N; i++)
@@ -162,9 +161,9 @@ DSP_INLINE1 void IFFT(v_cs * pInput, v_cs * pOutput)
 
 // Note: no side-effect
 template<int N>
-DSP_INLINE1 void IFFTSafe(const vcs * pInput, vcs * pOutput)
+DSP_INLINE1 void IFFTSafe_WONORM(const vcs * pInput, vcs * pOutput)
 {
     vcs temp [N / vcs::size];
     memcpy(temp, pInput, sizeof(temp));
-    IFFT<N>(temp, pOutput);
+    IFFT_WONORM<N>(temp, pOutput);
 }
