@@ -17,6 +17,7 @@
 #include "dsp_vector1.h"
 #include "dsp_source.h"
 #include "dsp_draw.h"
+#include "dsp_console.h"
 
 #define USER_MODE
 #include "sora.h"
@@ -441,6 +442,10 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   dsp_main(rx_main);
 #endif
 
+  dsp_console::info("info %d\n", GetTickCount());
+  dsp_console::warning("warning %d\n", GetTickCount());
+
+
   auto mumimo_tx_main = [&]
   {
     mumimo_4x4_tx(argc, argv);
@@ -471,7 +476,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   //dsp_main(mumimo_tx_main);
   //dsp_main(fft_test);
   //dsp_main(pipeline_profiling);
-  //dsp_main(hw_plot);
+  dsp_main(hw_plot);
 
   //hw_sink(argc,argv);
   dot11af_gen_lstf(3);
