@@ -44,5 +44,7 @@ public:
 
     va_end(args);
   }
+
+
 };
 
