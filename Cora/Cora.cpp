@@ -444,7 +444,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 
   dsp_console::info("info %d\n", GetTickCount());
   dsp_console::warning("warning %d\n", GetTickCount());
-
+  dsp_console::error("error %d\n", GetTickCount());
 
   auto mumimo_tx_main = [&]
   {
@@ -473,14 +473,11 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   }
 #endif
   
-  //dsp_main(mumimo_tx_main);
+  dsp_main(mumimo_rx_main);
   //dsp_main(fft_test);
   //dsp_main(pipeline_profiling);
-  dsp_main(hw_plot);
-
+  //dsp_main(hw_plot);
   //hw_sink(argc,argv);
-  dot11af_gen_lstf(3);
-  dot11af_gen_lltf(3);
   
 #if 0
   if ( cmdline.get("rx").exist() )

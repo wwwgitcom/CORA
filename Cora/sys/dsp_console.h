@@ -29,7 +29,7 @@ public:
     va_list args;
     va_start(args, format);
 
-    print((BACKGROUND_RED | BACKGROUND_GREEN), 
+    print((FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY), 
       format, args);
 
     va_end(args);
@@ -39,12 +39,21 @@ public:
     va_list args;
     va_start(args, format);
 
-    print((BACKGROUND_RED), 
+    print((FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY), 
       format, args);
 
     va_end(args);
   }
+  static void error(const char* format, ...)
+  {  
+    va_list args;
+    va_start(args, format);
 
+    print((FOREGROUND_RED | FOREGROUND_INTENSITY), 
+      format, args);
+
+    va_end(args);
+  }
 
 };
 
