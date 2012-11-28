@@ -168,7 +168,7 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_1v, 1, 0)
 
     log("%s: n=%d\n", name(), n);
 
-    auto ch = *dot11a_siso_channel;
+    autoref ch = *dot11a_siso_channel;
     v_cs *pvmask = (v_cs*)&_80211_LLTFMask[0];
     
     v_siso_channel_estimation_64(ip, pvmask, (v_cs*)&ch[0]);
