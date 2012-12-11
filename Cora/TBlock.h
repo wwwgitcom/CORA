@@ -3,6 +3,7 @@
 #include "dsp_buffer.h"
 #include <typeinfo>
 
+#pragma region global object manager
 class GlobalObj
 {
 public:
@@ -60,8 +61,45 @@ public:
 };
 
 __declspec(selectany) GlobalObjMan _GlobalObjMan;
+#pragma endregion global object manager
 
+//////////////////////////////////////////////////////////////////////////
+#pragma region global block manager
+typedef void (_cdecl *BlockEventHandler)(void* block, INPUT_RECORD& InputRec);
 
+class GlobalBlockMan
+{
+  map<int, int> m_alloc_map;
+public:
+  GlobalBlockMan()
+  {
+    m_alloc_map.clear();
+  }
+  ~GlobalBlockMan()
+  {
+  }
+
+  void insert(void * block, void * func)
+  {
+    m_alloc_map.insert(make_pair((int)block, (int)func));
+  }
+
+  void event_handler(INPUT_RECORD& InputRec)
+  {
+    for (auto it = m_alloc_map.begin(); it != m_alloc_map.end(); it++)
+    {
+      BlockEventHandler func = (BlockEventHandler)it->second;
+      //dsp_console::info("EvtHandler: %p, %p, %c\n", 
+      //  it->first, it->second, InputRec.Event.KeyEvent.uChar);
+      func((void* )it->first, InputRec);
+    }
+  }
+};
+
+__declspec(selectany) GlobalBlockMan _GlobalBlockMan;
+#pragma endregion global block manager
+
+//////////////////////////////////////////////////////////////////////////
 
 template<typename T, int NINPUT, int NOUTPUT>
 class dsp_block
@@ -114,6 +152,14 @@ class dsp_block
     __if_exists(T::_init_)
     {
       ((T*)(this))->_init_(arg_map);
+    }
+  }
+
+  void __cdecl event_handler(INPUT_RECORD& InputRec)
+  {
+    __if_exists(T::_event_handler_)
+    {
+      ((T*)(this))->_event_handler_(InputRec);
     }
   }
 
@@ -213,6 +259,10 @@ public:\
 public:\
 void reset()
 
+#define BLOCK_INPUT_EVENT_HANDLER \
+public:\
+  void __cdecl _event_handler_(INPUT_RECORD& $)
+
 
 template<typename block_name>
 auto _create_block(std::map<string, string> & arg_map) -> block_name &
@@ -222,6 +272,14 @@ auto _create_block(std::map<string, string> & arg_map) -> block_name &
   {
     obj._init_(arg_map);
   }
+
+  __if_exists(block_name::_event_handler_)
+  {
+    void (__cdecl block_name::* pfunc)(INPUT_RECORD &);
+    pfunc = &block_name::_event_handler_;
+    _GlobalBlockMan.insert((void*)&obj, (void*)(*((unsigned int *)&pfunc)));
+  }
+
   return (block_name &)obj;
 }
 

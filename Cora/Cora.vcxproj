@@ -99,6 +99,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="blocks\b_audio.h" />
     <ClInclude Include="blocks\b_auto_corr.h" />
     <ClInclude Include="blocks\b_awgn.h" />
     <ClInclude Include="blocks\b_channel_compensator.h" />

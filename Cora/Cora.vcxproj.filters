@@ -516,6 +516,9 @@
     <ClInclude Include="blocks\b_dot11af_lstf.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="blocks\b_audio.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

@@ -43,7 +43,7 @@
 //--------------------------------------------------
 #include "b_hw_source.h"
 #include "b_hw_sink.h"
-
+#include "b_plot.h"
 #include "b_producer.h"
 #include "b_consumer.h"
 #include "b_passthru.h"
@@ -105,11 +105,6 @@
 #include "b_dot11n_dma_join.h"
 
 
-#include "b_audio.h"
-
-
-#include "b_plot.h"
-
 //#define split(T, ...) new (aligned_malloc<T>()) T(__VA_ARGS__)
 
 
@@ -121,8 +116,8 @@
 //#include "b_dot11n_tx.h"
 
 //#include "b_mumimo_2x2_tx.h"
-//#include "b_mumimo_4x4_tx.h"
-//#include "b_mumimo_4x4_rx.h"
+#include "b_mumimo_4x4_tx.h"
+#include "b_mumimo_4x4_rx.h"
 
 
 
@@ -230,16 +225,6 @@ void hw_plot()
   START(hwsrc, plot);
 }
 
-void evt_handler_test()
-{
-  autoref plot  = create_block<b_spectrum_plot_1v>();
-  autoref audio_src  = create_block<b_audio_v1>();
-
-  Channel::Create(sizeof(v_cs)).from(audio_src, 0).to(plot, 0);
-
-  START(audio_src, plot);
-}
-
 
 void hw_sink(int argc, _TCHAR* argv[])
 {
@@ -262,6 +247,165 @@ void hw_sink(int argc, _TCHAR* argv[])
   Channel::Create(sizeof(v_cb), 128 * 1024).from(txsrc, 0).to(hwsink, 0);
 
   dsp_main( [&]{START(txsrc, hwsink);} ); 
+}
+
+
+class T_LSTF
+{
+  static const complex16 czero;
+  static const complex16 cpos;
+  static const complex16 cneg;
+public:
+  static const complex16 values[144];
+};
+
+const complex16 T_LSTF::czero(0, 0);
+const complex16 T_LSTF::cpos(203, 203);
+const complex16 T_LSTF::cneg(-203, -203);
+const complex16 T_LSTF::values[] =
+{
+  // 14 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	
+  //
+  // -58 58
+  czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,																				
+  cneg	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,								
+  cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,														
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,
+  czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,										
+  cneg	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,														
+  czero	,	czero	,	czero	,	 cpos	,	czero	,	czero ,
+  // 13 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	
+  //
+};
+
+class T_LLTF
+{
+  static const complex16 czero;
+  static const complex16 cpos;
+  static const complex16 cneg;
+public:
+  static const complex16 values[144];
+};
+
+const complex16 T_LLTF::czero(0, 0);
+const complex16 T_LLTF::cpos(138, 0);
+const complex16 T_LLTF::cneg(-138, 0);
+const complex16 T_LLTF::values[] =
+{
+  // 14 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	
+  //
+  // -58 58
+  cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,
+  cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cneg	,	cneg	,	cneg	,
+  cneg	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cneg	,	cpos	,	czero	,	czero	,	czero	,	cneg	,
+  cpos	,	cpos	,	cneg	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,
+  cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cneg	,	cneg	,
+  cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,
+  // 13 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero
+  //
+};
+
+void dot11af_gen_lstf(ULONG FreqSeg)
+{
+  const int N  = 1024;
+  const int NV = N / v_cs::elem_cnt;
+
+  v_cs FreqDomain[NV];
+  v_cs TimeDomain[NV];
+
+  v_i  FreqPower[NV];
+  v_i  TimePower[NV];
+
+  ZeroMemory(FreqDomain, NV * v_cs::size);
+  ZeroMemory(TimeDomain, NV * v_cs::size);
+
+  complex16* pFirstSegment = (complex16*)FreqDomain;
+  pFirstSegment += (1024 - 144);
+
+  complex16* pSecondSegment = (complex16*)FreqDomain;
+  pFirstSegment += 0;
+
+  if (FreqSeg & 0x1)
+  {
+    memcpy(pFirstSegment,  T_LSTF::values, sizeof(T_LSTF::values));
+  }
+  if (FreqSeg & 0x2)
+  {
+    memcpy(pSecondSegment, T_LSTF::values, sizeof(T_LSTF::values));
+  }
+
+  for (int i = 0; i < NV; i++)
+  {
+    FreqPower[i] = FreqDomain[i].v_sqr2i();
+  }
+  
+
+  IFFT_WONORM<N>(FreqDomain, TimeDomain);
+
+
+  FFT<N>((vcs*)TimeDomain, (vcs*)FreqDomain);
+
+
+  for (int i = 0; i < NV; i++)
+  {
+    TimePower[i] = FreqDomain[i].v_sqr2i();
+  }
+
+  PlotSpectrum("FreqPower", (int*)FreqPower, N);
+  PlotSpectrum("TimePower", (int*)TimePower, N);
+}
+
+void dot11af_gen_lltf(ULONG FreqSeg)
+{
+  const int N  = 1024;
+  const int NV = N / v_cs::elem_cnt;
+
+  v_cs FreqDomain[NV];
+  v_cs TimeDomain[NV];
+
+  v_i  FreqPower[NV];
+  v_i  TimePower[NV];
+
+  ZeroMemory(FreqDomain, NV * v_cs::size);
+  ZeroMemory(TimeDomain, NV * v_cs::size);
+
+  complex16* pFirstSegment = (complex16*)FreqDomain;
+  pFirstSegment += (1024 - 144);
+
+  complex16* pSecondSegment = (complex16*)FreqDomain;
+  pFirstSegment += 0;
+
+  if (FreqSeg & 0x1)
+  {
+    memcpy(pFirstSegment,  T_LLTF::values, sizeof(T_LLTF::values));
+  }
+  if (FreqSeg & 0x2)
+  {
+    memcpy(pSecondSegment, T_LLTF::values, sizeof(T_LLTF::values));
+  }
+
+  for (int i = 0; i < NV; i++)
+  {
+    FreqPower[i] = FreqDomain[i].v_sqr2i();
+  }
+
+
+  IFFT_WONORM<N>(FreqDomain, TimeDomain);
+
+
+  FFT<N>((vcs*)TimeDomain, (vcs*)FreqDomain);
+
+  for (int i = 0; i < NV; i++)
+  {
+    TimePower[i] = FreqDomain[i].v_sqr2i();
+  }
+
+  PlotSpectrum("LLTF:FreqPower", (int*)FreqPower, N);
+  PlotSpectrum("LLTF:TimePower", (int*)TimePower, N);
 }
 
 int __cdecl _tmain(int argc, _TCHAR* argv[])
@@ -302,18 +446,22 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   dsp_console::warning("warning %d\n", GetTickCount());
   dsp_console::error("error %d\n", GetTickCount());
 
-
-  dsp_main(evt_handler_test);
-
-
   auto mumimo_tx_main = [&]
   {
-    //mumimo_4x4_tx(argc, argv);
+<<<<<<< HEAD
+    //bigap_4x4_tx(argc, argv);
+=======
+    mumimo_4x4_tx(argc, argv);
+>>>>>>> 13bb1816a80d7c97a66d8de3696edfdf1b6780fa
   };
 
   auto mumimo_rx_main = [&]
   {
-    //mumimo_4x4_rx(argc, argv);
+<<<<<<< HEAD
+    //bigap_4x4_rx(argc, argv);
+=======
+    mumimo_4x4_rx(argc, argv);
+>>>>>>> 13bb1816a80d7c97a66d8de3696edfdf1b6780fa
   };
 
 #if 0
@@ -333,8 +481,13 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   }
 #endif
   
+<<<<<<< HEAD
+  //dsp_main(mumimo_tx_main);
   //dsp_main(mumimo_rx_main);
+=======
+  dsp_main(mumimo_rx_main);
   //dsp_main(fft_test);
+>>>>>>> 13bb1816a80d7c97a66d8de3696edfdf1b6780fa
   //dsp_main(pipeline_profiling);
   //dsp_main(hw_plot);
   //hw_sink(argc,argv);
