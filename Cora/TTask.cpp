@@ -137,7 +137,7 @@ void cpu_manager::setup()
   // create CPUs as usual
   m_cpu_index           = new ULONG[m_nTotalProcessor];
 
-  for (int i = 0; i < m_nTotalProcessor; i++)
+  for (ULONG i = 0; i < m_nTotalProcessor; i++)
   {
     m_cpu_index[i] = 0;
   }
@@ -177,7 +177,7 @@ void cpu_manager::setup()
   else if (m_nTotalProcessor == 2)
   {
     int j = 0;
-    for (int i = 0; i < m_nTotalProcessor; i++)
+    for (ULONG i = 0; i < m_nTotalProcessor; i++)
     {
       m_sync_obj.status |= (1L << i);
       m_cpus[i].set_status_mask(&m_sync_obj.status);
@@ -190,8 +190,8 @@ void cpu_manager::setup()
   }
   else
   {
-    int j = 0;
-    for (int i = 1; i < m_nTotalProcessor; i++)
+    ULONG j = 0;
+    for (ULONG i = 1; i < m_nTotalProcessor; i++)
     {
       m_sync_obj.status |= (1L << i);
       m_cpus[i].set_status_mask(&m_sync_obj.status);

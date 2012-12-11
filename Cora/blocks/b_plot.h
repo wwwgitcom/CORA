@@ -1,29 +1,61 @@
 #pragma once
 #include "dsp_draw.h"
 
-DEFINE_BLOCK(b_plot_complex16_1v, 1, 0)
+DEFINE_BLOCK(b_plot_1v, 1, 0)
 {
-  dsp_draw_window* m_pDraw;
-
   BLOCK_INIT
   {
-    m_pDraw = new dsp_draw_window("title", 0, 0, 400, 400);
   }
+  v_i vpower[7];
+  v_i vfftpower[7];
 
   BLOCK_WORK
   {
-    trace();
-
     auto n = ninput(0);
-    if (n < 1)
+
+    //printf("Read a signal block...%d v_cs", n);
+
+    if (n < 7)
     {
       return false;
     }
     auto ip = _$<v_cs>(0);
-    complex16* ipc = reinterpret_cast<complex16*>(ip);
+    
+    for (int i = 0; i < 7; i++)
+    {
+      v_cs vtemp = ip[i].v_shift_right_arithmetic(1);
+      vpower[i] = vtemp.v_sqr2i();
+    }
 
-    m_pDraw->DrawSqrt(ipc, n * 4);
+    static int ncount = 0;    
+    HRESULT hr = PlotLine("HW Energy", (int*)&vpower, 4 * 7);
+    
+    ncount++;
+    if (ncount % 1000000 == 0)
+    {
+      fprintf(stderr, "Call PlotLine %d times, hr = 0x%p\n", ncount, hr);
+    }
 
-    return false;
+#if 0
+
+    complex16* pc = &ip[0][0];
+    int* p = &vpower[0][0];
+
+    for (int i = 0; i < 28; i++)
+    {
+      printf("%d \t %d, %d", p[i], pc[i].re, pc[i].im);
+
+      if (p[i] < 0)
+      {
+        printf("----------------------------");
+      }
+      printf("\n");
+    }
+    printf("\n");
+#endif
+
+    consume(0, 7);
+
+    return true;
   }
 };

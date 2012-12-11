@@ -97,7 +97,6 @@ DEFINE_BLOCK(b_dot11n_dma_join_2v1, 2, 1)
     }
   }
 
-
   void toTxtFile(const char* filename)
   {
     for (int i = 0; i < 2; i++)
@@ -234,6 +233,50 @@ DEFINE_BLOCK(b_dot11n_dma_join_4v1, 4, 1)
     }
   }
 
+  void toTxDumpFileC8_40M(const char* filename)
+  {
+    for (int i = 0; i < 4; i++)
+    {
+      char namebuffer[1024];
+      memset(namebuffer, 0, 1024);
+      sprintf_s(namebuffer, 1024, "%s_%d.dmp", filename, i);
+      FILE* hFile;
+      fopen_s(&hFile, namebuffer, "wb");
+
+      int nvtotal_count = (v_cs*)m_outputs[0]->write_pointer() - (v_cs*)m_outputs[0]->m_base;
+      //nvtotal_count >>= 1; // per stream
+
+      int total_count = nvtotal_count << 2; // count in complex16
+
+      complex16* pc = (complex16*)&m_outputs[0]->m_base[0];
+
+      pc += (i * 4); // adjust pc to the start of the ith stream
+
+      int j = 0;
+      int iout = 0;
+      while (j < total_count)
+      {
+        for (int k = 0; k < 4; k++)
+        {
+          complex8  cop;
+          cop.re = (pc[k].re >> 4);
+          cop.im = (pc[k].im >> 4);
+
+          //printf("%d, %d \t %d, %d\n", cop.re, cop.im, pc[k].re, pc[k].im);
+
+          fwrite(&cop, sizeof(complex8) * 1, 1, hFile);
+        }
+
+        pc += 16;
+
+        iout += 4;
+        j += 4;
+      }
+
+
+      fclose(hFile);
+    }
+  }
 
   void toTxtFile(const char* filename)
   {
@@ -241,7 +284,7 @@ DEFINE_BLOCK(b_dot11n_dma_join_4v1, 4, 1)
     {
       char namebuffer[1024];
       memset(namebuffer, 0, 1024);
-      sprintf_s(namebuffer, 1024, "%s_%d.txt", filename, i);
+      sprintf_s(namebuffer, 1024, "%s_%d.log", filename, i);
       FILE* hFile;
       fopen_s(&hFile, namebuffer, "w");
 

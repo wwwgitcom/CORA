@@ -15,8 +15,12 @@
 #include "dsp_processor.h"
 #include "dsp_cmd.h"
 #include "dsp_vector1.h"
-
+#include "dsp_source.h"
 #include "dsp_draw.h"
+#include "dsp_console.h"
+
+#define USER_MODE
+#include "sora.h"
 
 #define enable_draw 0
 #define enable_dbgplot 1
@@ -37,6 +41,8 @@
 #include "TReset.h"
 
 //--------------------------------------------------
+#include "b_hw_source.h"
+#include "b_hw_sink.h"
 #include "b_plot.h"
 #include "b_producer.h"
 #include "b_consumer.h"
@@ -113,9 +119,6 @@
 #include "b_mumimo_4x4_tx.h"
 #include "b_mumimo_4x4_rx.h"
 
-#include "b_bigap.h"
-
-
 
 
 
@@ -160,21 +163,252 @@ void pipeline_profiling()
   }
 }
 
-void test_source_sock()
+
+#define fft_size 1024
+
+vcs fft_input[fft_size/4];
+vcs fft_output[fft_size/4];
+
+
+template<int N>
+DSP_INLINE1 void PFFT(vcs * pInput, vcs * pOutput)
 {
-  autoref bsock = create_block<b_bigap_source_v4>(2, string("ip=127.0.0.1"), string("port=99999"));
-  START(bsock);
+  const int nArray = N / vcs::size;
+
+  FFTSSE<N> (pInput);
+
+  PARALLEL([&]{
+    FFTSSEEx<N/4> (pInput);
+    FFTSSEEx<N/4> (pInput + nArray / 4);
+  },[&]{
+    FFTSSEEx<N/4> (pInput + nArray / 2);
+    FFTSSEEx<N/4> (pInput + nArray / 4 * 3);
+  });
+
+  int i;
+  for (i = 0; i < N; i++)
+    ((COMPLEX16*)pOutput)[i] = ((COMPLEX16*)pInput) [FFTLUTMapTable<N>(i)];
 }
 
-void test_sink_sock()
+
+void fft_test()
 {
-  autoref bsock = create_block<b_bigap_sink_4v>(1, string("port=99999"));
-  START(bsock);
+  tick_count t1, t2, t;
+  t1 = tick_count::now();
+  for (int i = 0; i < 100000; i++)
+  {
+    FFT<fft_size>(fft_input, fft_output);
+  }  
+  t2 = tick_count::now();
+  t = t2 - t1;
+  printf("fft single: %f us\n", t.us() /  100000.0);
+
+  //------------------------
+  t1 = tick_count::now();
+  for (int i = 0; i < 100000; i++)
+  {
+    PFFT<fft_size>(fft_input, fft_output);
+  }
+  t2 = tick_count::now();
+  t = t2 - t1;
+  printf("pfft single: %f us\n", t.us() /  100000.0);
 }
 
 
+void hw_plot()
+{
+  autoref hwsrc = create_block<b_hw_source_v1>();
+  autoref plot  = create_block<b_plot_1v>();
 
-int _tmain(int argc, _TCHAR* argv[])
+  Channel::Create(sizeof(v_cs)).from(hwsrc, 0).to(plot, 0);
+
+  START(hwsrc, plot);
+}
+
+
+void hw_sink(int argc, _TCHAR* argv[])
+{
+  dsp_cmd cmdline;
+  cmdline.parse(argc, argv);
+
+
+  string strFileName = string("FileName=c:\\mimo_tx_0.dmp");
+  auto CmdArg = cmdline.get("FileName");
+  if ( CmdArg.exist() )
+  {
+    strFileName = "FileName=" + CmdArg.as_string();
+  }
+
+  printf("|- %s\n", strFileName.c_str());
+
+  autoref txsrc  = create_block<b_tx_file_source_v1>(1, strFileName);
+  autoref hwsink = create_block<b_hw_sink_1v>();
+
+  Channel::Create(sizeof(v_cb), 128 * 1024).from(txsrc, 0).to(hwsink, 0);
+
+  dsp_main( [&]{START(txsrc, hwsink);} ); 
+}
+
+
+class T_LSTF
+{
+  static const complex16 czero;
+  static const complex16 cpos;
+  static const complex16 cneg;
+public:
+  static const complex16 values[144];
+};
+
+const complex16 T_LSTF::czero(0, 0);
+const complex16 T_LSTF::cpos(203, 203);
+const complex16 T_LSTF::cneg(-203, -203);
+const complex16 T_LSTF::values[] =
+{
+  // 14 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	
+  //
+  // -58 58
+  czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,																				
+  cneg	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,								
+  cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,														
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,
+  czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,										
+  cneg	,	czero	,	czero	,	czero	,	cneg	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,	czero	,	czero	,	czero	,	 cpos	,														
+  czero	,	czero	,	czero	,	 cpos	,	czero	,	czero ,
+  // 13 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	
+  //
+};
+
+class T_LLTF
+{
+  static const complex16 czero;
+  static const complex16 cpos;
+  static const complex16 cneg;
+public:
+  static const complex16 values[144];
+};
+
+const complex16 T_LLTF::czero(0, 0);
+const complex16 T_LLTF::cpos(138, 0);
+const complex16 T_LLTF::cneg(-138, 0);
+const complex16 T_LLTF::values[] =
+{
+  // 14 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	
+  //
+  // -58 58
+  cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,
+  cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cneg	,	cneg	,	cneg	,
+  cneg	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cneg	,	cpos	,	czero	,	czero	,	czero	,	cneg	,
+  cpos	,	cpos	,	cneg	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,
+  cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cneg	,	cneg	,
+  cneg	,	cneg	,	cpos	,	cpos	,	cneg	,	cneg	,	cpos	,	cneg	,	cpos	,	cneg	,	cpos	,	cpos	,	cpos	,	cpos	,
+  // 13 zero
+  czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero	,	czero
+  //
+};
+
+void dot11af_gen_lstf(ULONG FreqSeg)
+{
+  const int N  = 1024;
+  const int NV = N / v_cs::elem_cnt;
+
+  v_cs FreqDomain[NV];
+  v_cs TimeDomain[NV];
+
+  v_i  FreqPower[NV];
+  v_i  TimePower[NV];
+
+  ZeroMemory(FreqDomain, NV * v_cs::size);
+  ZeroMemory(TimeDomain, NV * v_cs::size);
+
+  complex16* pFirstSegment = (complex16*)FreqDomain;
+  pFirstSegment += (1024 - 144);
+
+  complex16* pSecondSegment = (complex16*)FreqDomain;
+  pFirstSegment += 0;
+
+  if (FreqSeg & 0x1)
+  {
+    memcpy(pFirstSegment,  T_LSTF::values, sizeof(T_LSTF::values));
+  }
+  if (FreqSeg & 0x2)
+  {
+    memcpy(pSecondSegment, T_LSTF::values, sizeof(T_LSTF::values));
+  }
+
+  for (int i = 0; i < NV; i++)
+  {
+    FreqPower[i] = FreqDomain[i].v_sqr2i();
+  }
+  
+
+  IFFT_WONORM<N>(FreqDomain, TimeDomain);
+
+
+  FFT<N>((vcs*)TimeDomain, (vcs*)FreqDomain);
+
+
+  for (int i = 0; i < NV; i++)
+  {
+    TimePower[i] = FreqDomain[i].v_sqr2i();
+  }
+
+  PlotSpectrum("FreqPower", (int*)FreqPower, N);
+  PlotSpectrum("TimePower", (int*)TimePower, N);
+}
+
+void dot11af_gen_lltf(ULONG FreqSeg)
+{
+  const int N  = 1024;
+  const int NV = N / v_cs::elem_cnt;
+
+  v_cs FreqDomain[NV];
+  v_cs TimeDomain[NV];
+
+  v_i  FreqPower[NV];
+  v_i  TimePower[NV];
+
+  ZeroMemory(FreqDomain, NV * v_cs::size);
+  ZeroMemory(TimeDomain, NV * v_cs::size);
+
+  complex16* pFirstSegment = (complex16*)FreqDomain;
+  pFirstSegment += (1024 - 144);
+
+  complex16* pSecondSegment = (complex16*)FreqDomain;
+  pFirstSegment += 0;
+
+  if (FreqSeg & 0x1)
+  {
+    memcpy(pFirstSegment,  T_LLTF::values, sizeof(T_LLTF::values));
+  }
+  if (FreqSeg & 0x2)
+  {
+    memcpy(pSecondSegment, T_LLTF::values, sizeof(T_LLTF::values));
+  }
+
+  for (int i = 0; i < NV; i++)
+  {
+    FreqPower[i] = FreqDomain[i].v_sqr2i();
+  }
+
+
+  IFFT_WONORM<N>(FreqDomain, TimeDomain);
+
+
+  FFT<N>((vcs*)TimeDomain, (vcs*)FreqDomain);
+
+  for (int i = 0; i < NV; i++)
+  {
+    TimePower[i] = FreqDomain[i].v_sqr2i();
+  }
+
+  PlotSpectrum("LLTF:FreqPower", (int*)FreqPower, N);
+  PlotSpectrum("LLTF:TimePower", (int*)TimePower, N);
+}
+
+int __cdecl _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
   cmdline.parse(argc, argv);
@@ -208,14 +442,18 @@ int _tmain(int argc, _TCHAR* argv[])
   dsp_main(rx_main);
 #endif
 
+  dsp_console::info("info %d\n", GetTickCount());
+  dsp_console::warning("warning %d\n", GetTickCount());
+  dsp_console::error("error %d\n", GetTickCount());
+
   auto mumimo_tx_main = [&]
   {
-    //bigap_4x4_tx(argc, argv);
+    mumimo_4x4_tx(argc, argv);
   };
 
   auto mumimo_rx_main = [&]
   {
-    //bigap_4x4_rx(argc, argv);
+    mumimo_4x4_rx(argc, argv);
   };
 
 #if 0
@@ -235,11 +473,11 @@ int _tmain(int argc, _TCHAR* argv[])
   }
 #endif
   
-  //dsp_main(mumimo_tx_main);
   //dsp_main(mumimo_rx_main);
+  //dsp_main(fft_test);
   //dsp_main(pipeline_profiling);
-  //dsp_main(rx_main);
-
+  //dsp_main(hw_plot);
+  //hw_sink(argc,argv);
   
 #if 0
   if ( cmdline.get("rx").exist() )
@@ -260,7 +498,7 @@ int _tmain(int argc, _TCHAR* argv[])
 #endif
 
   ExitProcess(0);
-  exit(0);
+  exit(0); 
 	return 0;
 }
 

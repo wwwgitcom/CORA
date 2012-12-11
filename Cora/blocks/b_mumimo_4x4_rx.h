@@ -120,7 +120,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
   autoref ht_sig_parser              = create_block<b_htsig_parser_1v>();
   autoref ht_stf                     = create_block<b_drop_4v>(1, string("nDrop=20") );
 
-  autoref noise_estimator            = create_block<b_noise_estimator_4v>();
+  autoref noise_estimator            = create_block<b_noise_estimator2_4v>();
   autoref mimo_channel_estimator_zf  = create_block<b_dot11_mimo_channel_estimator_4v>();
   autoref mimo_channel_estimator_mmse= create_block<b_dot11_mimo_channel_estimator_mmse_4v>();
   
@@ -228,19 +228,19 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   // 
   Channel::Create(sizeof(v_cs))
-    .from(fft_lltf1, 0)
+    .from(fft_lltf1, 0).to(noise_estimator, 0)
     .to(siso_channel_est, 0);
 
   Channel::Create(sizeof(v_cs))
-    .from(fft_lltf2, 0)
+    .from(fft_lltf2, 0).to(noise_estimator, 1)
     .to(siso_channel_est, 1);
 
   Channel::Create(sizeof(v_cs))
-    .from(fft_lltf3, 0)
+    .from(fft_lltf3, 0).to(noise_estimator, 2)
     .to(siso_channel_est, 2);
 
   Channel::Create(sizeof(v_cs))
-    .from(fft_lltf4, 0)
+    .from(fft_lltf4, 0).to(noise_estimator, 3)
     .to(siso_channel_est, 3);
 
   //
@@ -263,19 +263,19 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   //
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 0).to(noise_estimator, 0).to(siso_mrc_combine, 0)
+    .from(siso_channel_comp, 0).to(siso_mrc_combine, 0)
     .from(mimo_channel_compensator_1, 0)
     .to(ht_demap_bpsk1, 0).to(ht_demap_qpsk1, 0).to(ht_demap_16qam1, 0).to(ht_demap_64qam1, 0).to(pilot_tracking_1, 0);
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 1).to(noise_estimator, 1).to(siso_mrc_combine, 1)
+    .from(siso_channel_comp, 1).to(siso_mrc_combine, 1)
     .from(mimo_channel_compensator_2, 0)
     .to(ht_demap_bpsk2, 0).to(ht_demap_qpsk2, 0).to(ht_demap_16qam2, 0).to(ht_demap_64qam2, 0).to(pilot_tracking_2, 0);
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 2).to(noise_estimator, 2).to(siso_mrc_combine, 2)
+    .from(siso_channel_comp, 2).to(siso_mrc_combine, 2)
     .from(mimo_channel_compensator_3, 0)
     .to(ht_demap_bpsk3, 0).to(ht_demap_qpsk3, 0).to(ht_demap_16qam3, 0).to(ht_demap_64qam3, 0).to(pilot_tracking_3, 0);
   Channel::Create(sizeof(v_cs))
-    .from(siso_channel_comp, 3).to(noise_estimator, 3).to(siso_mrc_combine, 3)
+    .from(siso_channel_comp, 3).to(siso_mrc_combine, 3)
     .from(mimo_channel_compensator_4, 0)
     .to(ht_demap_bpsk4, 0).to(ht_demap_qpsk4, 0).to(ht_demap_16qam4, 0).to(ht_demap_64qam4, 0).to(pilot_tracking_4, 0);
 
@@ -382,7 +382,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
     {
       ONCE(cfo_est, cfo_comp);
       START(fft_lltf1, fft_lltf2, fft_lltf3, fft_lltf4);
-      ONCE(siso_channel_est);
+      ONCE(noise_estimator, siso_channel_est);
       return true;
     }), STOP(NOP));
     return true;
@@ -390,7 +390,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
 
   auto lsig_handler = [&]() -> bool
   {
-    *l_sig_vit.VitTotalBits = 24;
+    *l_sig_vit.VitTotalBits     = 24;
     *l_sig_vit.VitTotalSoftBits = 48;
     *l_sig_ok = false;
     //l-sig
@@ -400,7 +400,7 @@ void mumimo_4x4_rx(int argc, _TCHAR* argv[])
       ONCE(remove_gi2, fft_data2);
       ONCE(remove_gi3, fft_data3);
       ONCE(remove_gi4, fft_data4);
-      ONCE(siso_channel_comp, noise_estimator, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit);
+      ONCE(siso_channel_comp, siso_mrc_combine, siso_lsig_demap_bpsk_i, siso_lsig_deinterleave, l_sig_vit);
 
       ONCE(l_sig_parser);
     }));

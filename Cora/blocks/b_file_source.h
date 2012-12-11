@@ -637,3 +637,82 @@ public:
     return true;
   }
 };
+
+
+
+//////////////////////////////////////////////////////////////////////////
+// tx file
+//////////////////////////////////////////////////////////////////////////
+
+
+
+DEFINE_BLOCK(b_tx_file_source_v1, 0, 1)
+{
+  _local_(string, filename, "unknown");
+  _local_(char*, pBufferStart, nullptr);
+  _local_(char*, pBufferEnd, nullptr);
+  _local_(char*, pBufferRead, nullptr);
+  long file_length;
+public:
+
+  BLOCK_INIT
+  {
+    auto v = $["FileName"];
+    printf(" ..... %s\n", v.c_str());
+    if (!v.empty())
+    {
+      *filename = v;
+    }
+    
+    if (!load_file())
+    {
+      string msg = "error: " + string(name()) + " can not load file " + *filename;
+      cout << msg << endl;
+      throw::invalid_argument(msg);
+    }
+  }
+
+  bool load_file()
+  {
+    FILE* hFile;
+    fopen_s(&hFile, (*filename).c_str(), "rb");
+
+    if (NULL == hFile)
+    {
+      return false;
+    }
+
+    fseek(hFile, 0, SEEK_END);
+
+    file_length = ftell(hFile);
+
+    assert(file_length > 0);
+
+    *pBufferStart = (char*)_aligned_malloc(file_length, 64);
+    assert(*pBufferStart != NULL);
+
+    fseek(hFile, 0, SEEK_SET);
+    size_t read_length = fread(*pBufferStart, sizeof(char), file_length, hFile);
+
+    assert(read_length == file_length);
+
+    *pBufferRead  = *pBufferStart;
+    *pBufferEnd   = *pBufferStart + file_length;
+
+    std::cout << name() << " read from " << *filename << " " << file_length << " bytes." << endl;
+
+    return true;
+  }
+
+  BLOCK_WORK
+  {
+    auto op = $_<v_cb>(0);
+
+    memcpy(op, *pBufferStart, file_length);
+
+    int nvcb = file_length / v_cb::size;
+    produce(0, nvcb);
+
+    return true;
+  }
+};

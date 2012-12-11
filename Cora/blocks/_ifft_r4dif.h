@@ -147,6 +147,16 @@ DSP_INLINE1 void IFFT(vcs * pInput, vcs * pOutput)
     int i;
     for (i = 0; i < N; i++)
         ((COMPLEX16*)pOutput)[i] = ((COMPLEX16*)pInput) [FFTLUTMapTable<N>(i)];
+}
+
+template<int N>
+DSP_INLINE1 void IFFT(v_cs * pInput, v_cs * pOutput)
+{
+  IFFTSSEEx<N>((vcs *)pInput);
+
+  int i;
+  for (i = 0; i < N; i++)
+    ((COMPLEX16*)pOutput)[i] = ((COMPLEX16*)pInput) [FFTLUTMapTable<N>(i)];
 
 }
 

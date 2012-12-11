@@ -11,7 +11,6 @@
 
 #if enable_dbgplot
 #pragma comment(lib, "DebugPlotU.lib")
-#pragma comment(lib, "usora.lib")
 #endif
 
 

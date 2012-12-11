@@ -484,6 +484,7 @@ inline void mumimo_4x4_tx(int argc, _TCHAR* argv[])
     ELSE, NOP
     );
 
-  dma_join.toRxDumpFile20M("mimo");
-  //dma_join.toTxtFile("mimo");
+  //dma_join.toRxDumpFile20M("mimo");
+  dma_join.toTxDumpFileC8_40M("mimo_tx");
+  dma_join.toTxtFile("mimo");
 }

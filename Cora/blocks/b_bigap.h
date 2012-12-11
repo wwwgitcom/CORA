@@ -75,9 +75,22 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
   Dot11aChannelCoefficient siso_channel_1;
   Dot11aChannelCoefficient siso_channel_2;
 
-  v_cs h_buffer[16];
   v_cs fft_buffer[2][16];
-  v_cs noise_buffer[4][4];
+  v_cs noise_buffer[4];
+  v_i  h_power[4][16];
+  v_i  n_power[4];
+
+  BLOCK_INIT
+  {
+    for each (v_cs& var in noise_buffer)
+    {
+      var.v_zero();
+    }
+    for each (v_i& var in n_power)
+    {
+      var.v_zero();
+    }
+  }
 
 
   BLOCK_RESET
@@ -133,33 +146,22 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     fft_buffer[1][0][0]._r = 0;
     // average
     v_cs* pvcs = (v_cs*)&ch[0][*state * 64];
+    v_cs  vnoise;
+    vnoise.v_zero();
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
       pvcs[i]  = r.v_shift_right_arithmetic(1);
 
-      h_buffer[i] = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
-    }
+      v_cs h = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
+      v_i  hp = h.v_sqr2i();
+      h_power[0][i] = v_add(h_power[0][i], hp);
 
-    v_cs  vnoise;
-    v_s   vabsmax;
-    vabsmax.v_zero();
-    vnoise.v_zero();
-    for (int i = 0; i < 16; i++)
-    {
-      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[0][i].v_abs()));
-      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[1][i].v_abs()));
-      
-      v_cs n1 = v_sub(fft_buffer[0][i], h_buffer[i]);
-      v_cs n2 = v_sub(fft_buffer[1][i], h_buffer[i]);
-      vnoise  = v_add(n1, n2);
+      vnoise = v_add(vnoise, v_sub(fft_buffer[0][i], fft_buffer[1][i]));
     }
     vnoise = vnoise.v_hsums().v_shift_right_arithmetic(4);
 
-    noise_buffer[*state][0] = vnoise;
-
-    printf("---[0]abs max---\n");
-    v_print(stdout, vabsmax);
+    noise_buffer[0] = (v_cs&)v_max((v_s&)vnoise, (v_s&)noise_buffer[0]);
 
 #if enable_dbgplot
     int Spectrum[64];
@@ -189,31 +191,22 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     fft_buffer[1][0][0]._r = 0;
 
     pvcs = (v_cs*)&ch[1][*state * 64];
+    vnoise.v_zero();
+
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
       pvcs[i]  = r.v_shift_right_arithmetic(1);
 
-      h_buffer[i] = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
-    }
+      v_cs h = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
+      v_i  hp = h.v_sqr2i();
+      h_power[1][i] = v_add(h_power[1][i], hp);
 
-    vabsmax.v_zero();
-    vnoise.v_zero();
-    for (int i = 0; i < 16; i++)
-    {
-      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[0][i].v_abs()));
-      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[1][i].v_abs()));
-
-      v_cs n1 = v_sub(fft_buffer[0][i], h_buffer[i]);
-      v_cs n2 = v_sub(fft_buffer[1][i], h_buffer[i]);
-      vnoise = v_add(n1, n2);
+      vnoise = v_add(vnoise, v_sub(fft_buffer[0][i], fft_buffer[1][i]));
     }
     vnoise = vnoise.v_hsums().v_shift_right_arithmetic(4);
 
-    noise_buffer[*state][1] = vnoise;
-
-    printf("---[1]abs max---\n");
-    v_print(stdout, vabsmax);
+    noise_buffer[1] = (v_cs&)v_max((v_s&)vnoise, (v_s&)noise_buffer[1]);
 
 #if enable_dbgplot
     for (int i = 1; i < 64; i++)
@@ -236,31 +229,22 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     fft_buffer[1][0][0]._r = 0;
 
     pvcs = (v_cs*)&ch[2][*state * 64];
+    vnoise.v_zero();
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
       pvcs[i]  = r.v_shift_right_arithmetic(1);
 
-      h_buffer[i] = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
-    }
-    vabsmax.v_zero();
-    vnoise.v_zero();
-    for (int i = 0; i < 16; i++)
-    {
-      vabsmax = ((v_s&)(vabsmax), (v_s&)(fft_buffer[0][i].v_abs()));
-      vabsmax = ((v_s&)(vabsmax), (v_s&)(fft_buffer[1][i].v_abs()));
+      v_cs h = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
+      v_i  hp = h.v_sqr2i();
+      h_power[2][i] = v_add(h_power[2][i], hp);
 
-      v_cs n1 = v_sub(fft_buffer[0][i], h_buffer[i]);
-      v_cs n2 = v_sub(fft_buffer[1][i], h_buffer[i]);
-      vnoise = v_add(n1, n2);
+      vnoise = v_add(vnoise, v_sub(fft_buffer[0][i], fft_buffer[1][i]));
     }
     vnoise = vnoise.v_hsums().v_shift_right_arithmetic(4);
 
-    noise_buffer[*state][2] = vnoise;
+    noise_buffer[2] = (v_cs&)v_max((v_s&)vnoise, (v_s&)noise_buffer[2]);
     
-    printf("---[2]abs max---\n");
-    v_print(stdout, vabsmax);
-
 #if enable_dbgplot
     for (int i = 1; i < 64; i++)
     {
@@ -281,31 +265,22 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     fft_buffer[1][0][0]._r = 0;
 
     pvcs = (v_cs*)&ch[3][*state * 64];
+    vnoise.v_zero();
+
     for (int i = 0; i < 16; i++)
     {
       v_cs r = v_add(siso_channel_1[i], siso_channel_2[i]);
       pvcs[i]  = r.v_shift_right_arithmetic(1);
 
-      h_buffer[i] = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
-    }
+      v_cs h = v_add(fft_buffer[0][i], fft_buffer[1][i]).v_shift_right_arithmetic(1);
+      v_i  hp = h.v_sqr2i();
+      h_power[3][i] = v_add(h_power[3][i], hp);
 
-    vabsmax.v_zero();
-    vnoise.v_zero();
-    for (int i = 0; i < 16; i++)
-    {
-      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[0][i].v_abs()));
-      vabsmax = v_max((v_s&)(vabsmax), (v_s&)(fft_buffer[1][i].v_abs()));
-
-      v_cs n1 = v_sub(fft_buffer[0][i], h_buffer[i]);
-      v_cs n2 = v_sub(fft_buffer[1][i], h_buffer[i]);
-      vnoise = v_add(n1, n2);
+      vnoise = v_add(vnoise, v_sub(fft_buffer[0][i], fft_buffer[1][i]));
     }
     vnoise = vnoise.v_hsums().v_shift_right_arithmetic(4);
 
-    noise_buffer[*state][3] = vnoise;
-
-    printf("---[3]abs max---\n");
-    v_print(stdout, vabsmax);
+    noise_buffer[3] = (v_cs&)v_max((v_s&)vnoise, (v_s&)noise_buffer[3]);
 
 #if enable_dbgplot
     for (int i = 1; i < 64; i++)
@@ -324,16 +299,35 @@ DEFINE_BLOCK(b_bigap_lltf_rx_4v, 4, 0)
     {
       *state = 0;
 
-      printf("===noise---\n");
+      //////////////////////////////////////////////////////////////////////////
+      // calc. noise power according to the maximum noise variance
       for (int i = 0; i < 4; i++)
       {
-        for (int j = 0; j < 4; j++)
-        {
-          v_print(stdout, noise_buffer[i][j]);
-        }
-        printf("\n");
+        n_power[i] = noise_buffer[i].v_sqr2i();
       }
-      printf("\n");
+
+      for (int n = 0; n < 4; n++)
+      {
+        int32* php = (int32*)&h_power[n];
+        int32* pnp = (int32*)&n_power[n];
+        PlotText("SNR", "Antenna %d ===hpower vs npower---\n", n);
+        for (int i = 0; i < 64; i++)
+        {
+          PlotText("SNR", "sc_%2d: \t %d \t %d \t SNR = %f dB\n", i, 
+            php[i], pnp[n] + 1, 10.0 * log10(php[i] * 1.0 / (pnp[n] + 1)));
+        }
+      }
+      
+      // reset 
+      for each (v_cs& var in noise_buffer)
+      {
+        var.v_zero();
+      }
+      for each (v_i& var in h_power)
+      {
+        var.v_zero();
+      }
+
     }
 
     consume_each(nwait);
@@ -583,16 +577,21 @@ DEFINE_BLOCK(b_bigap_channel_compensator_4v4, 4, 4)
       v_cs& x3      = (v_cs&)opc3[i];
       v_cs& x4      = (v_cs&)opc4[i];
 
-#define compression_shift 5
+
+#define compression_shift_1 5
+#define compression_shift_2 6
+#define compression_shift_3 7
+#define compression_shift_4 8
+
       
-      y1 = y1.v_shift_right_logical(compression_shift);
-      y1 = y1.v_shift_left(compression_shift);
-      y2 = y2.v_shift_right_logical(compression_shift);
-      y2 = y2.v_shift_left(compression_shift);
-      y3 = y3.v_shift_right_logical(compression_shift);
-      y3 = y3.v_shift_left(compression_shift);
-      y4 = y4.v_shift_right_logical(compression_shift);
-      y4 = y4.v_shift_left(compression_shift);
+      y1 = y1.v_shift_right_logical(compression_shift_1);
+      y1 = y1.v_shift_left(compression_shift_1);
+      y2 = y2.v_shift_right_logical(compression_shift_2);
+      y2 = y2.v_shift_left(compression_shift_2);
+      y3 = y3.v_shift_right_logical(compression_shift_3);
+      y3 = y3.v_shift_left(compression_shift_3);
+      y4 = y4.v_shift_right_logical(compression_shift_4);
+      y4 = y4.v_shift_left(compression_shift_4);
 
       // x1
       v_mul2ci(vinvh11, y1, vMulMask, vcomp1[0], vcomp1[1]);

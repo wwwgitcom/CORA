@@ -285,7 +285,7 @@ private:
   ULONG           m_cpu_count;
   int             m_nCurrentIndex;
 
-  int             m_nTotalProcessor;
+  ULONG           m_nTotalProcessor;
   dsp_spin_lock   m_lock;
   cpu_processor   m_cpus[16];
 

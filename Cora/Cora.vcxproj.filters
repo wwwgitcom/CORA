@@ -28,6 +28,9 @@
     <Filter Include="Header Files\dbgplot">
       <UniqueIdentifier>{98038135-88bd-4be2-b157-1dcab2e4cd29}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\sora">
+      <UniqueIdentifier>{2c51e42c-f285-4bd8-b4f2-7f181ce4962a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -303,15 +306,6 @@
     <ClInclude Include="dbgplot\inc\DebugPlotU.h">
       <Filter>Header Files\dbgplot</Filter>
     </ClInclude>
-    <ClInclude Include="blocks\b_bigap_4x4_rx.h">
-      <Filter>Header Files\blocks</Filter>
-    </ClInclude>
-    <ClInclude Include="blocks\b_bigap_4x4_tx.h">
-      <Filter>Header Files\blocks</Filter>
-    </ClInclude>
-    <ClInclude Include="blocks\b_bigap.h">
-      <Filter>Header Files\blocks</Filter>
-    </ClInclude>
     <ClInclude Include="blocks\b_passthru.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
@@ -328,6 +322,198 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include=".\blocks\b_socket.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_hw_source.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_auto_mutex_k.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_auto_mutex_u.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_core_thread.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_enlist.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_fsm.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_hw_op.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_new.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_packet_base.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_private_ext_k.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_private_ext_u.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_radio_manager.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_reg_conf.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_rx_manager.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_rx_stream.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_scheduler.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_share_lock_if.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_share_lock_kimp.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_share_lock_uimp.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_share_mem_if.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_share_mem_kimp.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_share_mem_uimp.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_signal_cache.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_sora_clock.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_sora_regman.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_tx_manager2.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_UExtK.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_user_mode_ext.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_WARP_Control.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\_WARP_Regs.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\alinew.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\complex.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\complex_ext.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\const.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\CRC16.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\CRC32.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\diagnostics.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\fft.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\fft_lut_bitreversal.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\fft_lut_twiddle.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\fft_r4dif.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\func.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\ifft_r4dif.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\intalg.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\intalglut.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\resource_collection.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\rxstream.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\send_packet_data.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\smart_pointer.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\sora.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\soradsp.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\soradsp_asm.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\soratime.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\soratypes.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\thread_func.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\thread_if.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\tpltrick.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\typeof.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\unroll.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\uwdm.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\variadic_macro.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="sorainc\vector128.h">
+      <Filter>Header Files\sora</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_hw_sink.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_dot11af_lstf.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
   </ItemGroup>
