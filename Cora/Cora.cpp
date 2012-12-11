@@ -210,12 +210,12 @@ int _tmain(int argc, _TCHAR* argv[])
 
   auto mumimo_tx_main = [&]
   {
-    bigap_4x4_tx(argc, argv);
+    //bigap_4x4_tx(argc, argv);
   };
 
   auto mumimo_rx_main = [&]
   {
-    bigap_4x4_rx(argc, argv);
+    //bigap_4x4_rx(argc, argv);
   };
 
 #if 0
@@ -236,7 +236,7 @@ int _tmain(int argc, _TCHAR* argv[])
 #endif
   
   //dsp_main(mumimo_tx_main);
-  dsp_main(mumimo_rx_main);
+  //dsp_main(mumimo_rx_main);
   //dsp_main(pipeline_profiling);
   //dsp_main(rx_main);
 
