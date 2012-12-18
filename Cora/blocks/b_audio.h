@@ -39,8 +39,9 @@ DEFINE_BLOCK(b_audio_v1, 0, 1)
 
   HRESULT SetupAudioStream()
   {
-    bDone =false;
+    bDone                =false;
     hnsRequestedDuration = REFTIMES_PER_SEC;
+    pwfx                 = NULL;
 
     CoInitialize(NULL);
 

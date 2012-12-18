@@ -264,6 +264,25 @@ void hw_sink(int argc, _TCHAR* argv[])
   dsp_main( [&]{START(txsrc, hwsink);} ); 
 }
 
+
+void dump_llts()
+{
+  autoref llts = create_block<b_dot11n_lstf_v4>();
+  autoref sink = create_block<b_dot11n_dma_join_4v1>();
+
+  Channel::Create(sizeof(dot11n_tx_symbol)).from(llts, 0).to(sink, 0);
+  Channel::Create(sizeof(dot11n_tx_symbol)).from(llts, 1).to(sink, 1);
+  Channel::Create(sizeof(dot11n_tx_symbol)).from(llts, 2).to(sink, 2);
+  Channel::Create(sizeof(dot11n_tx_symbol)).from(llts, 3).to(sink, 3);
+
+  Channel::Create(sizeof(v_cs)).from(sink, 0);
+
+  ONCE(llts);
+  START(sink);
+
+  sink.toTxtFile("dot11n_llts");
+}
+
 int __cdecl _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
@@ -298,13 +317,8 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   dsp_main(rx_main);
 #endif
 
-  dsp_console::info("info %d\n", GetTickCount());
-  dsp_console::warning("warning %d\n", GetTickCount());
-  dsp_console::error("error %d\n", GetTickCount());
-
-
-  dsp_main(evt_handler_test);
-
+  //dsp_main(evt_handler_test);
+  dump_llts();
 
   auto mumimo_tx_main = [&]
   {

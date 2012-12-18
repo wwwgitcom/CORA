@@ -38,7 +38,7 @@ DEFINE_BLOCK(b_dot11n_lstf_v4, 0, 4)
     _lstf.get_stf_4_of_4(op4->data);
 
     produce_each(2);
-
+    
     return true;
   }
 };

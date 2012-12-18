@@ -116,7 +116,7 @@ DEFINE_BLOCK(b_dot11n_dma_join_2v1, 2, 1)
 
       pc += (i * 4); // adjust pc to the start of the ith stream
 
-      for (int j = 0; j < total_count; j += 8)
+      for (int j = 0; j < total_count; j += 4)
       {
         fprintf(hFile, "%d\t%d\n", pc[0].re, pc[0].im);
         fprintf(hFile, "%d\t%d\n", pc[1].re, pc[1].im);
@@ -284,7 +284,7 @@ DEFINE_BLOCK(b_dot11n_dma_join_4v1, 4, 1)
     {
       char namebuffer[1024];
       memset(namebuffer, 0, 1024);
-      sprintf_s(namebuffer, 1024, "%s_%d.log", filename, i);
+      sprintf_s(namebuffer, 1024, "%s_%d.txtxt", filename, i);
       FILE* hFile;
       fopen_s(&hFile, namebuffer, "w");
 
@@ -297,14 +297,14 @@ DEFINE_BLOCK(b_dot11n_dma_join_4v1, 4, 1)
 
       pc += (i * 4); // adjust pc to the start of the ith stream
 
-      for (int j = 0; j < total_count; j += 8)
+      for (int j = 0; j < total_count; j += 4)
       {
         fprintf(hFile, "%d\t%d\n", pc[0].re, pc[0].im);
         fprintf(hFile, "%d\t%d\n", pc[1].re, pc[1].im);
         fprintf(hFile, "%d\t%d\n", pc[2].re, pc[2].im);
         fprintf(hFile, "%d\t%d\n", pc[3].re, pc[3].im);
 
-        pc += 8;
+        pc += 16;
       }
 
       fclose(hFile);
