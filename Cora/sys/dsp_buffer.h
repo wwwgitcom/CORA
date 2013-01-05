@@ -85,6 +85,11 @@ public:
   int space_available ();
 
   /*!
+  * \brief return number of items in the buf
+  */
+  int items_count ();
+
+  /*!
   * \brief return size of this buffer in items
   */
   int bufsize() const { return m_bufsize; }

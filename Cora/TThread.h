@@ -38,7 +38,7 @@ public:
 
   void wait()
   {
-    while(m_status != _done && m_status != _cancel) __asm pause;
+    while(m_status != _done && m_status != _cancel) _mm_pause();;
   }
 
   static unsigned long __stdcall _thread(LPVOID lpVoid)

@@ -18,7 +18,10 @@ LRESULT CALLBACK dsp_draw_window::stWndProc ( HWND hWnd, UINT uMsg, WPARAM wPara
   dsp_draw_window * pWnd;
   if ( uMsg == WM_NCCREATE ) 
   {
-    SetWindowLong ( hWnd, GWL_USERDATA, (long) ((LPCREATESTRUCT(lParam))->lpCreateParams));
+    // SetWindowLong only supports x32
+    //SetWindowLong ( hWnd, GWL_USERDATA, (long) ((LPCREATESTRUCT(lParam))->lpCreateParams));
+    // to support x64, use SetWindowLongPrt instead
+    SetWindowLongPtr ( hWnd, GWLP_USERDATA, (long) ((LPCREATESTRUCT(lParam))->lpCreateParams));
   }
 
   pWnd = GetThisFromWindow ( hWnd );
@@ -34,7 +37,8 @@ LRESULT CALLBACK dsp_draw_window::stWndProc ( HWND hWnd, UINT uMsg, WPARAM wPara
 
 dsp_draw_window* dsp_draw_window::GetThisFromWindow(HWND hWnd)
 {
-  return (dsp_draw_window *)GetWindowLong(hWnd, GWL_USERDATA);
+  //return (dsp_draw_window *)GetWindowLong(hWnd, GWL_USERDATA);
+  return (dsp_draw_window *)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 }
 
 DWORD WINAPI dsp_draw_window::msg_dispatch_thread(LPVOID lpdwThreadParam)

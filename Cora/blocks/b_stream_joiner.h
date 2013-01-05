@@ -80,7 +80,7 @@ DEFINE_BLOCK(b_stream_joiner_3_2v1, 2, 1)
 
     int iOut = 0;
     int iIn  = 0;
-    for (; iIn < n; iIn += 3, iOut += 6)
+    for (; iIn <= n - 3; iIn += 3, iOut += 6)
     {
       op[iOut + 0] = ip1[iIn + 0];
       op[iOut + 1] = ip1[iIn + 1];

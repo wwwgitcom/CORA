@@ -516,6 +516,15 @@
     <ClInclude Include="blocks\b_audio.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="TAutoPerf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_perf_source.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
+    <ClInclude Include="blocks\b_perf_sink.h">
+      <Filter>Header Files\blocks</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

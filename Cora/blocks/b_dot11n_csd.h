@@ -11,7 +11,7 @@ __forceinline void Reverse(v_cs* arr, int b, int e)
 }
 
 
-DEFINE_BLOCK(b_dot11n_csd_1v1, 1, 0)
+DEFINE_BLOCK(b_dot11n_csd_1v1, 1, 1)
 {
   _local_(int, ncsd, 0);
 
@@ -47,7 +47,7 @@ DEFINE_BLOCK(b_dot11n_csd_1v1, 1, 0)
 };
 
 
-DEFINE_BLOCK(b_dot11n_complex16_csd_1v1, 1, 0)
+DEFINE_BLOCK(b_dot11n_complex16_csd_1v1, 1, 1)
 {
   _local_(int, ncsd, 0);
 

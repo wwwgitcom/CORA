@@ -23,7 +23,12 @@
 #include "sora.h"
 
 #define enable_draw 0
-#define enable_dbgplot 1
+#ifdef _WIN64
+#define enable_dbgplot 0
+#else
+#define enable_dbgplot 0
+#endif
+
 #include "DebugPlotU.h"
 //--------------------------------------------------
 #include "TBlock.h"
@@ -149,7 +154,7 @@ void pipeline_profiling()
 {
   tick_count t1, t2, t;
   autoref producer = create_block<b_producer_v1>(2, string("nItemsEach=4"), string("nItemsTotal=6400000"));
-  autoref consumer = create_block<b_consumer_v1>();
+  autoref consumer = create_block<b_consumer_1v>();
 
   Channel::Create(sizeof(uint8)).from(producer, 0).to(consumer, 0);
 
@@ -220,16 +225,11 @@ void fft_test()
 }
 
 
-void hw_plot()
-{
-  autoref hwsrc = create_block<b_hw_source_v1>();
-  autoref plot  = create_block<b_plot_1v>();
 
-  Channel::Create(sizeof(v_cs)).from(hwsrc, 0).to(plot, 0);
 
-  START(hwsrc, plot);
-}
 
+
+#ifndef _WIN64
 void evt_handler_test()
 {
   autoref plot  = create_block<b_spectrum_plot_1v>();
@@ -240,7 +240,15 @@ void evt_handler_test()
   START(audio_src, plot);
 }
 
+void hw_plot()
+{
+  autoref hwsrc = create_block<b_hw_source_v1>();
+  autoref plot  = create_block<b_plot_1v>();
 
+  Channel::Create(sizeof(v_cs)).from(hwsrc, 0).to(plot, 0);
+
+  START(hwsrc, plot);
+}
 void hw_sink(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
@@ -263,7 +271,7 @@ void hw_sink(int argc, _TCHAR* argv[])
 
   dsp_main( [&]{START(txsrc, hwsink);} ); 
 }
-
+#endif
 
 void dump_llts()
 {
@@ -283,6 +291,223 @@ void dump_llts()
   sink.toTxtFile("dot11n_llts");
 }
 
+
+void auto_perf_test()
+{
+  //AUTO_PERF_SOURCE_BLOCK(b_dot11n_lstf_v2, dot11n_tx_symbol);
+  //AUTO_PERF_SOURCE_BLOCK(b_dot11n_lltf_v2, dot11n_tx_symbol);
+  
+  AUTO_PERF_BLOCK(b_dot11n_add_cp_1v1, dot11n_tx_symbol, dot11n_tx_symbol);
+
+  AUTO_PERF_BLOCK(b_conv_1o2_1v1, uint8, uint8);
+  AUTO_PERF_BLOCK(b_conv_2o3_1v1, uint8, uint8);
+  AUTO_PERF_BLOCK(b_conv_3o4_1v1, uint8, uint8);
+  
+  //AUTO_PERF_BLOCK(b_dot11n_add_pilot_1v);
+  //AUTO_PERF_BLOCK(b_dot11a_add_pilot_1v);
+  AUTO_PERF_BLOCK(b_dot11a_map_bpsk_q_1v1, v_ub, dot11n_tx_symbol);
+  AUTO_PERF_BLOCK(b_dot11n_map_bpsk_i_1v1, v_ub, dot11n_tx_symbol);
+  AUTO_PERF_BLOCK(b_dot11n_map_qpsk_1v1, v_ub, dot11n_tx_symbol);
+  AUTO_PERF_BLOCK(b_dot11n_map_16qam_1v1, v_ub, dot11n_tx_symbol);
+  AUTO_PERF_BLOCK(b_dot11n_map_64qam_1v1, v_ub, dot11n_tx_symbol);
+
+  AUTO_PERF_BLOCK(b_dot11n_csd_1v1, dot11n_tx_symbol, dot11n_tx_symbol);
+  AUTO_PERF_BLOCK(b_dot11a_interleaver_1bpsc_1v1, uint8, v_ub);
+
+  AUTO_PERF_BLOCK(b_ifft_128_1v1, v_cs, v_cs);
+
+  AUTO_PERF_BLOCK(b_stream_parser_bpsk_1v2, uint8, uint8);
+  AUTO_PERF_BLOCK(b_stream_parser_qpsk_1v2, uint8, uint8);
+  AUTO_PERF_BLOCK(b_stream_parser_16qam_1v2, uint8, uint8);
+  AUTO_PERF_BLOCK(b_stream_parser_64qam_1v2, uint8, uint8);
+
+  AUTO_PERF_BLOCK(b_dot11n_scramble_1v1, uint8, uint8);
+  AUTO_PERF_BLOCK(b_dot11_descramble_1v1, uint8, uint8);
+  
+  AUTO_PERF_BLOCK(b_auto_corr_1v2, v_cs, v_q);
+  
+  AUTO_PERF_BLOCK(b_dot11_demap_bpsk_i_1v1, v_cs, uint8);
+  AUTO_PERF_BLOCK(b_dot11_demap_qpsk_1v1, v_cs, uint8);
+  AUTO_PERF_BLOCK(b_dot11_demap_16qam_1v1, v_cs, uint8);
+  AUTO_PERF_BLOCK(b_dot11_demap_64qam_1v1, v_cs, uint8);
+
+  //AUTO_PERF_BLOCK(b_lstf_searcher_2v1);
+
+  AUTO_PERF_BLOCK(b_dot11_siso_channel_estimator_1v, v_cs, TNULL);
+  AUTO_PERF_BLOCK(b_dot11_siso_channel_compensator_1v1, v_cs, v_cs);
+
+  AUTO_PERF_BLOCK(b_dot11_mimo_channel_estimator_2v, v_cs, TNULL);
+  AUTO_PERF_BLOCK(b_dot11_mimo_channel_compensator_2v2, v_cs, v_cs);
+
+
+  AUTO_PERF_BLOCK(b_remove_gi_1v, v_cs, TNULL);
+  AUTO_PERF_BLOCK(b_fft_64_1v1, v_cs, v_cs);
+  //AUTO_PERF_BLOCK(b_dot11_pilot_tracking_2v, v_cs, TNULL);
+
+  AUTO_PERF_BLOCK(b_stream_joiner_1_2v1, uint8, uint8);
+  AUTO_PERF_BLOCK(b_stream_joiner_2_2v1, uint8, uint8);
+  AUTO_PERF_BLOCK(b_stream_joiner_3_2v1, uint8, uint8);
+}
+
+
+
+void parallel_viterbi2()
+{
+  autoref vit_source = create_block<b_viterbi_source_v1>();
+  
+  autoref vit_dispatcher = create_block<b_parallel_viterbi64_1v2>(2,string("TraceBackLength=48"), string("TraceBackOutput=512"));
+
+  autoref vit_worker1 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"), string("TraceBackOutput=512"));
+  autoref vit_worker2 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"), string("TraceBackOutput=512"));
+
+  autoref vit_combiner = create_block<b_viterbi_sink_2v1>(1,string("nSegmentSize=64"));
+
+
+  Channel::Create(sizeof(uint8)).from(vit_source, 0).to(vit_dispatcher, 0);
+
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 0).to(vit_worker1, 0);
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 1).to(vit_worker2, 0);
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 2).to(vit_combiner, 2);
+  
+  Channel::Create(sizeof(uint8)).from(vit_worker1, 0).to(vit_combiner, 0);
+  Channel::Create(sizeof(uint8)).from(vit_worker2, 0).to(vit_combiner, 1);
+
+  Channel::Create(sizeof(uint8)).from(vit_combiner, 0);
+  
+#if 0
+  START(vit_source, vit_dispatcher, [&]{
+    START(vit_worker1);
+    START(vit_worker2);
+    START(vit_combiner);
+  });
+#else
+
+  cc_align bool bRun = true;
+
+  auto f1 = [&]
+  {
+    START(vit_source, vit_dispatcher);
+    //bRun = false;
+
+    return false;
+  };
+
+  auto f2 = [&]
+  {
+    PARALLEL(
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker1);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker2);}
+    );
+    return false;
+  };
+
+  auto f3 = [&]{
+    START(WHILE(IsTrue(bRun)), vit_combiner);
+    return false;
+  };
+
+
+  //AUTO_PERF_BLOCK(b_parallel_viterbi64_1o2_1v1, uint8, uint8, 2,string("TraceBackLength=48"), string("TraceBackOutput=256"));
+
+
+  tick_count tstart = tick_count::now();
+
+  PIPE_LINE(f1, f2, f3);
+
+  tick_count tstop = tick_count::now();
+
+  tick_count tdif = tstop - tstart;
+
+  double rate = vit_source.nTotalBits / tdif.us();
+  printf("Parallel Viterbi Throughtput: %f Msbps\n", rate);
+
+#endif
+}
+
+
+void parallel_viterbi4()
+{
+  autoref vit_source = create_block<b_viterbi_source_v1>();
+
+  autoref vit_dispatcher = create_block<b_parallel_viterbi64_1v4>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
+  autoref vit_worker1 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
+  autoref vit_worker2 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
+  autoref vit_worker3 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
+  autoref vit_worker4 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
+  autoref vit_combiner = create_block<b_viterbi_sink_4v1>(1,string("nSegmentSize=128"));
+
+
+  Channel::Create(sizeof(uint8)).from(vit_source, 0).to(vit_dispatcher, 0);
+
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 0).to(vit_worker1, 0);
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 1).to(vit_worker2, 0);
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 2).to(vit_worker3, 0);
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 3).to(vit_worker4, 0);
+
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 4).to(vit_combiner, 4);
+
+  Channel::Create(sizeof(uint8)).from(vit_worker1, 0).to(vit_combiner, 0);
+  Channel::Create(sizeof(uint8)).from(vit_worker2, 0).to(vit_combiner, 1);
+  Channel::Create(sizeof(uint8)).from(vit_worker3, 0).to(vit_combiner, 2);
+  Channel::Create(sizeof(uint8)).from(vit_worker4, 0).to(vit_combiner, 3);
+
+  Channel::Create(sizeof(uint8)).from(vit_combiner, 0);
+
+#if 0
+  START(vit_source, vit_dispatcher, [&]{
+    START(vit_worker1);
+    START(vit_worker2);
+    START(vit_worker3);
+    START(vit_worker4);
+    START(vit_combiner);
+  });
+#else
+
+  cc_align bool bRun = true;
+
+  auto f1 = [&]
+  {
+    START(vit_source, vit_dispatcher);
+    //bRun = false;
+
+    return false;
+  };
+
+  auto f2 = [&]
+  {
+    PARALLEL(
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker1);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker2);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker3);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker4);}
+    );
+    return false;
+  };
+
+  auto f3 = [&]{
+    START(WHILE(IsTrue(bRun)), vit_combiner);
+    return false;
+  };
+
+
+  //AUTO_PERF_BLOCK(b_parallel_viterbi64_1o2_1v1, uint8, uint8, 2,string("TraceBackLength=48"), string("TraceBackOutput=1024"));
+
+
+  tick_count tstart = tick_count::now();
+
+  PIPE_LINE(f1, f3, f2);
+
+  tick_count tstop = tick_count::now();
+
+  tick_count tdif = tstop - tstart;
+
+  double rate = vit_source.nTotalBits / tdif.us();
+  printf("Parallel Viterbi Throughtput: %f Msbps\n", rate);
+
+#endif
+}
+
+
 int __cdecl _tmain(int argc, _TCHAR* argv[])
 {
   dsp_cmd cmdline;
@@ -300,7 +525,9 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   //SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
 #if enable_dbgplot
+#ifndef _WIN64
   ::DebugPlotInit();
+#endif 
 #endif
 
 #if 0
@@ -318,7 +545,11 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 #endif
 
   //dsp_main(evt_handler_test);
-  dump_llts();
+  //dump_llts();
+
+  //dsp_main(auto_perf_test);
+
+  dsp_main(parallel_viterbi4);
 
   auto mumimo_tx_main = [&]
   {
@@ -368,7 +599,9 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   }
 #endif
 #if enable_dbgplot
+#ifndef _WIN64
   ::DebugPlotDeinit();
+#endif
 #endif
 
   ExitProcess(0);

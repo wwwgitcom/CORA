@@ -32,6 +32,7 @@ extern __m128i _mm_abs_epi64 (__m128i a);
 #define __SSSE3__
 //////////////////////////////////////////////////////////////////////////
 #define v_align(n) __declspec(align(n))
+#define cc_align __declspec(align(64))
 #pragma region vector1 base
 template<typename T>
 struct __declspec(align(16)) vector1

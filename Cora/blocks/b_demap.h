@@ -30,7 +30,7 @@ DEFINE_BLOCK(b_dot11_demap_bpsk_i_1v1, 1, 1)
 
     auto ip = _$<v_cs>(0);
     complex16* cip = (complex16*)ip;
-    auto op = $_<unsigned __int8>(0);
+    auto op = $_<uint8>(0);
 
     demapper.demap_limit_bpsk((v_cs*)ip, 16);
 

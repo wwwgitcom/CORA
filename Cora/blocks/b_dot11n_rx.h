@@ -42,16 +42,11 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     );
 #endif
 
-  autoref wait_lltf = create_block<b_wait_2v>(
-    1, string("nwait=32"));
+  autoref wait_lltf = create_block<b_wait_2v>(1, string("nwait=32"));
 
-  autoref wait_ofdm = create_block<b_wait_2v>(
-    1, string("nwait=20"));
+  autoref wait_ofdm = create_block<b_wait_2v>(1, string("nwait=20"));
 
-  autoref axorr = create_block<b_auto_corr_2v2>(
-    1, 
-    string("vHisLength=8")
-    );
+  autoref axorr     = create_block<b_auto_corr_2v2>(1, string("vHisLength=8"));
 
   autoref lstf_searcher = create_block<b_lstf_searcher_2v1>();
 
@@ -240,37 +235,37 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     .from(siso_mrc_combine, 0)
     .to(siso_lsig_demap_bpsk_i, 0).to(htsig_demap_bpsk_q, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(siso_lsig_demap_bpsk_i, 0).from(htsig_demap_bpsk_q, 0)
     .to(siso_lsig_deinterleave, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(siso_lsig_deinterleave, 0).to(l_sig_vit, 0).to(ht_sig_vit, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(l_sig_vit, 0)
     .to(l_sig_parser, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_sig_vit, 0)
     .to(ht_sig_parser, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_demap_bpsk1, 0).from(ht_demap_qpsk1, 0).from(ht_demap_16qam1, 0).from(ht_demap_64qam1, 0)
     .to(ht_deinterleave_1bpsc_iss1, 0).to(ht_deinterleave_2bpsc_iss1, 0).to(ht_deinterleave_4bpsc_iss1, 0).to(ht_deinterleave_6bpsc_iss1, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_demap_bpsk2, 0).from(ht_demap_qpsk2, 0).from(ht_demap_16qam2, 0).from(ht_demap_64qam2, 0)
     .to(ht_deinterleave_1bpsc_iss2, 0).to(ht_deinterleave_2bpsc_iss2, 0).to(ht_deinterleave_4bpsc_iss2, 0).to(ht_deinterleave_6bpsc_iss2, 0);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_deinterleave_1bpsc_iss1, 0).from(ht_deinterleave_2bpsc_iss1, 0).from(ht_deinterleave_4bpsc_iss1, 0).from(ht_deinterleave_6bpsc_iss1, 0)
     .to(ht_stream_joiner_1, 0).to(ht_stream_joiner_2, 0).to(ht_stream_joiner_3, 0);
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_deinterleave_1bpsc_iss2, 0).from(ht_deinterleave_2bpsc_iss2, 0).from(ht_deinterleave_4bpsc_iss2, 0).from(ht_deinterleave_6bpsc_iss2, 0)
     .to(ht_stream_joiner_1, 1).to(ht_stream_joiner_2, 1).to(ht_stream_joiner_3, 1);
 
-  Channel::Create(sizeof(unsigned __int8))
+  Channel::Create(sizeof(uint8))
     .from(ht_stream_joiner_1, 0).from(ht_stream_joiner_2, 0).from(ht_stream_joiner_3, 0)
     .to(ht_data_vit_12, 0).to(ht_data_vit_23, 0).to(ht_data_vit_34, 0);
 

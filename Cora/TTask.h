@@ -79,7 +79,8 @@ public:
     while (status)
     {
       //printf("waiting task for done\n");
-      __asm pause;
+      _mm_pause();
+      //__asm pause;
     }
   }
 };

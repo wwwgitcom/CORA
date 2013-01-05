@@ -41,20 +41,27 @@ __forceinline void PIPE_LINE(_Function1 &_Func1, _Function2 &_Func2, _Function3 
   task_obj to2 = make_task_obj(_Func2);
   task_obj to3 = make_task_obj(_Func3);
 
-  task_obj to = make_task_obj([&]
-  {
-    _PIPE_LINE(to2, to3);
-  });
+  cm->run_task(&to2);
+  cm->run_task(&to3);
 
-  while(_Func1())
-  {
-    to.wait();
-    cm->run_task(&to);
-  }
-  to.wait();
-  cm->run_task(&to);
-  to.wait();
+  while(const_cast<_Function1&>(_Func1)());
+  to2.wait();
   to3.wait();
+  //task_obj to = make_task_obj([&]
+  //{
+  //  _PIPE_LINE(to2, to3);
+  //});
+
+  //while(_Func1())
+  //{
+  //  to.wait();
+  //  cm->run_task(&to);
+  //}
+  //to.wait();
+  //cm->run_task(&to);
+  //to.wait();
+  //to3.wait();
+
 }
 
 template<typename _Function1, typename _Function2, typename _Function3, typename _Function4>

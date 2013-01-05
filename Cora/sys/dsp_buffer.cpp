@@ -216,6 +216,23 @@ int dsp_buffer::space_available ()
     return m_bufsize - most_data - 1;
   }
 }
+int dsp_buffer::items_count ()
+{
+  if (m_readers.empty ())
+  {
+    return 0;
+  }
+
+  // Find out the maximum amount of data available to our readers
+  int	most_data = m_readers[0]->items_available();
+
+  for (size_t i = 1; i < m_readers.size (); i++) 
+  {
+    most_data = max(most_data, m_readers[i]->items_available());
+  }
+
+  return most_data;
+}
 
 void dsp_buffer::dump()
 {

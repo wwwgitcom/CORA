@@ -108,6 +108,11 @@ class dsp_block
   dsp_buffer_ptr        m_outputs[NOUTPUT + 1];// avoid zero ports
   dsp_buffer_reader_ptr m_inputs[NINPUT + 1];
 
+  // return the NO. of input ports
+  int ninput_port() const {return NINPUT;}
+  // return the NO. of output ports
+  int noutput_port() const {return NOUTPUT;}
+
   dsp_block(){}
   ~dsp_block()
   {
@@ -181,6 +186,11 @@ class dsp_block
   __forceinline int noutput(int which)
   {
     return m_outputs[which]->space_available();
+  }
+
+  __forceinline int nitems(int which)
+  {
+    return m_outputs[which]->items_count();
   }
 
   template<class T>
@@ -263,7 +273,7 @@ void reset()
 public:\
   void __cdecl _event_handler_(INPUT_RECORD& $)
 
-
+//////////////////////////////////////////////////////////////////////////
 template<typename block_name>
 auto _create_block(std::map<string, string> & arg_map) -> block_name &
 {
@@ -308,7 +318,9 @@ auto create_block(int nArg = 0, ...) -> block_name &
   return (block_name &)_create_block<block_name>(arg_map);
 }
 
-
+//////////////////////////////////////////////////////////////////////////
+// global metadata
+//////////////////////////////////////////////////////////////////////////
 //void operator=(_type &rhs){*p_var = rhs;}\
 // think about how to generate local and global vars
 #define _global_(_type, _name)\
@@ -322,6 +334,9 @@ struct _global_##_name{\
   __forceinline  _type* operator &() {return  p_var;}\
 }_name;
 
+//////////////////////////////////////////////////////////////////////////
+// local metadata
+//////////////////////////////////////////////////////////////////////////
 #define _local_(_type, _name, _default)\
 struct _local_##_name{\
   typedef _type type;\
@@ -334,3 +349,6 @@ struct _local_##_name{\
   void operator=(_type &rhs){m_var = rhs;}\
 }_name;
 
+
+
+#include "TAutoPerf.h"

@@ -41,6 +41,8 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_1v1, 1, 1)
 
     consume(0, 16);
     produce(0, 16);
+
+    return true;
   }
 };
 

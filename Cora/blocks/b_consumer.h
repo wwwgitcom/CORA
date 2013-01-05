@@ -1,6 +1,6 @@
 #pragma once
 
-DEFINE_BLOCK(b_consumer_v1, 0, 1)
+DEFINE_BLOCK(b_consumer_1v, 1, 0)
 {
   _local_(uint8, var, 0);
 

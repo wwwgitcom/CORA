@@ -63,6 +63,24 @@ public:
     }
   }
 
+  Channel& random()
+  {
+    srand(GetTickCount());
+
+    for (auto i = m_buffers.begin(); i != m_buffers.end(); i++)
+    {
+      uint8 * p = (uint8*)((*i)->m_base);
+      uint32 len = (*i)->m_bufsize;
+
+      for (uint32 k = 0; k < len; k++)
+      {
+        p[k] = rand();
+      }
+    }
+
+    return (*this);
+  }
+
   template<typename S>
   Channel& from(S &src, int src_port)
   {
