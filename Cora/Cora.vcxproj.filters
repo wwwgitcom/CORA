@@ -525,6 +525,9 @@
     <ClInclude Include="blocks\b_perf_sink.h">
       <Filter>Header Files\blocks</Filter>
     </ClInclude>
+    <ClInclude Include="sys\dsp_viterbi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

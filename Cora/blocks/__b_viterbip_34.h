@@ -1,21 +1,21 @@
 #pragma once
-
-// viterbi decoder 1/2
-DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
+// viterbi decoder 3/4
+DEFINE_BLOCK(b_parallel_viterbi64_3o4_1v1, 1, 1)
 {
-  size_t                   nTraceBackLength;
-  size_t                   nTraceBackOutput;
+  __int32                   nTraceBackLength;
+  __int32                   nTraceBackOutput;
 
-  size_t                   nTracebackDataCount;
-  size_t                   nTracebackOffset;
-  size_t                   nTraceBackOutputByte;
-  size_t                   nTracebackSoftbits;
+  __int32                   nTracebackDataCount;
+  __int32                   nTracebackOffset;
+  __int32                   nTraceBackOutputByte;
+  size_t                    nTracebackSoftbits;
 
-  size_t i_trellis;    // index of trellis
+  int i_trellis;    // index of trellis
+  int nDecodedBits;
+
   vub *pTrellisBase;
   vub *pTrellis;
   vub vNormMask;
-
 
 
   //////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
     }
     else
     {
-      nTraceBackLength = 36;
+      nTraceBackLength = 72;
     }
 
     v = $["TraceBackOutput"];
@@ -38,16 +38,15 @@ DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
     }
     else
     {
-      nTraceBackOutput = 48;
+      nTraceBackOutput = 192;
     }
-
-    nTracebackDataCount  = nTraceBackLength + nTraceBackOutput + nTraceBackLength; // D + L + D, D=5K
+    nTracebackDataCount  = nTraceBackLength + nTraceBackOutput + nTraceBackLength;
     nTracebackOffset     = nTracebackDataCount - 1;
     nTraceBackOutputByte = nTraceBackOutput / 8;
 
-    nTracebackSoftbits   = nTracebackDataCount << 1; // 1/2 coding
+    nTracebackSoftbits   = nTracebackDataCount * 4 / 3; // 3/4 coding
 
-    pTrellisBase = (vub*)_aligned_malloc(1024 * 16 * sizeof(vub), 64);
+    pTrellisBase = (vub*)_aligned_malloc(15000 * 4 * sizeof(vub), 64);
     pTrellis = pTrellisBase;
 
     // Initialize Trellis
@@ -57,7 +56,7 @@ DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
     pTrellis[3] = vub(ALL_INIT);
 
     i_trellis = 0;
-    for (size_t i = 0; i < 16; i++)
+    for (int i = 0; i < 16; i++)
     {
       vNormMask[i] = 64;
     }
@@ -66,28 +65,31 @@ DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
 
   BLOCK_RESET
   {
-    pTrellis = pTrellisBase;
-    i_trellis = 0;
+    pTrellis     = pTrellisBase;
+    i_trellis    = 0;
   }
   //////////////////////////////////////////////////////////////////////////
 #define VITTRACE 0
 
+  // A0 A1 A2 A3
+  // B0 *  B2 * 
+  // A0 B0 A1 A2 B2 A3
   BLOCK_WORK
   {
     trace();
 
-    size_t nInputSoftBits = ninput(0);
-    if (nInputSoftBits < 4) return false;
+    auto nInputSoftBits = ninput(0);
+    if (nInputSoftBits < 8) return false;
 
-    nInputSoftBits -= (nInputSoftBits & 0x1);
+    nInputSoftBits -= (nInputSoftBits & 0x3);
 
     auto ip = _$<uint8>(0);
     auto op = $_<uint8>(0);
 
     // for trace back  
     vub * pTraceBk;       // trace back pointer in trellis
-    size_t i_minpos = 0;     // the minimal path position
-    size_t i_tpos   = 0;
+    int i_minpos = 0;     // the minimal path position
+    int i_tpos   = 0;
 
     const vub ALLINVONE (ALL_INVERSE_ONE);
     // temporal variables
@@ -95,30 +97,28 @@ DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
     vus rus0, rus1, rus2, rus3;
     vus rus4, rus5, rus6, rus7;
 
-    uint8 * pVTOutput;
-    uint8 outchar = 0;    // the output(decoded) char
+    unsigned char * pVTOutput;
+    unsigned char outchar = 0;    // the output(decoded) char
 
-    size_t nSoftBits = 0;
     bool bRet = false;
-
+    size_t nSoftBits = 0;
     while ( nSoftBits < nInputSoftBits )
     {
       ViterbiAdvance(pTrellis, (vub*)VIT_MA, ip[nSoftBits], (vub*)VIT_MB, ip[nSoftBits + 1]);
-      i_trellis++;
-      nSoftBits += 2;
+      ViterbiAdvance(pTrellis, (vub*)VIT_MA, ip[nSoftBits + 2]);
+      ViterbiAdvance(pTrellis, (vub*)VIT_MB, ip[nSoftBits + 3]);
 
-      if (pTrellis[0][0] > 180)
+      i_trellis += 3;
+      nSoftBits += 4;
+
+      if (pTrellis[0][0] > 190)
       {
 #if 0
-        uint8* pcc = (unsigned char*)pTrellis;
-        printf("-->\n");
-        for (int i = 0; i < 64; i++)
-        {
-          printf("%u ", pcc[i]);
-        }
-        printf("<--\n\n");
-#endif
-
+        pTrellis[0] = sub ( pTrellis[0], vNormMask);
+        pTrellis[1] = sub ( pTrellis[1], vNormMask);
+        pTrellis[2] = sub ( pTrellis[2], vNormMask);
+        pTrellis[3] = sub ( pTrellis[3], vNormMask);
+#else
         // normalization
         // find the smallest component and extract it from all states
         rub0 = smin (pTrellis[0], pTrellis[1] );
@@ -134,10 +134,12 @@ DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
         pTrellis[1] = sub ( pTrellis[1], rub3);
         pTrellis[2] = sub ( pTrellis[2], rub3);
         pTrellis[3] = sub ( pTrellis[3], rub3);
+#endif
       }
-      if ( i_trellis == nTracebackDataCount )
+
+      // Traceback 
+      if ( i_trellis == nTracebackDataCount)
       {
-        // Traceback 
         rub0 = vub(INDEXES[0]);
         rub1 = pTrellis[0];
 
@@ -180,9 +182,10 @@ DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
         // now we can trace back ...
         pTraceBk = pTrellis;
 
+
         // first part - trace back without output
         i_minpos = (i_minpos >> 2) & 0x3F; // index 6:0
-        size_t i, j;
+        int i, j;
         for ( i = 0; i < nTraceBackLength; i++)
         {
           pTraceBk -= 4;
@@ -215,25 +218,19 @@ DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
           outchar = 0;
         }
 
-        
         while (noutput(0) < nTraceBackOutputByte)
         {
-          /*printf("vit out buf full %p...\n", this);
-          printf(" avail=%d, need=%d\n", noutput(0), nTraceBackOutputByte);*/
+          //printf("vit out buf full %p...\n", this);
+          //printf(" avail=%d, need=%d\n", noutput(0), nTraceBackOutputByte);
           _mm_pause();
         }
 
         produce(0, nTraceBackOutputByte);
-        //consume(0, nSoftBits);
-
-        //printf("%p: produce %d B\n", this, nTraceBackOutputByte);
 
         pTrellis = pTrellisBase;
         i_trellis = 0;
 
         bRet = true;
-
-        //return true;
       }
     }
 
@@ -241,4 +238,3 @@ DEFINE_BLOCK(b_parallel_viterbi64_1o2_1v1, 1, 1)
     return bRet;
   }
 };
-

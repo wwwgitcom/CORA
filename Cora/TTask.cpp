@@ -113,11 +113,12 @@ void cpu_manager::setup()
       nAffinity = 0; 
       fscanf_s(hCPUConfig, "%d\n", &nAffinity);
 
-      if (nAffinity == 0)
-      {
-        printf("Invalid affinity 0, skip....\n");
-        continue;
-      }
+      // allow to config on core-0 in manual config mode
+      //if (nAffinity == 0)
+      //{
+      //  printf("Invalid affinity 0, skip....\n");
+      //  continue;
+      //}
 
       if (nAffinity >= m_nTotalProcessor)
       {

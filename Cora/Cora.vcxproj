@@ -259,6 +259,7 @@
     <ClInclude Include="sorainc\_WARP_Regs.h" />
     <ClInclude Include="sys\dsp_channel_matrix.h" />
     <ClInclude Include="sys\dsp_console.h" />
+    <ClInclude Include="sys\dsp_viterbi.h" />
     <ClInclude Include="sys\_windows.h" />
     <ClInclude Include="TAutoPerf.h" />
     <ClInclude Include="TMain.h" />

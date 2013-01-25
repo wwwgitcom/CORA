@@ -9,3 +9,4 @@
 
 #include "__b_viterbip.h"
 #include "__b_viterbip_12.h"
+#include "__b_viterbip_34.h"

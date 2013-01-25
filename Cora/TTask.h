@@ -187,7 +187,7 @@ public:
     SetThreadAffinityMask(m_hThread, m_affinity);
     if (config->GetCPUProcessorCount() > 2)
     {
-      SetThreadPriority(m_hThread, THREAD_PRIORITY_HIGHEST);
+      //SetThreadPriority(m_hThread, THREAD_PRIORITY_HIGHEST);
     }
   }
 

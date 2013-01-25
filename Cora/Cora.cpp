@@ -350,23 +350,37 @@ void auto_perf_test()
 }
 
 
+size_t B = 2400;
 
 void parallel_viterbi2()
 {
+  /************************************************************************/
+  /* Setup parallel viterbi parameters                                    */
+  /************************************************************************/
+  char buf[100];
+
+  memset(buf, 100, 0);
+  sprintf(buf, "TraceBackOutput=%d", B);
+  string strB = buf;
+
+  memset(buf, 100, 0);
+  sprintf(buf, "nSegmentSize=%d", B / 8);
+  string strSeg = buf;
+
   autoref vit_source = create_block<b_viterbi_source_v1>();
   
-  autoref vit_dispatcher = create_block<b_parallel_viterbi64_1v2>(2,string("TraceBackLength=48"), string("TraceBackOutput=512"));
+  autoref vit_dispatcher = create_block<b_parallel_viterbi64_1v2>(2,string("TraceBackLength=48"), strB);
 
-  autoref vit_worker1 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"), string("TraceBackOutput=512"));
-  autoref vit_worker2 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"), string("TraceBackOutput=512"));
+  autoref vit_worker1 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"), strB);
+  autoref vit_worker2 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"), strB);
 
-  autoref vit_combiner = create_block<b_viterbi_sink_2v1>(1,string("nSegmentSize=64"));
+  autoref vit_combiner = create_block<b_viterbi_sink_2v1>(1, strSeg);
 
 
-  Channel::Create(sizeof(uint8)).from(vit_source, 0).to(vit_dispatcher, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_source, 0).to(vit_dispatcher, 0);
 
-  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 0).to(vit_worker1, 0);
-  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 1).to(vit_worker2, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 0).to(vit_worker1, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 1).to(vit_worker2, 0);
   Channel::Create(sizeof(uint8)).from(vit_dispatcher, 2).to(vit_combiner, 2);
   
   Channel::Create(sizeof(uint8)).from(vit_worker1, 0).to(vit_combiner, 0);
@@ -407,7 +421,7 @@ void parallel_viterbi2()
   };
 
 
-  //AUTO_PERF_BLOCK(b_parallel_viterbi64_1o2_1v1, uint8, uint8, 2,string("TraceBackLength=48"), string("TraceBackOutput=256"));
+  //AUTO_PERF_BLOCK(b_parallel_viterbi64_3o4_1v1, uint8, uint8, 2,string("TraceBackLength=48"), string("TraceBackOutput=2400"));
 
 
   tick_count tstart = tick_count::now();
@@ -424,25 +438,128 @@ void parallel_viterbi2()
 #endif
 }
 
+void parallel_viterbi3()
+{
+  /************************************************************************/
+  /* Setup parallel viterbi parameters                                    */
+  /************************************************************************/
+  char buf[100];
+
+  memset(buf, 100, 0);
+  sprintf(buf, "TraceBackOutput=%d", B);
+  string strB = buf;
+
+  memset(buf, 100, 0);
+  sprintf(buf, "nSegmentSize=%d", B / 8);
+  string strSeg = buf;
+
+  autoref vit_source = create_block<b_viterbi_source_v1>();
+
+  autoref vit_dispatcher = create_block<b_parallel_viterbi64_1v3> (2,string("TraceBackLength=48"),strB);
+  autoref vit_worker1 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_worker2 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_worker3 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_combiner = create_block<b_viterbi_sink_3v1>(1,strSeg);
+
+
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_source, 0).to(vit_dispatcher, 0);
+
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 0).to(vit_worker1, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 1).to(vit_worker2, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 2).to(vit_worker3, 0);
+
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 3).to(vit_combiner, 3);
+
+  Channel::Create(sizeof(uint8)).from(vit_worker1, 0).to(vit_combiner, 0);
+  Channel::Create(sizeof(uint8)).from(vit_worker2, 0).to(vit_combiner, 1);
+  Channel::Create(sizeof(uint8)).from(vit_worker3, 0).to(vit_combiner, 2);
+
+  Channel::Create(sizeof(uint8)).from(vit_combiner, 0);
+
+#if 0
+  START(vit_source, vit_dispatcher, [&]{
+    START(vit_worker1);
+    START(vit_worker2);
+    START(vit_worker3);
+    START(vit_combiner);
+  });
+#else
+
+  cc_align bool bRun = true;
+
+  auto f1 = [&]
+  {
+    START(vit_source, vit_dispatcher);
+    //bRun = false;
+
+    return false;
+  };
+
+  auto f2 = [&]
+  {
+    PARALLEL(
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker1);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker2);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker3);}
+    );
+    return false;
+  };
+
+  auto f3 = [&]{
+    START(WHILE(IsTrue(bRun)), vit_combiner);
+    return false;
+  };
+
+
+  AUTO_PERF_BLOCK(b_parallel_viterbi64_3o4_1v1, uint8, uint8, 2 ,string("TraceBackLength=48"), strB);
+
+
+  tick_count tstart = tick_count::now();
+
+  PIPE_LINE(f1, f3, f2);
+
+  tick_count tstop = tick_count::now();
+
+  tick_count tdif = tstop - tstart;
+
+  double rate = vit_source.nTotalBits / tdif.us();
+  printf("Parallel Viterbi Throughtput: %f Msbps\n", rate);
+
+#endif
+}
+
 
 void parallel_viterbi4()
 {
+  /************************************************************************/
+  /* Setup parallel viterbi parameters                                    */
+  /************************************************************************/
+  char buf[100];
+
+  memset(buf, 100, 0);
+  sprintf(buf, "TraceBackOutput=%d", B);
+  string strB = buf;
+
+  memset(buf, 100, 0);
+  sprintf(buf, "nSegmentSize=%d", B / 8);
+  string strSeg = buf;
+
   autoref vit_source = create_block<b_viterbi_source_v1>();
 
-  autoref vit_dispatcher = create_block<b_parallel_viterbi64_1v4>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
-  autoref vit_worker1 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
-  autoref vit_worker2 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
-  autoref vit_worker3 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
-  autoref vit_worker4 = create_block<b_parallel_viterbi64_1o2_1v1>(2,string("TraceBackLength=48"),string("TraceBackOutput=1024"));
-  autoref vit_combiner = create_block<b_viterbi_sink_4v1>(1,string("nSegmentSize=128"));
+  autoref vit_dispatcher = create_block<b_parallel_viterbi64_1v4> (2,string("TraceBackLength=48"),strB);
+  autoref vit_worker1 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_worker2 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_worker3 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_worker4 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_combiner = create_block<b_viterbi_sink_4v1>(1,strSeg);
 
 
-  Channel::Create(sizeof(uint8)).from(vit_source, 0).to(vit_dispatcher, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_source, 0).to(vit_dispatcher, 0);
 
-  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 0).to(vit_worker1, 0);
-  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 1).to(vit_worker2, 0);
-  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 2).to(vit_worker3, 0);
-  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 3).to(vit_worker4, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 0).to(vit_worker1, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 1).to(vit_worker2, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 2).to(vit_worker3, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 3).to(vit_worker4, 0);
 
   Channel::Create(sizeof(uint8)).from(vit_dispatcher, 4).to(vit_combiner, 4);
 
@@ -490,11 +607,112 @@ void parallel_viterbi4()
   };
 
 
-  //AUTO_PERF_BLOCK(b_parallel_viterbi64_1o2_1v1, uint8, uint8, 2,string("TraceBackLength=48"), string("TraceBackOutput=1024"));
+  AUTO_PERF_BLOCK(b_parallel_viterbi64_1o2_1v1, uint8, uint8, 2,string("TraceBackLength=48"), strB);
 
 
   tick_count tstart = tick_count::now();
 
+  PIPE_LINE(f1, f3, f2);
+
+  tick_count tstop = tick_count::now();
+
+  tick_count tdif = tstop - tstart;
+
+  double rate = vit_source.nTotalBits / tdif.us();
+  printf("Parallel Viterbi Throughtput: %f Msbps\n", rate);
+
+#endif
+}
+
+void parallel_viterbi5()
+{
+  /************************************************************************/
+  /* Setup parallel viterbi parameters                                    */
+  /************************************************************************/
+  char buf[100];
+
+  memset(buf, 100, 0);
+  sprintf(buf, "TraceBackOutput=%d", B);
+  string strB = buf;
+
+  memset(buf, 100, 0);
+  sprintf(buf, "nSegmentSize=%d", B / 8);
+  string strSeg = buf;
+
+  autoref vit_source = create_block<b_viterbi_source_v1>();
+
+  autoref vit_dispatcher = create_block<b_parallel_viterbi64_1v5> (2,string("TraceBackLength=48"),strB);
+  autoref vit_worker1 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_worker2 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_worker3 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_worker4 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_worker5 = create_block<b_parallel_viterbi64_3o4_1v1>(2,string("TraceBackLength=48"),strB);
+  autoref vit_combiner = create_block<b_viterbi_sink_5v1>(1, strSeg);
+
+
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_source, 0).to(vit_dispatcher, 0);
+
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 0).to(vit_worker1, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 1).to(vit_worker2, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 2).to(vit_worker3, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 3).to(vit_worker4, 0);
+  Channel::Create(sizeof(uint8), 1024 * 1024).from(vit_dispatcher, 4).to(vit_worker5, 0);
+
+  Channel::Create(sizeof(uint8)).from(vit_dispatcher, 5).to(vit_combiner, 5);
+
+  Channel::Create(sizeof(uint8)).from(vit_worker1, 0).to(vit_combiner, 0);
+  Channel::Create(sizeof(uint8)).from(vit_worker2, 0).to(vit_combiner, 1);
+  Channel::Create(sizeof(uint8)).from(vit_worker3, 0).to(vit_combiner, 2);
+  Channel::Create(sizeof(uint8)).from(vit_worker4, 0).to(vit_combiner, 3);
+  Channel::Create(sizeof(uint8)).from(vit_worker5, 0).to(vit_combiner, 4);
+
+  Channel::Create(sizeof(uint8)).from(vit_combiner, 0);
+
+#if 0
+  START(vit_source, vit_dispatcher, [&]{
+    START(vit_worker1);
+    START(vit_worker2);
+    START(vit_worker3);
+    START(vit_worker4);
+    START(vit_worker5);
+    START(vit_combiner);
+  });
+#else
+
+  cc_align bool bRun = true;
+
+  auto f1 = [&]
+  {
+    START(vit_source, vit_dispatcher);
+    //bRun = false;
+
+    return false;
+  };
+
+  auto f2 = [&]
+  {
+    PARALLEL(
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker1);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker2);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker3);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker4);},
+      [&]{START(WHILE(IsTrue(bRun)), vit_worker5);}
+    );
+    return false;
+  };
+
+  auto f3 = [&]{
+    START(WHILE(IsTrue(bRun)), vit_combiner);
+    return false;
+  };
+
+
+  AUTO_PERF_BLOCK(b_parallel_viterbi64_1o2_1v1, uint8, uint8, 2,string("TraceBackLength=48"), string("TraceBackOutput=1024"));
+
+
+  tick_count tstart = tick_count::now();
+
+  // need at least 7 cores
   PIPE_LINE(f1, f3, f2);
 
   tick_count tstop = tick_count::now();
@@ -548,8 +766,37 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   //dump_llts();
 
   //dsp_main(auto_perf_test);
+  
+  size_t nvitcore = 3;
+  if (cmdline.get("nvitcore").exist())
+  {
+    nvitcore = cmdline.get("nvitcore").as_uint();
+  }
 
-  dsp_main(parallel_viterbi4);
+  if (cmdline.get("B").exist())
+  {
+    B = cmdline.get("B").as_uint();
+  }
+
+
+  switch (nvitcore)
+  {
+  case 2:
+    dsp_main(parallel_viterbi2);
+    break;
+  case 3:
+    dsp_main(parallel_viterbi3);
+    break;
+  case 4:
+    dsp_main(parallel_viterbi4);
+    break;
+  case 5:
+    dsp_main(parallel_viterbi5);
+    break;
+  default:
+    break;
+  }
+  
 
   auto mumimo_tx_main = [&]
   {
