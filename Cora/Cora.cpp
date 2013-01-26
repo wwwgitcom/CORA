@@ -421,8 +421,8 @@ void parallel_viterbi2()
   };
 
 
-  //AUTO_PERF_BLOCK(b_parallel_viterbi64_3o4_1v1, uint8, uint8, 2,string("TraceBackLength=48"), string("TraceBackOutput=2400"));
-
+  // perf current vit decoder...
+  AUTO_PERF_BLOCK(b_parallel_viterbi64_3o4_1v1, uint8, uint8, 2,string("TraceBackLength=48"), strB);
 
   tick_count tstart = tick_count::now();
 
@@ -751,15 +751,16 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 #if 0
   auto tx_main = [&]
   {
-    dot11n_2x2_tx(argc, argv);
+    //dot11n_2x2_tx(argc, argv);
   };
 
   auto rx_main = [&]
   {
-    dot11n_2x2_rx_profile(argc, argv);
+    dot11n_2x2_rx(argc, argv);
   };
 
   dsp_main(rx_main);
+  return 0;
 #endif
 
   //dsp_main(evt_handler_test);
@@ -777,7 +778,6 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   {
     B = cmdline.get("B").as_uint();
   }
-
 
   switch (nvitcore)
   {

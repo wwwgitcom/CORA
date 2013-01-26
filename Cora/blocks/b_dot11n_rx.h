@@ -24,23 +24,26 @@ DEFINE_BLOCK(dummy_block, 1, 1)
 
 void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 {
+  dsp_cmd cmdline;
+  cmdline.parse(argc, argv);
+
   autoref dummy = create_block<dummy_block>();
 
-#if 0
-  autoref src = create_block<b_file_source_v2>(
-    3, 
-    string("FileName1=c:\\MiMoRx_0.dmp"), 
-    string("FileName2=c:\\MiMoRx_1.dmp"), 
-    string("Decimate=1")
-    );
-#else
-  autoref src = create_block<b_file_source_v2>(
-    3, 
-    string("FileName1=c:\\MiMo_0.dmp"), 
-    string("FileName2=c:\\MiMo_1.dmp"), 
-    string("Decimate=1")
-    );
-#endif
+  string strFileName1 = string("FileName1=c:\\MiMo_0.dmp");
+  string strFileName2 = string("FileName2=c:\\MiMo_1.dmp");
+
+  auto CmdArg = cmdline.get("FileName1");
+  if ( CmdArg.exist() )
+  {
+    strFileName1 = CmdArg.as_string();
+  }
+  CmdArg = cmdline.get("FileName2");
+  if ( CmdArg.exist() )
+  {
+    strFileName2 = CmdArg.as_string();
+  }
+
+  autoref src = create_block<b_file_source_v2>( 3, strFileName1, strFileName2, string("Decimate=1") );
 
   autoref wait_lltf = create_block<b_wait_2v>(1, string("nwait=32"));
 

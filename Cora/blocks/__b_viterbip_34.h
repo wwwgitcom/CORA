@@ -17,6 +17,9 @@ DEFINE_BLOCK(b_parallel_viterbi64_3o4_1v1, 1, 1)
   vub *pTrellis;
   vub vNormMask;
 
+  tick_count tDecodeStamp[1024];
+  int        iDecodeCnt;
+  int        iDecodeCnt2;
 
   //////////////////////////////////////////////////////////////////////////
   BLOCK_INIT
@@ -60,6 +63,8 @@ DEFINE_BLOCK(b_parallel_viterbi64_3o4_1v1, 1, 1)
     {
       vNormMask[i] = 64;
     }
+    iDecodeCnt = 0;
+    iDecodeCnt2 = 0;
   }
 
 
@@ -217,6 +222,29 @@ DEFINE_BLOCK(b_parallel_viterbi64_3o4_1v1, 1, 1)
 
           outchar = 0;
         }
+
+
+        tDecodeStamp[iDecodeCnt] = tick_count::now();
+        iDecodeCnt++;
+        iDecodeCnt &= (1024 - 1);
+
+        if (iDecodeCnt == 1024)
+        {
+          iDecodeCnt = 0;
+        }
+
+        iDecodeCnt2++;
+        if (iDecodeCnt2 == 1000000)
+        {
+          int i = 16;
+          //for (int i = 1; i < 1024; i++)
+          {
+            printf("%d: vit delay = %f us\n", i, (tDecodeStamp[i] - tDecodeStamp[i - 1]).us());
+          }
+          iDecodeCnt2 = 0;
+        }
+
+
 
         while (noutput(0) < nTraceBackOutputByte)
         {
