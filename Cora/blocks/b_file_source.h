@@ -310,16 +310,13 @@ public:
         //v_print(stdout, v2nd_2);
 
 
-        //v1st_1 = v1st_1.v_shuffle_with<0, 2, 0, 2>(v2nd_1);
-        //v1st_2 = v1st_2.v_shuffle_with<0, 2, 0, 2>(v2nd_2);
+        v1st_1 = v1st_1.v_shuffle_with<0, 2, 0, 2>(v2nd_1);
+        v1st_2 = v1st_2.v_shuffle_with<0, 2, 0, 2>(v2nd_2);
 
         //printf("down sample...\n");
 
         //v_print(stdout, v1st_1);
         //v_print(stdout, v1st_2);
-
-
-
 
         (*nOffset)++;
         if (*nOffset == 7)

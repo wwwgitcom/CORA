@@ -258,6 +258,42 @@ DEFINE_BLOCK(b_dot11_mimo_channel_estimator_2v, 2, 0)
 
     m_draw->DrawSqrt(&mimo_channel_2x2_inv[0][0], 256);
 #endif
+
+#if enable_dbgplot
+    mimo_channel_2x2_inv[0][0] = 0;
+    mimo_channel_2x2_inv[0][64] = 0;
+    mimo_channel_2x2_inv[1][0] = 0;
+    mimo_channel_2x2_inv[1][64] = 0;
+    for (int i = 29; i < 64 - 28; i++)
+    {
+      mimo_channel_2x2_inv[0][i] = 0;
+      mimo_channel_2x2_inv[0][i + 64] = 0;
+      mimo_channel_2x2_inv[1][i] = 0;
+      mimo_channel_2x2_inv[1][i + 64] = 0;
+    }
+
+    for (int r = 0; r < 2; r++)
+    {
+      for (int c = 0; c < 2; c++)
+      {
+        char buf[64] = {0};
+        memset(buf, 0, 64);
+        sprintf_s(buf, 64, "H[%d][%d]", r, c);
+        
+        v_i vspec[16];
+        int ispecpos = 0;
+        for (int i = 0; i < 64; i += 4)
+        {
+          int n = (32 + i) % 64;
+          v_cs& vch = (v_cs&)mimo_channel_2x2_inv[r][c * 64 + n];
+          vspec[ispecpos++] = vch.v_sqr2i();
+        }
+
+        PlotSpectrum(buf, (int*)&vspec[0][0], 64);
+      }
+    }
+#endif
+
     consume_each(32);
 
     return true;

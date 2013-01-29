@@ -2,13 +2,13 @@
 DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 {
   _local_(int, peak_up_shift, 1);
-  _local_(int, peak_down_shift, 2);
+  _local_(int, peak_down_shift, 3);
   _local_(bool, peak_found, false);
   _local_(int, peak_count, 0);
 
   int energy_buffer[4];
   int axorr_buffer[4];
-  __int64 his_moving_energy[32];
+  __int64 his_moving_energy[64];
   int his_index;
 
 
@@ -24,13 +24,17 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     {
       *peak_down_shift = atoi(v.c_str());
     }
-    memset(his_moving_energy, 1, 32 * sizeof(__int64));
+    memset(his_moving_energy, 1, 64 * sizeof(__int64));
     his_index = 0;
+
+    itracept = 0;
   }
 
 
   int ebmax;
   int maxpos;
+
+  int itracept;
 
   BLOCK_WORK
   {
@@ -42,8 +46,8 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     auto ip0  = _$<v_q>(0);
     auto ip1  = _$<v_q>(1);
 
-    __int64 *_ip0 = (__int64*)ip0;
-    __int64 *_ip1 = (__int64*)ip1;
+    __int64 *acorr = (__int64*)ip0;
+    __int64 *energy = (__int64*)ip1;
     auto    _nin  = nin0 << 1;
     
 
@@ -62,8 +66,8 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 #if enable_dbgplot
     for (int i = 0; i < 4; i++)
     {
-      axorr_buffer[i] = (int)(_ip0[i] >> 32);
-      energy_buffer[i] = (int)(_ip1[i] >> 32);
+      axorr_buffer[i] = (int)(acorr[i] >> 32);
+      energy_buffer[i] = (int)(energy[i] >> 32);
     }
     PlotLine("moving average energy", energy_buffer, 4);
     PlotLine("moving average axorr^2", axorr_buffer, 4);
@@ -76,7 +80,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 #if 0
     for (int i = 0; i < _nin; i++)
     {
-      printf("%I64d\n", _ip1[i]);
+      printf("%I64d, %I64d\n", acorr[i], energy[i]);
     }
 #endif
 
@@ -86,25 +90,30 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     //log("-----------\n");
     for (int i = 0; i < _nin; i++)
     {
-      __int64 e = _ip1[i];
-      __int64 eb = e / (his_moving_energy[his_index] + 1);
+      itracept++;
+
+      __int64 eb = energy[i] / (his_moving_energy[his_index] + 1);
       int eb32 = (int)(eb);
-      
-      eb32 *= 100;
+
+      // for debug only, make it easy to be seen on screen
+      eb32 *= 10;
 
       if (!*peak_found)
       {
-        //if (eb > 2000)
-        if ( _ip0[i] > (_ip1[i] >> *peak_up_shift)  && (_ip1[i] > 20000000000) )
+        if ( eb > 5 && acorr[i] > (energy[i] >> 1)/*  && (e > 200000)*/ )
         {
           (*peak_count)++;
 
-          if ( *peak_count > 3)
+          //if ( *peak_count > 3)
           {
-            *peak_found = true;
-            eb32 = 300 * 1024;
+            float fsnr = 10 * log10((float)eb) - 1.0;
 
-            ebmax = eb;
+            PlotText("[log]", "Frame SNR=%.3f dB", fsnr);
+
+            printf("peak-->%d\n", itracept);
+            *peak_found = true;
+            eb32 = energy_buffer[i];
+
             //cout << "peak ->" << endl;
           }
         }
@@ -116,18 +125,20 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
       else
       {
         //log("%I64d\t%I64d\n", _ip0[i], _ip1[i]);
-        if ( _ip0[i] < (_ip1[i] >> *peak_down_shift) )
+        if ( acorr[i] < (energy[i] >> 3) )
         {
           if (*peak_count > 96 && *peak_count < 160)
           {
 
             PlotText("[log]", "PeakCount=%d", *peak_count);
+            
+            printf("peak<--%d, eb=%d\n", itracept, eb32 / 10);
 
             *peak_found = false;
             *peak_count = 0;
             ret = true;
 
-            eb32 = 500 * 1024;
+            eb32 = energy_buffer[i] * 2;
             PlotLine("moving dwe", &eb32, 1);
             //cout << "peak <-" << endl;
             //getchar();
@@ -138,31 +149,31 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
             // it's a fake preamble
             *peak_found = false;
             *peak_count = 0;
-            break;
+            //break;
           }
         }
         else
         {
           (*peak_count)++;
           
-          if ( *peak_count > 160 )
-          {
-            //log("Too many peaks..................\n");
-            //getchar();
+          //if ( *peak_count > 160 )
+          //{
+          //  //log("Too many peaks..................\n");
+          //  //getchar();
 
-            eb32 = 200 * 1024;
+          //  eb32 = 200 * 1024;
 
-            *peak_found = false;
-            *peak_count = 0;
-          }
+          //  *peak_found = false; 
+          //  *peak_count = 0;
+          //}
         }
       }
 
       PlotLine("moving dwe", &eb32, 1);
       
 
-      his_moving_energy[his_index++] = _ip1[i];
-      his_index %= 32;
+      his_moving_energy[his_index++] = energy[i];
+      his_index %= 64;
     }
 
     consume(0, nin0);

@@ -8,6 +8,7 @@ __forceinline short v_estimate_i(v_cs* pvcs, int vcount, int vdist)
   vsum.v_zero();
   unsigned long nshift = 0;
   _BitScanReverse(&nshift, vcount);
+  nshift += 2; // represented in vector, need add log2(4)
 
   const v_cs vmsk = VMASK::__0x80000001800000018000000180000001<v_cs>();
 
@@ -30,11 +31,56 @@ __forceinline short v_estimate_i(v_cs* pvcs, int vcount, int vdist)
 
   short sdeltaf = dsp_math::atan(vsum[0].re, vsum[0].im);
   _BitScanReverse(&nshift, vdist);
+  nshift += 2;
   sdeltaf >>= nshift;
 
   return sdeltaf;
 }
 
+__forceinline short v_estimate_i(v_cs* pvcs1, v_cs* pvcs2, int vcount, int vdist)
+{
+  v_ci vsum;
+  vsum.v_zero();
+  unsigned long nshift = 0;
+  _BitScanReverse(&nshift, vcount);
+  nshift += 3; // represented in vector, need add log2(4) + 1
+
+  const v_cs vmsk = VMASK::__0x80000001800000018000000180000001<v_cs>();
+
+  for (int i = 0; i < vcount; i++)
+  {
+    v_cs& va = (v_cs&)pvcs1[i];
+    v_cs& vb = (v_cs&)pvcs1[i + vdist];
+
+    v_cs& vaa = (v_cs&)pvcs2[i];
+    v_cs& vbb = (v_cs&)pvcs2[i + vdist];
+
+    v_ci vc;
+    v_ci vd;
+
+    v_conjmul2ci(va, vb, vmsk, vc, vd);
+    vc = vc.v_shift_right_arithmetic(nshift);
+    vd = vd.v_shift_right_arithmetic(nshift);
+    vsum = v_add(vc, vsum);
+    vsum = v_add(vd, vsum);
+
+    v_conjmul2ci(vaa, vbb, vmsk, vc, vd);
+    vc = vc.v_shift_right_arithmetic(nshift);
+    vd = vd.v_shift_right_arithmetic(nshift);
+    vsum = v_add(vc, vsum);
+    vsum = v_add(vd, vsum);
+  }
+  vsum = vsum.v_hsum();
+
+  //printf(" vsum =[%d, %d]\n", vsum[0].re, vsum[0].im);
+
+  short sdeltaf = dsp_math::atan(vsum[0].re, vsum[0].im);
+  _BitScanReverse(&nshift, vdist);
+  nshift += 2;
+  sdeltaf >>= nshift;
+
+  return sdeltaf;
+}
 
 
 DEFINE_BLOCK(b_frequest_offset_estimator_1v, 1, 0)
@@ -126,13 +172,21 @@ DEFINE_BLOCK(b_frequest_offset_estimator_2v, 2, 0)
     auto ip1 = _$<v_cs>(0);
     auto ip2 = _$<v_cs>(1);
 
+#if 0
     short delta1 = v_estimate_i(ip1, *vEstimateLength, *vEstimateDistance);
     short delta2 = v_estimate_i(ip2, *vEstimateLength, *vEstimateDistance);
     short delta  = (delta1 >> 1) + (delta2 >> 1);
+    //short delta = delta1;
+    PlotText("[log]", "CFO1=%d, CFO2=%d, AvgCFO=%d\n", delta1, delta2, delta);
+#endif
+
+    // joint CFO estimation
+    short delta = v_estimate_i(ip1, ip2, *vEstimateLength, *vEstimateDistance);
+    
+    float fcfohz = (2 * 3.14 * delta / 65535.0f) * 1000.0f * (180.0f / 3.14) / 4.0f;
+    PlotText("[log]", "AvgCFO=%d  -=>  %.3f KHz\n", delta, fcfohz);
 
     v_s vcfodelta;
-    (*vfo_theta_i).v_zero();
-
     vcfodelta.v_setall(delta);
 
     (*vfo_step_i)    = vcfodelta.v_shift_left(3);
@@ -141,8 +195,6 @@ DEFINE_BLOCK(b_frequest_offset_estimator_2v, 2, 0)
     vcfodelta         = v_add(vcfodelta, (v_s&)vcfodelta.v_shift_bytes_left<4>());
     vcfodelta         = v_add(vcfodelta, (v_s&)vcfodelta.v_shift_bytes_left<8>());
     vcfodelta         = vcfodelta.v_shift_bytes_left<2>();
-    
-    PlotText("[log]", "%s: cfo=%d\n", name(), vcfodelta[1]);
     
     (*vfo_delta_i)    = vcfodelta;
 

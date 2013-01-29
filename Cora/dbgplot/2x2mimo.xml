@@ -1,44 +1,23 @@
 <PlotWndAreaProp>
 	<PlotWnd>
 		<WndName></WndName>
-		<WndType>class PlotWindowOpenedDots</WndType>
-		<WndNameIsSet>0</WndNameIsSet>
-		<WndRectTLX>0</WndRectTLX>
-		<WndRectTLY>400</WndRectTLY>
-		<WndRectBRX>400</WndRectBRX>
-		<WndRectBRY>700</WndRectBRY>
-		<WndshowGrid>-1</WndshowGrid>
-		<AutoScale>-1</AutoScale>
-		<XLabel></XLabel>
-		<YLabel></YLabel>
-		<DataRange>62</DataRange>
-		<WndmaxValue>1328.85524042312</WndmaxValue>
-		<Wndluminescence>-1</Wndluminescence>
-		<Process>Cora.exe</Process>
-		<ProcessName>2</ProcessName>
-	<Channel>
-			<SName>siso channel 2</SName>
-			<SType>class ChannelOpenedDots</SType>
-			<color>13158600</color></Channel></PlotWnd>
-	<PlotWnd>
-		<WndName></WndName>
 		<WndType>class PlotWindowOpenedLine</WndType>
 		<WndNameIsSet>0</WndNameIsSet>
-		<WndRectTLX>160</WndRectTLX>
-		<WndRectTLY>40</WndRectTLY>
-		<WndRectBRX>1260</WndRectBRX>
-		<WndRectBRY>760</WndRectBRY>
+		<WndRectTLX>0</WndRectTLX>
+		<WndRectTLY>600</WndRectTLY>
+		<WndRectBRX>1160</WndRectBRX>
+		<WndRectBRY>800</WndRectBRY>
 		<WndshowGrid>-1</WndshowGrid>
 		<AutoScale>-1</AutoScale>
 		<XLabel></XLabel>
 		<YLabel></YLabel>
-		<DataRange>263</DataRange>
+		<DataRange>1048576</DataRange>
 		<Logarithm>0</Logarithm>
 		<WndautoScale>-1</WndautoScale>
-		<WndmaxValue>650000</WndmaxValue>
-		<WndminValue>-150000</WndminValue>
+		<WndmaxValue>10000000</WndmaxValue>
+		<WndminValue>-2000000</WndminValue>
 		<Process>Cora.exe</Process>
-		<ProcessName>2</ProcessName>
+		<ProcessName>1</ProcessName>
 	<Channel>
 			<SName>moving dwe</SName>
 			<SType>class ChannelOpenedLine</SType>
@@ -50,4 +29,290 @@
 	<Channel>
 			<SName>moving average energy</SName>
 			<SType>class ChannelOpenedLine</SType>
-			<color>255</color></Channel></PlotWnd></PlotWndAreaProp>
+			<color>255</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedText</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>800</WndRectTLX>
+		<WndRectTLY>0</WndRectTLY>
+		<WndRectBRX>1180</WndRectBRX>
+		<WndRectBRY>600</WndRectBRY>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>[log]</SName>
+			<SType>class ChannelOpenedText</SType>
+			<color>13158600</color>
+		<subRectTLX>0</subRectTLX>
+		<subRectTLY>0</subRectTLY>
+		<subRectBRX>10</subRectBRX>
+		<subRectBRY>10</subRectBRY></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>0</WndRectTLX>
+		<WndRectTLY>0</WndRectTLY>
+		<WndRectBRX>200</WndRectBRX>
+		<WndRectBRY>200</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>6000</WndmaxValue>
+		<WndminValue>-2000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>H[0][0]</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>65535</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>200</WndRectTLX>
+		<WndRectTLY>0</WndRectTLY>
+		<WndRectBRX>400</WndRectBRX>
+		<WndRectBRY>200</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>4000</WndmaxValue>
+		<WndminValue>-1000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>H[0][1]</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>255</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>400</WndRectTLX>
+		<WndRectTLY>0</WndRectTLY>
+		<WndRectBRX>600</WndRectBRX>
+		<WndRectBRY>200</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>30000</WndmaxValue>
+		<WndminValue>-10000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>H[1][0]</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>16776960</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>600</WndRectTLX>
+		<WndRectTLY>0</WndRectTLY>
+		<WndRectBRX>800</WndRectBRX>
+		<WndRectBRY>200</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>15000</WndmaxValue>
+		<WndminValue>-5000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>H[1][1]</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>16711680</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>0</WndRectTLX>
+		<WndRectTLY>400</WndRectTLY>
+		<WndRectBRX>200</WndRectBRX>
+		<WndRectBRY>600</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>0</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>192</DataRange>
+		<WndmaxValue>160</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>L Constellation Stream 1</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>16711935</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>0</WndRectTLX>
+		<WndRectTLY>200</WndRectTLY>
+		<WndRectBRX>200</WndRectBRX>
+		<WndRectBRY>400</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>40000</WndmaxValue>
+		<WndminValue>-10000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>L Spectrum Stream 1</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>16711935</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>200</WndRectTLX>
+		<WndRectTLY>400</WndRectTLY>
+		<WndRectBRX>400</WndRectBRX>
+		<WndRectBRY>600</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>0</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>192</DataRange>
+		<WndmaxValue>160</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>L Constellation Stream 2</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>16776960</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>200</WndRectTLX>
+		<WndRectTLY>200</WndRectTLY>
+		<WndRectBRX>400</WndRectBRX>
+		<WndRectBRY>400</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>30000</WndmaxValue>
+		<WndminValue>-10000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>L Spectrum Stream 2</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>16776960</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>400</WndRectTLX>
+		<WndRectTLY>200</WndRectTLY>
+		<WndRectBRX>600</WndRectBRX>
+		<WndRectBRY>400</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>40000</WndmaxValue>
+		<WndminValue>-10000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>HT Spectrum 1</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>255</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>600</WndRectTLX>
+		<WndRectTLY>200</WndRectTLY>
+		<WndRectBRX>800</WndRectBRX>
+		<WndRectBRY>400</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>40000</WndmaxValue>
+		<WndminValue>-10000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>HT Spectrum 2</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>65535</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>400</WndRectTLX>
+		<WndRectTLY>400</WndRectTLY>
+		<WndRectBRX>600</WndRectBRX>
+		<WndRectBRY>600</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>0</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>64</DataRange>
+		<WndmaxValue>160</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>HT Constellation 1</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>255</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>600</WndRectTLX>
+		<WndRectTLY>400</WndRectTLY>
+		<WndRectBRX>800</WndRectBRX>
+		<WndRectBRY>600</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>0</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>64</DataRange>
+		<WndmaxValue>160</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+	<Channel>
+			<SName>HT Constellation 2</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>65535</color></Channel></PlotWnd></PlotWndAreaProp>

@@ -22,7 +22,7 @@
 #define USER_MODE
 #include "sora.h"
 
-#define enable_draw 1
+#define enable_draw 0
 #ifdef _WIN64
 #define enable_dbgplot 0
 #else

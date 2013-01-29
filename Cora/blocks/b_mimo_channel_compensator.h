@@ -77,15 +77,48 @@ DEFINE_BLOCK(b_dot11_mimo_channel_compensator_2v2, 2, 2)
 
 #if enable_draw
     opc1[0] = 0;
+    opc2[0] = 0;
     for (int i = 29; i < 64 - 28; i++)
     {
       opc1[i] = 0;
+      opc2[i] = 0;
     }
     
     //m_draw1->DrawSqrtShift(opc1, 64);
     m_draw1->DrawScatter(opc1, 64);
     m_draw2->DrawScatter(opc2, 64);
 #endif
+
+#if enable_dbgplot
+    opc1[0] = 0;
+    opc2[0] = 0;
+    for (int i = 29; i < 64 - 28; i++)
+    {
+      opc1[i] = 0;
+      opc2[i] = 0;
+    }
+
+    v_i vspec1[16];
+    v_i vspec2[16];
+    int ispecpos = 0;
+    for (int i = 0; i < 16; i++)
+    {
+      int n = (8 + i) % 16;
+      v_cs& vout1 = (v_cs&)op1[n];
+      v_cs& vout2 = (v_cs&)op2[n];
+      vspec1[ispecpos] = vout1.v_sqr2i();
+      vspec2[ispecpos] = vout2.v_sqr2i();
+      ispecpos++;
+    }
+
+    PlotSpectrum("HT Spectrum 1", (int*)&vspec1[0][0], 64);
+    PlotSpectrum("HT Spectrum 2", (int*)&vspec2[0][0], 64);
+
+    PlotDots("HT Constellation 1", opc1, 64);
+    PlotDots("HT Constellation 2", opc2, 64);
+#endif
+
+
 
     consume_each(16);
     produce_each(16);

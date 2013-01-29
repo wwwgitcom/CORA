@@ -122,9 +122,40 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_2v2, 2, 2)
       vout        = v_convert2cs(vciout1, vciout2);
     }
 
-    PlotDots("siso channel 2", (complex16*)op2, 64);
-
 #endif
+
+#if enable_dbgplot
+    op1[0][0] = 0;
+    op2[0][0] = 0;
+    for (int i = 26; i < 64 - 26; i++)
+    {
+      op1[0][i] = 0;
+      op2[0][i] = 0;
+    }
+
+    v_i vspec1[16];
+    v_i vspec2[16];
+    int ispecpos = 0;
+    for (int i = 0; i < 16; i++)
+    {
+      int n = (8 + i) % 16;
+      v_cs& vout1 = (v_cs&)op1[n];
+      v_cs& vout2 = (v_cs&)op2[n];
+      vspec1[ispecpos] = vout1.v_sqr2i();
+      vspec2[ispecpos] = vout2.v_sqr2i();
+      ispecpos++;
+    }
+
+    PlotSpectrum("L Spectrum Stream 1", (int*)&vspec1[0][0], 64);
+    PlotSpectrum("L Spectrum Stream 2", (int*)&vspec2[0][0], 64);
+
+    PlotDots("L Constellation Stream 1", (complex16*)op1, 64);
+    PlotDots("L Constellation Stream 2", (complex16*)op2, 64);
+#endif
+
+
+
+
     consume(0, 16);
     consume(1, 16);
     produce(0, 16);
