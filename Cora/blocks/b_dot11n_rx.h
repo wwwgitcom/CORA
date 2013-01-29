@@ -43,7 +43,7 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
     strFileName2 = CmdArg.as_string();
   }
 
-  autoref src = create_block<b_file_source_v2>( 3, strFileName1, strFileName2, string("Decimate=1") );
+  autoref src = create_block<b_file_source_v2>( 3, strFileName1, strFileName2, string("Decimate=2") );
 
   autoref wait_lltf = create_block<b_wait_2v>(1, string("nwait=32"));
 
@@ -344,7 +344,6 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       START(IF(ht_sig_parser), [&]{bRet = true;});
       return bRet;
     }), STOP(NOP), ELSE, NOP);
-    printf("HT_SIG: MCS=%d, Length=%d\n", *ht_frame_mcs, *ht_frame_length);
     return *ht_sig_ok;
   };
 
@@ -542,10 +541,14 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       *ht_frame_length * 8.0 / t.us());
     printf("frame decode done! %d\n", *crc32_checker.crc32_check_result);
   };
-
+#if 0
+  START(
+    WHILE(frame_detection)
+    );
+#else
   START(
     WHILE(frame_detection), IF(lltf_handler), IF(lsig_handler), IF(htsig_handler), IF(htstf_handler), IF(htltf_handler), htdata_handler
     );
-
+#endif
   printf("rx main terminated...\n");
 };

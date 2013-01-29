@@ -48,7 +48,7 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
       uiSignal &= 0xFFFFFF;
       if (uiSignal & 0xFC0010) // all these bits should be always zero
       {
-        log(" l-sig error: unexpected value %p\n", uiSignal);
+        printf(" l-sig error: unexpected value %p\n", uiSignal);
         *l_sig_ok = false;
         break;
       }
@@ -60,7 +60,7 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
       uiParity = (uiParity >> 1) ^ (uiParity);
       if (uiParity & 0x1)
       {
-        log(" l-sig error: parity check failes.\n");
+        printf(" l-sig error: parity check failes.\n");
         *l_sig_ok = false;
         break;
       }
@@ -68,7 +68,7 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
       (*l_frame_rate) = uiSignal & 0xF;
       if (!((*l_frame_rate) & 0x8))
       {
-        log(" l-sig error: unexpected data rate %X.\n", *l_frame_rate);
+        printf(" l-sig error: unexpected data rate %X.\n", *l_frame_rate);
         *l_sig_ok = false;
         break;
       }
@@ -78,7 +78,7 @@ DEFINE_BLOCK(b_lsig_parser_1v, 1, 0)
 
       *l_sig_ok = true;
       
-      log(" l-sig : rate %X, length %d B, dbps = %d.\n", *l_frame_rate, *l_frame_length, *l_frame_dbps);
+      printf(" l-sig : rate %X, length %d B, dbps = %d.\n", *l_frame_rate, *l_frame_length, *l_frame_dbps);
     } while (false);
 
     consume(0, 3);

@@ -28,7 +28,7 @@ DEFINE_BLOCK(b_htsig_parser_1v, 1, 0)
       {
         *ht_frame_mcs    = 0;
         *ht_frame_length = 0;
-        log(" ht-sig error: crc8 check failed %X.\n", crc8value);
+        printf(" ht-sig error: crc8 check failed %X.\n", crc8value);
 
         *ht_sig_ok = false;
         break;
@@ -37,9 +37,8 @@ DEFINE_BLOCK(b_htsig_parser_1v, 1, 0)
       *ht_frame_mcs    = (ip[0] & 0x7F);
       *ht_frame_length = *((unsigned short*)(ip + 1));
       *ht_sig_ok = true;
+      printf(" ht-sig : mcs %X, length %d B.\n", *ht_frame_mcs, *ht_frame_length);
     } while (false);
-
-    log(" ht-sig : mcs %X, length %d B.\n", *ht_frame_mcs, *ht_frame_length);
 
     consume(0, 6);
 

@@ -272,8 +272,8 @@ public:
     
     for (int i = 0; i < nproduce; i++)
     {
-      op1[i] = (*pSignalBlock1)->operator[](*nOffset);
-      op2[i] = (*pSignalBlock2)->operator[](*nOffset);
+      v_cs v1st_1 = (*pSignalBlock1)->operator[](*nOffset);
+      v_cs v1st_2 = (*pSignalBlock2)->operator[](*nOffset);
 
       (*nOffset)++;
       if (*nOffset == 7)
@@ -294,6 +294,58 @@ public:
           }
         }
       }
+
+      if (*nDecimate == 2)
+      {
+        v_cs v2nd_1 = (*pSignalBlock1)->operator[](*nOffset);
+        v_cs v2nd_2 = (*pSignalBlock2)->operator[](*nOffset);
+
+
+        //printf("\nsource...\n");
+
+        //v_print(stdout, v1st_1);
+        //v_print(stdout, v2nd_1);
+
+        //v_print(stdout, v1st_2);
+        //v_print(stdout, v2nd_2);
+
+
+        //v1st_1 = v1st_1.v_shuffle_with<0, 2, 0, 2>(v2nd_1);
+        //v1st_2 = v1st_2.v_shuffle_with<0, 2, 0, 2>(v2nd_2);
+
+        //printf("down sample...\n");
+
+        //v_print(stdout, v1st_1);
+        //v_print(stdout, v1st_2);
+
+
+
+
+        (*nOffset)++;
+        if (*nOffset == 7)
+        {
+          (*pSignalBlock1)++;
+          (*pSignalBlock2)++;
+          *nOffset = 0;
+
+          if ((char*)(*pSignalBlock1) >= (*pBufferEnd1))
+          {
+            (*pSignalBlock1) = (psignal_block)(*pBufferStart1);
+            (*pSignalBlock2) = (psignal_block)(*pBufferStart2);
+            //std::cout << "source wrap once..." << endl;
+            (*nLoop)--;
+            if (*nLoop == 0)
+            {
+              return false;
+            }
+          }
+        }
+
+        op1[i] = v1st_1;
+        op2[i] = v1st_2;
+      }
+
+
     }
 
 

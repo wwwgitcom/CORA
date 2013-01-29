@@ -22,11 +22,11 @@
 #define USER_MODE
 #include "sora.h"
 
-#define enable_draw 0
+#define enable_draw 1
 #ifdef _WIN64
 #define enable_dbgplot 0
 #else
-#define enable_dbgplot 0
+#define enable_dbgplot 1
 #endif
 
 #include "DebugPlotU.h"
@@ -350,7 +350,7 @@ void auto_perf_test()
 }
 
 
-size_t B = 2400;
+size_t B = 11232;
 
 void parallel_viterbi2()
 {
@@ -607,7 +607,7 @@ void parallel_viterbi4()
   };
 
 
-  AUTO_PERF_BLOCK(b_parallel_viterbi64_1o2_1v1, uint8, uint8, 2,string("TraceBackLength=48"), strB);
+  //AUTO_PERF_BLOCK(b_parallel_viterbi64_1o2_1v1, uint8, uint8, 2,string("TraceBackLength=48"), strB);
 
 
   tick_count tstart = tick_count::now();
@@ -748,7 +748,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 #endif 
 #endif
 
-#if 0
+#if 1
   auto tx_main = [&]
   {
     //dot11n_2x2_tx(argc, argv);
@@ -768,7 +768,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 
   //dsp_main(auto_perf_test);
   
-  size_t nvitcore = 3;
+  size_t nvitcore = 4;
   if (cmdline.get("nvitcore").exist())
   {
     nvitcore = cmdline.get("nvitcore").as_uint();

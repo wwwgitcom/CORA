@@ -2,12 +2,15 @@
 DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 {
   _local_(int, peak_up_shift, 1);
-  _local_(int, peak_down_shift, 3);
+  _local_(int, peak_down_shift, 2);
   _local_(bool, peak_found, false);
   _local_(int, peak_count, 0);
 
   int energy_buffer[4];
   int axorr_buffer[4];
+  __int64 his_moving_energy[32];
+  int his_index;
+
 
   BLOCK_INIT
   {
@@ -21,7 +24,13 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
     {
       *peak_down_shift = atoi(v.c_str());
     }
+    memset(his_moving_energy, 1, 32 * sizeof(__int64));
+    his_index = 0;
   }
+
+
+  int ebmax;
+  int maxpos;
 
   BLOCK_WORK
   {
@@ -53,11 +62,11 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 #if enable_dbgplot
     for (int i = 0; i < 4; i++)
     {
-      axorr_buffer[i] = (int)(_ip0[i] >> 16);
-      energy_buffer[i] = (int)(_ip1[i] >> 16);
+      axorr_buffer[i] = (int)(_ip0[i] >> 32);
+      energy_buffer[i] = (int)(_ip1[i] >> 32);
     }
     PlotLine("moving average energy", energy_buffer, 4);
-    PlotLine("moving average axorr^2", axorr_buffer, 4);    
+    PlotLine("moving average axorr^2", axorr_buffer, 4);
 #endif
 
     bool ret = false;
@@ -70,20 +79,38 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
       printf("%I64d\n", _ip1[i]);
     }
 #endif
+
+    
+
     //if (*peak_found)
     //log("-----------\n");
     for (int i = 0; i < _nin; i++)
     {
+      __int64 e = _ip1[i];
+      __int64 eb = e / (his_moving_energy[his_index] + 1);
+      int eb32 = (int)(eb);
+      
+      eb32 *= 100;
+
       if (!*peak_found)
       {
-        if ( _ip0[i] > (_ip1[i] >> *peak_up_shift) && (_ip1[i] > 20000000000))
+        //if (eb > 2000)
+        if ( _ip0[i] > (_ip1[i] >> *peak_up_shift)  && (_ip1[i] > 20000000000) )
         {
           (*peak_count)++;
+
           if ( *peak_count > 3)
           {
             *peak_found = true;
+            eb32 = 300 * 1024;
+
+            ebmax = eb;
             //cout << "peak ->" << endl;
           }
+        }
+        else
+        {
+          *peak_count = 0;
         }
       }
       else
@@ -93,10 +120,15 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
         {
           if (*peak_count > 96 && *peak_count < 160)
           {
+
+            PlotText("[log]", "PeakCount=%d", *peak_count);
+
             *peak_found = false;
             *peak_count = 0;
             ret = true;
 
+            eb32 = 500 * 1024;
+            PlotLine("moving dwe", &eb32, 1);
             //cout << "peak <-" << endl;
             //getchar();
             break;
@@ -112,15 +144,25 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
         else
         {
           (*peak_count)++;
+          
           if ( *peak_count > 160 )
           {
             //log("Too many peaks..................\n");
             //getchar();
+
+            eb32 = 200 * 1024;
+
             *peak_found = false;
             *peak_count = 0;
           }
         }
       }
+
+      PlotLine("moving dwe", &eb32, 1);
+      
+
+      his_moving_energy[his_index++] = _ip1[i];
+      his_index %= 32;
     }
 
     consume(0, nin0);

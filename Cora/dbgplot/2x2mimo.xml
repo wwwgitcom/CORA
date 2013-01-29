@@ -1,0 +1,53 @@
+<PlotWndAreaProp>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>0</WndRectTLX>
+		<WndRectTLY>400</WndRectTLY>
+		<WndRectBRX>400</WndRectBRX>
+		<WndRectBRY>700</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>62</DataRange>
+		<WndmaxValue>1328.85524042312</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>2</ProcessName>
+	<Channel>
+			<SName>siso channel 2</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>13158600</color></Channel></PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedLine</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>160</WndRectTLX>
+		<WndRectTLY>40</WndRectTLY>
+		<WndRectBRX>1260</WndRectBRX>
+		<WndRectBRY>760</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>263</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>650000</WndmaxValue>
+		<WndminValue>-150000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>2</ProcessName>
+	<Channel>
+			<SName>moving dwe</SName>
+			<SType>class ChannelOpenedLine</SType>
+			<color>65280</color></Channel>
+	<Channel>
+			<SName>moving average axorr^2</SName>
+			<SType>class ChannelOpenedLine</SType>
+			<color>16776960</color></Channel>
+	<Channel>
+			<SName>moving average energy</SName>
+			<SType>class ChannelOpenedLine</SType>
+			<color>255</color></Channel></PlotWnd></PlotWndAreaProp>

@@ -203,7 +203,7 @@ DEFINE_BLOCK(b_dot11_siso_channel_estimator_2v, 2, 0)
     auto ip1 = _$<v_cs>(0);
     auto ip2 = _$<v_cs>(1);
 #if enable_draw
-    m_draw->DrawSqrtShift((complex16*)ip1, 32 * 4);
+    m_draw->DrawSqrtShift((complex16*)ip1, 16 * 4);
 #endif
     autoref ch1  = *dot11a_siso_channel_1;
     v_cs *pvmask = (v_cs*)&_80211_LLTFMask[0];

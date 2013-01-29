@@ -121,6 +121,9 @@ DEFINE_BLOCK(b_dot11_siso_channel_compensator_2v2, 2, 2)
 
       vout        = v_convert2cs(vciout1, vciout2);
     }
+
+    PlotDots("siso channel 2", (complex16*)op2, 64);
+
 #endif
     consume(0, 16);
     consume(1, 16);

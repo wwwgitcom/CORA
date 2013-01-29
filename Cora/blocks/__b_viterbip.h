@@ -27,6 +27,8 @@ public:
     ntime = 8;
     nBlockSoftBits = 10 * 4 * ntime;// start from 40Msbps
     tstart = tick_count::now();
+
+    nrate = 351;
   }
 
 
@@ -36,12 +38,12 @@ public:
     {
       nrate += 10;
 
-      printf("increase source rate to %d Msbps\n", nrate);
+      fprintf(stderr, "vit increase source rate to %d Msbps\n", nrate);
     }
     else if ($.Event.KeyEvent.uChar.AsciiChar == 'd')
     {
       nrate -= 10;// dec 10Msbps
-      printf("decrease source rate to %d Msbps\n", nrate);
+      fprintf(stderr, "vit decrease source rate to %d Msbps\n", nrate);
     }
   }
 

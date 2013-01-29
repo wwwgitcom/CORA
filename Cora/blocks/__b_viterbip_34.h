@@ -224,6 +224,7 @@ DEFINE_BLOCK(b_parallel_viterbi64_3o4_1v1, 1, 1)
         }
 
 
+#if 1
         tDecodeStamp[iDecodeCnt] = tick_count::now();
         iDecodeCnt++;
         iDecodeCnt &= (1024 - 1);
@@ -234,15 +235,16 @@ DEFINE_BLOCK(b_parallel_viterbi64_3o4_1v1, 1, 1)
         }
 
         iDecodeCnt2++;
-        if (iDecodeCnt2 == 1000000)
+        if (iDecodeCnt2 == 100000)
         {
           int i = 16;
           //for (int i = 1; i < 1024; i++)
           {
-            printf("%d: vit delay = %f us\n", i, (tDecodeStamp[i] - tDecodeStamp[i - 1]).us());
+            fprintf(stderr, "vit time = %f us\n", (tDecodeStamp[i] - tDecodeStamp[i - 1]).us());
           }
           iDecodeCnt2 = 0;
         }
+#endif
 
 
 

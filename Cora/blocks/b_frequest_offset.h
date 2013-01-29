@@ -142,14 +142,15 @@ DEFINE_BLOCK(b_frequest_offset_estimator_2v, 2, 0)
     vcfodelta         = v_add(vcfodelta, (v_s&)vcfodelta.v_shift_bytes_left<8>());
     vcfodelta         = vcfodelta.v_shift_bytes_left<2>();
     
-    log("%s: cfo=%d\n", name(), (*vfo_delta_i)[1]);
-
+    PlotText("[log]", "%s: cfo=%d\n", name(), vcfodelta[1]);
+    
     (*vfo_delta_i)    = vcfodelta;
 
     (*vfo_theta_i).v_zero();
 
     // I don't consume any input items
-    log("%s: cfo=%d\n", name(), (*vfo_delta_i)[1]);
+    //PlotText("[log]", "%s: cfo=%d\n", name(), (*vfo_delta_i)[1]);
+
     return true;
   }
 };
