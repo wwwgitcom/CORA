@@ -35,15 +35,22 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
   auto CmdArg = cmdline.get("FileName1");
   if ( CmdArg.exist() )
   {
-    strFileName1 = CmdArg.as_string();
+    strFileName1 = "FileName1=" + CmdArg.as_string();
   }
   CmdArg = cmdline.get("FileName2");
   if ( CmdArg.exist() )
   {
-    strFileName2 = CmdArg.as_string();
+    strFileName2 = "FileName2=" + CmdArg.as_string();
   }
 
-  autoref src = create_block<b_file_source_v2>( 3, strFileName1, strFileName2, string("Decimate=2") );
+  string strDecimate = string("Decimate=2");
+  CmdArg = cmdline.get("Decimate");
+  if ( CmdArg.exist() )
+  {
+    strDecimate = "Decimate=" + CmdArg.as_string();
+  }
+
+  autoref src = create_block<b_file_source_v2>( 3, strFileName1, strFileName2,  strDecimate);
 
   autoref wait_lltf = create_block<b_wait_2v>(1, string("nwait=32"));
 

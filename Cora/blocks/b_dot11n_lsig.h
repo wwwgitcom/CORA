@@ -17,7 +17,8 @@ public:
 
     _lsig.clear();
     // indicate as legacy 6Mbps frame
-    _lsig.update(*rate, *dot11_tx_frame_length);
+    // frame length should be 1/2 of original frame since we use two streams
+    _lsig.update(*rate, *dot11_tx_frame_length >> 1);
 
     op[0] = _lsig.cdata[0];
     op[1] = _lsig.cdata[1];
