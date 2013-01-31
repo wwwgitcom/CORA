@@ -182,9 +182,14 @@ DEFINE_BLOCK(b_frequest_offset_estimator_2v, 2, 0)
 
     // joint CFO estimation
     short delta = v_estimate_i(ip1, ip2, *vEstimateLength, *vEstimateDistance);
-    
+
     float fcfohz = (2 * 3.14 * delta / 65535.0f) * 1000.0f * (180.0f / 3.14) / 4.0f;
+
+    printf(" CFO: %d, %.3f KHz\n", delta, fcfohz);
+
+#if enable_dbgplot
     PlotText("[log]", "AvgCFO=%d  -=>  %.3f KHz\n", delta, fcfohz);
+#endif
 
     v_s vcfodelta;
     vcfodelta.v_setall(delta);

@@ -134,7 +134,7 @@ DEFINE_BLOCK(b_file_source_v2, 0, 2)
   _local_(psignal_block, pSignalBlock2, nullptr);
   _local_(int, nDecimate, 1);
   _local_(int, nOffset, 0);
-  _local_(int, nLoop, 1000000);
+  _local_(int, nLoop, 1);
 
 public:
   int report()
@@ -290,6 +290,7 @@ public:
           (*nLoop)--;
           if (*nLoop == 0)
           {
+            ExitProcess(0);
             return false;
           }
         }
@@ -333,6 +334,7 @@ public:
             (*nLoop)--;
             if (*nLoop == 0)
             {
+              ExitProcess(0);
               return false;
             }
           }

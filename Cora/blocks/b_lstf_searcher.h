@@ -106,13 +106,15 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
 
           //if ( *peak_count > 3)
           {
-            float fsnr = 10 * log10((float)eb) - 1.0;
-
+            float fsnr = 5 * log10((float)eb) - 1.0;
+            printf("Frame detected, LSTF, SNR %.3f dB\n", fsnr);
+#if enable_dbgplot
             PlotText("[log]", "Frame SNR=%.3f dB", fsnr);
-
-            printf("peak-->%d\n", itracept);
-            *peak_found = true;
             eb32 = energy_buffer[i];
+#endif
+            //printf("peak-->%d\n", itracept);
+            *peak_found = true;
+
 
             //cout << "peak ->" << endl;
           }
@@ -129,17 +131,19 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
         {
           if (*peak_count > 96 && *peak_count < 160)
           {
-
+#if enable_dbgplot
             PlotText("[log]", "PeakCount=%d", *peak_count);
-            
-            printf("peak<--%d, eb=%d\n", itracept, eb32 / 10);
+            eb32 = energy_buffer[i] * 2;
+            PlotLine("moving dwe", &eb32, 1);
+#endif
+            printf("Frame detected, LLTF\n");
+            //printf("peak<--%d, eb=%d\n", itracept, eb32 / 10);
 
             *peak_found = false;
             *peak_count = 0;
             ret = true;
 
-            eb32 = energy_buffer[i] * 2;
-            PlotLine("moving dwe", &eb32, 1);
+            
             //cout << "peak <-" << endl;
             //getchar();
             break;
@@ -168,9 +172,9 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
           //}
         }
       }
-
+#if enable_dbgplot
       PlotLine("moving dwe", &eb32, 1);
-      
+#endif
 
       his_moving_energy[his_index++] = energy[i];
       his_index %= 64;

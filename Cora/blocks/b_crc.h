@@ -50,9 +50,9 @@ public:
       if (n - i >= 4)
       {
         uint32 calc_crc32 = crc32_check.value();
-        uint32 local_crc32 = *((uint32*)&ip[i]);
+        uint32 frame_crc32 = *((uint32*)&ip[i]);
 
-        printf("cd:: CRC: calc:%X : local:%X\n", calc_crc32, local_crc32);
+        printf(" CRC32, calc=%p  inframe=%p\n", calc_crc32, frame_crc32);
 
         *crc32_check_result = ( *((uint32*)&ip[i]) == crc32_check.value() );
         crc32_check.reset();

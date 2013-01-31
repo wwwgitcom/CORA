@@ -26,6 +26,7 @@ Thumbs.db
 *.lib
 *.sbr
 obj/
+batch_decode/batch_decode_results
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*

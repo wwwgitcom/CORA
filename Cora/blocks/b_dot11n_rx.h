@@ -12,6 +12,7 @@ DEFINE_BLOCK(dummy_block, 1, 1)
 
     int nin0 = ninput(0);
     auto ip = _$<unsigned __int8>(0);
+
     for (int i = 0; i < nin0; i++)
     {
       log("%d, ", ip[i]);
@@ -543,10 +544,12 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
       );
     t2 = tick_count::now();
     tick_count t = t2 - t1;
-    printf("time = %f us, %f MSPS, %f Mbps\n", 
+    
+    printf(" time = %f us, %f MSPS, %f Mbps\n", 
       t.us(), total_symbol_count * 80 / t.us(),
       *ht_frame_length * 8.0 / t.us());
-    printf("frame decode done! %d\n", *crc32_checker.crc32_check_result);
+
+    printf(" frame decode done %d\n\n", *crc32_checker.crc32_check_result);
   };
 #if 0
   START(

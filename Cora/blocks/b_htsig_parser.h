@@ -28,7 +28,7 @@ DEFINE_BLOCK(b_htsig_parser_1v, 1, 0)
       {
         *ht_frame_mcs    = 0;
         *ht_frame_length = 0;
-        printf(" ht-sig error: crc8 check failed %X.\n", crc8value);
+        printf(" ht-sig error: crc8 check failed %p, crc8 %p\n", *(uint32*)ip, crc8value);
 
         *ht_sig_ok = false;
         break;
@@ -37,8 +37,10 @@ DEFINE_BLOCK(b_htsig_parser_1v, 1, 0)
       *ht_frame_mcs    = (ip[0] & 0x7F);
       *ht_frame_length = *((unsigned short*)(ip + 1));
       *ht_sig_ok = true;
-      printf(" ht-sig : mcs=%02X, length=%d Bytes.\n", *ht_frame_mcs, *ht_frame_length);
-      PlotText("[log]", "ht-sig : mcs=%02X, length=%d Bytes.\n", *ht_frame_mcs, *ht_frame_length);
+      printf(" ht-sig ok: sig=%x, mcs=%d, length=%d Bytes\n", *(uint32*)ip, *ht_frame_mcs, *ht_frame_length);
+#if enable_dbgplot
+      PlotText("[log]", " ht-sig ok: sig=%x, mcs=%d, length=%d Bytes\n", *(uint32*)ip, *ht_frame_mcs, *ht_frame_length);
+#endif
     } while (false);
 
     consume(0, 6);

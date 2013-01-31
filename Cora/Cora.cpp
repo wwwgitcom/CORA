@@ -26,7 +26,7 @@
 #ifdef _WIN64
 #define enable_dbgplot 0
 #else
-#define enable_dbgplot 1
+#define enable_dbgplot 0
 #endif
 
 #include "DebugPlotU.h"
@@ -759,12 +759,16 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
     dot11n_2x2_rx(argc, argv);
   };
 
-  dsp_main(rx_main);
+  //dsp_main(rx_main);
+  rx_main();
+  ExitProcess(0);
+  exit(0); 
   return 0;
 #endif
 
   //dsp_main(evt_handler_test);
   //dump_llts();
+
 
   //dsp_main(auto_perf_test);
   
