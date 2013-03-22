@@ -165,6 +165,7 @@
     <ClInclude Include="blocks\b_drop.h" />
     <ClInclude Include="blocks\b_fft.h" />
     <ClInclude Include="blocks\b_file_source.h" />
+    <ClInclude Include="blocks\b_fir.h" />
     <ClInclude Include="blocks\b_frequest_offset.h" />
     <ClInclude Include="blocks\b_htsig_parser.h" />
     <ClInclude Include="blocks\b_dot11a_interleave.h" />

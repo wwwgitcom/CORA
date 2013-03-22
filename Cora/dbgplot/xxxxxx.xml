@@ -1,0 +1,76 @@
+<DebugSession>
+	<Version>2.0</Version>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>400</WndRectTLX>
+		<WndRectTLY>400</WndRectTLY>
+		<WndRectBRX>600</WndRectBRX>
+		<WndRectBRY>600</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>40000</WndmaxValue>
+		<WndminValue>-10000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+		<Channel>
+			<SName>HT Spectrum 1</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>13158600</color>
+		</Channel>
+	</PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedDots</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>540</WndRectTLX>
+		<WndRectTLY>120</WndRectTLY>
+		<WndRectBRX>740</WndRectBRX>
+		<WndRectBRY>320</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1024</DataRange>
+		<WndmaxValue>217.629271928204</WndmaxValue>
+		<Wndluminescence>-1</Wndluminescence>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+		<Channel>
+			<SName>HT Constellation 1</SName>
+			<SType>class ChannelOpenedDots</SType>
+			<color>13158600</color>
+		</Channel>
+	</PlotWnd>
+	<PlotWnd>
+		<WndName></WndName>
+		<WndType>class PlotWindowOpenedSpectrum</WndType>
+		<WndNameIsSet>0</WndNameIsSet>
+		<WndRectTLX>220</WndRectTLX>
+		<WndRectTLY>60</WndRectTLY>
+		<WndRectBRX>420</WndRectBRX>
+		<WndRectBRY>260</WndRectBRY>
+		<WndshowGrid>-1</WndshowGrid>
+		<AutoScale>-1</AutoScale>
+		<XLabel></XLabel>
+		<YLabel></YLabel>
+		<DataRange>1</DataRange>
+		<Logarithm>0</Logarithm>
+		<WndautoScale>-1</WndautoScale>
+		<WndmaxValue>6000</WndmaxValue>
+		<WndminValue>-2000</WndminValue>
+		<Process>Cora.exe</Process>
+		<ProcessName>1</ProcessName>
+		<Channel>
+			<SName>H[0][0]</SName>
+			<SType>class ChannelOpenedSpectrum</SType>
+			<color>13158600</color>
+		</Channel>
+	</PlotWnd>
+</DebugSession>

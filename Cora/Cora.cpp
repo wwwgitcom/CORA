@@ -82,7 +82,7 @@
 #include "b_descramble.h"
 #include "b_crc.h"
 #include "b_socket.h"
-
+#include "b_fir.h"
 
 //////////////////////////////////////////////////////////////////////////
 #include "b_dot11_frame_source.h"
@@ -313,6 +313,10 @@ void auto_perf_test()
 
   AUTO_PERF_BLOCK(b_dot11n_csd_1v1, dot11n_tx_symbol, dot11n_tx_symbol);
   AUTO_PERF_BLOCK(b_dot11a_interleaver_1bpsc_1v1, uint8, v_ub);
+  AUTO_PERF_BLOCK(b_dot11n_interleaver_1bpsc_1v1, uint8, v_ub);
+  AUTO_PERF_BLOCK(b_dot11n_interleaver_2bpsc_1v1, uint8, v_ub);
+  AUTO_PERF_BLOCK(b_dot11n_interleaver_4bpsc_1v1, uint8, v_ub);
+  AUTO_PERF_BLOCK(b_dot11n_interleaver_6bpsc_1v1, uint8, v_ub);
 
   AUTO_PERF_BLOCK(b_ifft_128_1v1, v_cs, v_cs);
 
@@ -331,6 +335,12 @@ void auto_perf_test()
   AUTO_PERF_BLOCK(b_dot11_demap_16qam_1v1, v_cs, uint8);
   AUTO_PERF_BLOCK(b_dot11_demap_64qam_1v1, v_cs, uint8);
 
+  AUTO_PERF_BLOCK(b_dot11n_deinterleave_1bpsc_1v1, uint8, uint8);
+  AUTO_PERF_BLOCK(b_dot11n_deinterleave_2bpsc_1v1, uint8, uint8);
+  AUTO_PERF_BLOCK(b_dot11n_deinterleave_4bpsc_1v1, uint8, uint8);
+  AUTO_PERF_BLOCK(b_dot11n_deinterleave_6bpsc_1v1, uint8, uint8);
+
+
   //AUTO_PERF_BLOCK(b_lstf_searcher_2v1);
 
   AUTO_PERF_BLOCK(b_dot11_siso_channel_estimator_1v, v_cs, TNULL);
@@ -347,6 +357,28 @@ void auto_perf_test()
   AUTO_PERF_BLOCK(b_stream_joiner_1_2v1, uint8, uint8);
   AUTO_PERF_BLOCK(b_stream_joiner_2_2v1, uint8, uint8);
   AUTO_PERF_BLOCK(b_stream_joiner_3_2v1, uint8, uint8);
+
+}
+
+
+
+void per_fir()
+{
+  AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=4"));
+  AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=8"));
+  AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=16"));
+  AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=32"));
+  AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=64"));
+  AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=128"));
+
+  cout << "--------------------------" << endl;
+
+  AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=4"));
+  AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=8"));
+  AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=16"));
+  AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=32"));
+  AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=64"));
+  AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=128"));
 }
 
 
@@ -748,7 +780,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 #endif 
 #endif
 
-#if 1
+#if 0
   auto tx_main = [&]
   {
     //dot11n_2x2_tx(argc, argv);
@@ -770,7 +802,11 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
   //dump_llts();
 
 
-  //dsp_main(auto_perf_test);
+  //auto_perf_test();
+  per_fir();
+  ExitProcess(0);
+  return 0;
+#if 0
   
   size_t nvitcore = 4;
   if (cmdline.get("nvitcore").exist())
@@ -801,6 +837,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
     break;
   }
   
+#endif
 
   auto mumimo_tx_main = [&]
   {

@@ -1446,7 +1446,7 @@ __forceinline v_s v_mul_lo(v_s &a, v_s &b){ v_s c; c.m128i = _mm_mullo_epi16(a.m
 //DEST[15:0] ¡û TEMP0[31:16];
 __forceinline v_s v_mul_hi(v_s &a, v_s &b){ v_s c; c.m128i = _mm_mulhi_epi16(a.m128i, b.m128i); return c; }
 
-__forceinline v_i v_mul2i(v_s &a, v_s &b, v_i &i0, v_i &i1){ 
+__forceinline void v_mul2i(v_s &a, v_s &b, v_i &i0, v_i &i1){ 
   v_s lo, hi;
   lo.m128i = _mm_mullo_epi16(a.m128i, b.m128i);
   hi.m128i = _mm_mulhi_epi16(a.m128i, b.m128i);
