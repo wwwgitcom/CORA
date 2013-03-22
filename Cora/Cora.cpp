@@ -364,21 +364,23 @@ void auto_perf_test()
 
 void per_fir()
 {
-  AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=4"));
+  //AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=4"));
   AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=8"));
   AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=16"));
   AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=32"));
   AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=64"));
   AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=128"));
+  AUTO_PERF_BLOCK(b_fir_ss_1v1, short, short, 1, string("TapCount=256"));
 
   cout << "--------------------------" << endl;
 
-  AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=4"));
+  //AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=4"));
   AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=8"));
   AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=16"));
   AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=32"));
   AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=64"));
   AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=128"));
+  AUTO_PERF_BLOCK(b_fir_vsvs_1v1, v_s, v_s, 1, string("TapCount=256"));
 }
 
 
@@ -803,7 +805,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 
 
   //auto_perf_test();
-  per_fir();
+  dsp_main(per_fir);
   ExitProcess(0);
   return 0;
 #if 0
