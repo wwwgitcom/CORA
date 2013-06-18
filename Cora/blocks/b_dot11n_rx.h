@@ -131,13 +131,13 @@ void dot11n_2x2_rx(int argc, _TCHAR* argv[])
 
   autoref ht_data_vit_23 = create_block<b_viterbi64_2o3_1v1>(
     2,
-    string("TraceBackLength=36"),
+    string("TraceBackLength=64"),
     string("TraceBackOutput=192")
     );
 
   autoref ht_data_vit_34 = create_block<b_viterbi64_3o4_1v1>(
     2,
-    string("TraceBackLength=36"),
+    string("TraceBackLength=72"),
     string("TraceBackOutput=192")
     );
 

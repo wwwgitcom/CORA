@@ -95,8 +95,11 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
       __int64 eb = energy[i] / (his_moving_energy[his_index] + 1);
       int eb32 = (int)(eb);
 
+
+      //printf("%I64d, %I64d, %I64d\n", acorr[i], energy[i], eb);
+
       // for debug only, make it easy to be seen on screen
-      eb32 *= 10;
+      //eb32 *= 10;
 
       if (!*peak_found)
       {
@@ -107,7 +110,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
           //if ( *peak_count > 3)
           {
             float fsnr = 5 * log10((float)eb) - 1.0;
-            printf("Frame detected, LSTF, SNR %.3f dB\n", fsnr);
+            printf(" frame detected, SNR %.3f dB\n", fsnr);
 #if enable_dbgplot
             PlotText("[log]", "Frame SNR=%.3f dB", fsnr);
             eb32 = energy_buffer[i];
@@ -136,7 +139,7 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
             eb32 = energy_buffer[i] * 2;
             PlotLine("moving dwe", &eb32, 1);
 #endif
-            printf("Frame detected, LLTF\n");
+            //printf("Frame detected, LLTF\n");
             //printf("peak<--%d, eb=%d\n", itracept, eb32 / 10);
 
             *peak_found = false;
@@ -162,10 +165,10 @@ DEFINE_BLOCK(b_lstf_searcher_2v1, 2, 1)
           
           //if ( *peak_count > 160 )
           //{
-          //  //log("Too many peaks..................\n");
+          //  //printf("Too many peaks..................\n");
           //  //getchar();
 
-          //  eb32 = 200 * 1024;
+          //  eb32 = eb * 10;;
 
           //  *peak_found = false; 
           //  *peak_count = 0;

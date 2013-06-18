@@ -26,7 +26,7 @@
 #ifdef _WIN64
 #define enable_dbgplot 0
 #else
-#define enable_dbgplot 0
+#define enable_dbgplot 1
 #endif
 
 #include "DebugPlotU.h"
@@ -770,7 +770,8 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 
   if (dsp_sysconfig::Instance()->GetCPUProcessorCount() > 2)
   {
-    SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+    //SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+    SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
   }
 
   //SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
@@ -782,7 +783,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 #endif 
 #endif
 
-#if 0
+#if 1
   auto tx_main = [&]
   {
     //dot11n_2x2_tx(argc, argv);
@@ -805,7 +806,7 @@ int __cdecl _tmain(int argc, _TCHAR* argv[])
 
 
   //auto_perf_test();
-  dsp_main(per_fir);
+  //dsp_main(per_fir);
   ExitProcess(0);
   return 0;
 #if 0
