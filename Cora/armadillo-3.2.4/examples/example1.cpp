@@ -5,6 +5,7 @@
 using namespace arma;
 using namespace std;
 
+typedef Mat <s16> usmat;
 
 int main(int argc, char** argv)
   {
@@ -12,6 +13,9 @@ int main(int argc, char** argv)
   
   // directly specify the matrix size (elements are uninitialised)
   mat A(2,3);
+
+  //usmat usm(4, 4);
+  //usmat invm  = inv(A);
   
   // .n_rows = number of rows    (read only)
   // .n_cols = number of columns (read only)
