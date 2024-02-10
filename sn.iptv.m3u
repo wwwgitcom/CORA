@@ -429,32 +429,6 @@ http://stream.qhbtv.com/qhsh/playlist.m3u8
 http://stream.qhbtv.com/qhds/playlist.m3u8
 #EXTINF:-1 group-title="青海频道",新闻综合
 http://stream2.qhbtv.com/xwzh/playlist.m3u8
-#EXTINF:-1 group-title="CCTV-HD" tvg-logo="http://epg.51zmt.top:8000/tb1/CCTV/CCTV1.png",CCTV-1 HD
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226231/index.m3u8
-#EXTINF:-1 group-title="CCTV-HD" tvg-logo="http://epg.51zmt.top:8000/tb1/CCTV/CCTV3.png",CCTV-3 HD
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226397/index.m3u8
-#EXTINF:-1 group-title="CCTV-HD" tvg-logo="http://epg.51zmt.top:8000/tb1/CCTV/CCTV5+.png",CCTV-5+ HD
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221225761/index.m3u8
-#EXTINF:-1 group-title="CCTV-HD" tvg-logo="http://epg.51zmt.top:8000/tb1/CCTV/CCTV5+.png",CCTV-5+ HD
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226221/index.m3u8
-#EXTINF:-1 group-title="CCTV" tvg-logo="http://epg.51zmt.top:8000/tb1/CCTV/CCTV12.png",CCTV-12
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221225775/index.m3u8
-#EXTINF:-1 group-title="CCTV" tvg-logo="http://epg.51zmt.top:8000/tb1/CCTV/CCTV13.png",CCTV-13 News
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226233/index.m3u8
-#EXTINF:-1 group-title="CCTV-HD" tvg-logo="http://epg.51zmt.top:8000/tb1/CCTV/CCTV14.png",CCTV-14 HD
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226193/index.m3u8
-#EXTINF:-1 group-title="LocalTVHD" tvg-logo="http://epg.51zmt.top:8000/tb1/ws/beijing.png",北京卫视 HD
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221225796/index.m3u8
-#EXTINF:-1 group-title="LocalTVHD" tvg-logo="http://epg.51zmt.top:8000/tb1/ws/jiangsu.png",江苏卫视 HD
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221225800/index.m3u8
-#EXTINF:-1 group-title="LocalTVHD" tvg-logo="http://epg.51zmt.top:8000/tb1/ws/guangdong.png",广东卫视 HD
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221225803/index.m3u8
-#EXTINF:-1 group-title="LocalTVHD" tvg-logo="http://epg.51zmt.top:8000/tb1/ws/hubei.png",湖北卫视 HD
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226206/index.m3u8
-#EXTINF:-1 group-title="LocalTV" tvg-logo="http://epg.51zmt.top:8000/tb1/ws/anhui.png",安徽卫视
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221225773/index.m3u8
-#EXTINF:-1 group-title="LocalTV" tvg-logo="http://epg.51zmt.top:8000/tb1/ws/tianjin.png",天津卫视
-http://dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221225765/index.m3u8
 #EXTINF:-1 group-title="未分组",CCTV1
 http://tvpull.dxhmt.cn/tv/11081-2.m3u8
 #EXTINF:-1 group-title="农林卫视,",澳门卫视
