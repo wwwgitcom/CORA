@@ -290,7 +290,7 @@ http://zteres.sn.chinamobile.com:6060/yinhe/2/ch00000090990000002496/index.m3u8?
 http://zteres.sn.chinamobile.com:6060/yinhe/2/ch00000090990000002535/index.m3u8?virtualDomain=yinhe.live_hls.zte.com
 #EXTINF:-1 group-title="CCTV特色" tvg-logo="https://epg.112114.eu.org/logo/兵器科技.png",CCTV兵器科技
 http://[2409:8087:7001:20:2::3]:80/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226975/index.m3u8
-#EXTINF:-1 group-title="CCTV特色" tvg-logo="https://epg.112114.eu.org/logo/第一剧场.png",第一剧场
+#EXTINF:-1 group-title="CCTV特色" tvg-logo="https://epg.112114.eu.org/logo/第一剧场.png",CCTV第一剧场
 http://[2409:8087:7001:20:2::3]:80/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226959/index.m3u8
 #EXTINF:-1 group-title="CCTV特色" tvg-logo="https://epg.112114.eu.org/logo/电视指南.png",CCTV电视指南
 http://[2409:8087:7001:20:2::3]:80/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226987/index.m3u8
@@ -572,20 +572,7 @@ http://[2409:8087:7001:20:1000::95]:6610/000000001000/6000000006000050630/index.
 http://[2409:8087:7001:20:1000::95]:6610/000000001000/6000000006000180630/index.m3u8?channel-id=wasusyt&Contentid=6000000006000180630&livemode=1&stbId=3
 #EXTINF:-1 group-title="IHOT" tvg-logo="https://epg.112114.eu.org/logo/IHOT爱院线.png",iHOT爱院线
 http://[2409:8087:7001:20:1000::95]:6610/000000001000/6000000006000030630/index.m3u8?channel-id=wasusyt&Contentid=6000000006000030630&livemode=1&stbId=3
-#EXTINF:-1 group-title="IHOT" tvg-logo="https://epg.112114.eu.org/logo/浙江风尚音乐.png",风尚音乐
-http://[2409:8087:7001:20:1000::95]:6610/000000001000/5529729098703832176/index.m3u8?channel-id=wasusyt&Contentid=5529729098703832176&livemode=1&stbId=3
-#EXTINF:-1 group-title="IHOT" tvg-logo="https://epg.112114.eu.org/logo/浙江精彩影视.png",精彩影视
-http://[2409:8087:7001:20:1000::95]:6610/000000001000/6000000006000320630/index.m3u8?channel-id=wasusyt&Contentid=6000000006000320630&livemode=1&stbId=3
-#EXTINF:-1 group-title="IHOT" tvg-logo="https://epg.112114.eu.org/logo/HD精品剧场.png",精品剧场
-http://[2409:8087:7001:20:1000::95]:6610/000000001000/8230197131234717902/index.m3u8?channel-id=wasusyt&Contentid=8230197131234717902&livemode=1&stbId=3
-#EXTINF:-1 group-title="IHOT" tvg-logo="https://epg.112114.eu.org/logo/HD欧美影院.png",欧美影院
-http://[2409:8087:7001:20:1000::95]:6610/000000001000/7185203501769528108/index.m3u8?channel-id=wasusyt&Contentid=7185203501769528108&livemode=1&stbId=3
-#EXTINF:-1 group-title="IHOT" tvg-logo="https://epg.112114.eu.org/logo/HD少儿动漫.png",少儿动漫
-http://[2409:8087:7001:20:1000::95]:6610/000000001000/8145334647720731271/index.m3u8?channel-id=wasusyt&Contentid=8145334647720731271&livemode=1&stbId=3
-#EXTINF:-1 group-title="IHOT" tvg-logo="https://epg.112114.eu.org/logo/探索纪实.png",探索纪实
-http://[2409:8087:7001:20:1000::95]:6610/000000001000/5359008697329269813/index.m3u8?channel-id=wasusyt&Contentid=5359008697329269813&livemode=1&stbId=3
-#EXTINF:-1 group-title="IHOT" tvg-logo="https://epg.112114.eu.org/logo/亚洲影院.png",亚洲影院
-http://[2409:8087:7001:20:1000::95]:6610/000000001000/5841816227539527643/index.m3u8?channel-id=wasusyt&Contentid=5841816227539527643&livemode=1&stbId=3
+
 
 #EXTINF:-1 group-title="NEWTV",NewTV金牌综艺
 http://[2409:8087:1a01:df::4077]/ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225666/index.m3u8
@@ -831,7 +818,20 @@ http://[2409:8087:7001:20:1000::88]:6610/000000001000/5000000011000031110/index.
 http://iptv.hiper25.com:42487/xinshijue/video.m3u8?token=1710447330
 #EXTINF:-1 group-title="地方" tvg-logo="https://live.fanmingming.com/tv/陕西新闻资讯.png",新闻资讯
 http://[2409:8087:7000:20::4]:80/dbiptv.sn.chinamobile.com/PLTV/88888888/224/3221226357/index.m3u8
-
+#EXTINF:-1 group-title="地方" tvg-logo="https://epg.112114.eu.org/logo/浙江风尚音乐.png",风尚音乐
+http://[2409:8087:7001:20:1000::95]:6610/000000001000/5529729098703832176/index.m3u8?channel-id=wasusyt&Contentid=5529729098703832176&livemode=1&stbId=3
+#EXTINF:-1 group-title="地方" tvg-logo="https://epg.112114.eu.org/logo/浙江精彩影视.png",精彩影视
+http://[2409:8087:7001:20:1000::95]:6610/000000001000/6000000006000320630/index.m3u8?channel-id=wasusyt&Contentid=6000000006000320630&livemode=1&stbId=3
+#EXTINF:-1 group-title="地方" tvg-logo="https://epg.112114.eu.org/logo/HD精品剧场.png",精品剧场
+http://[2409:8087:7001:20:1000::95]:6610/000000001000/8230197131234717902/index.m3u8?channel-id=wasusyt&Contentid=8230197131234717902&livemode=1&stbId=3
+#EXTINF:-1 group-title="地方" tvg-logo="https://epg.112114.eu.org/logo/HD欧美影院.png",欧美影院
+http://[2409:8087:7001:20:1000::95]:6610/000000001000/7185203501769528108/index.m3u8?channel-id=wasusyt&Contentid=7185203501769528108&livemode=1&stbId=3
+#EXTINF:-1 group-title="地方" tvg-logo="https://epg.112114.eu.org/logo/HD少儿动漫.png",少儿动漫
+http://[2409:8087:7001:20:1000::95]:6610/000000001000/8145334647720731271/index.m3u8?channel-id=wasusyt&Contentid=8145334647720731271&livemode=1&stbId=3
+#EXTINF:-1 group-title="地方" tvg-logo="https://epg.112114.eu.org/logo/探索纪实.png",探索纪实
+http://[2409:8087:7001:20:1000::95]:6610/000000001000/5359008697329269813/index.m3u8?channel-id=wasusyt&Contentid=5359008697329269813&livemode=1&stbId=3
+#EXTINF:-1 group-title="地方" tvg-logo="https://epg.112114.eu.org/logo/亚洲影院.png",亚洲影院
+http://[2409:8087:7001:20:1000::95]:6610/000000001000/5841816227539527643/index.m3u8?channel-id=wasusyt&Contentid=5841816227539527643&livemode=1&stbId=3
 
 
 
